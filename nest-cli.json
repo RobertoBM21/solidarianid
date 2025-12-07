@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "apps/solidarianid/src",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "webpack": true,
+    "tsConfigPath": "apps/solidarianid/tsconfig.app.json"
+  },
+  "monorepo": true,
+  "root": "apps/solidarianid",
+  "projects": {
+    "admin": {
+      "type": "application",
+      "root": "apps/admin",
+      "entryFile": "main",
+      "sourceRoot": "apps/admin/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/admin/tsconfig.app.json",
+        "assets": [
+          {
+            "include": "../public/**/*",
+            "outDir": "dist/apps/admin/public",
+            "watchAssets": true
+          },
+          {
+            "include": "../views/**/*",
+            "outDir": "dist/apps/admin/views",
+            "watchAssets": true
+          }
+        ]
+      }
+    },
+    "shared": {
+      "type": "library",
+      "root": "libs/shared",
+      "entryFile": "index",
+      "sourceRoot": "libs/shared/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/shared/tsconfig.lib.json"
+      }
+    },
+    "solidarianid": {
+      "type": "application",
+      "root": "apps/solidarianid",
+      "entryFile": "main",
+      "sourceRoot": "apps/solidarianid/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/solidarianid/tsconfig.app.json"
+      }
+    }
+  }
+}

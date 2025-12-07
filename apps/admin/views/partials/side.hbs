@@ -1,0 +1,32 @@
+<label
+  for='drawer-toggle'
+  aria-label='cerrar menú'
+  class='drawer-overlay'
+></label>
+<div
+  class='flex min-h-full flex-col items-start bg-base-200 is-drawer-close:w-14 is-drawer-open:w-64'
+>
+  <ul class='menu w-full grow'>
+    <li>
+      <a
+        class='is-drawer-close:tooltip is-drawer-close:tooltip-right'
+        data-tip='Inicio'
+        href='/'
+      >
+        <i class='fas fa-home'></i>
+        <span class='is-drawer-close:hidden'>Inicio</span>
+      </a>
+    </li>
+
+    <li>
+      <a
+        class='is-drawer-close:tooltip is-drawer-close:tooltip-right'
+        data-tip='Informes'
+        href='/informes'
+      >
+        <i class='fas fa-file-alt'></i>
+        <span class='is-drawer-close:hidden'>Informes</span>
+      </a>
+    </li>
+  </ul>
+</div>

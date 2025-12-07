@@ -1,0 +1,8 @@
+{
+  "editor.tabSize": 2,
+  "files.associations": {
+    "*/admin/assets/*.css": "tailwindcss"
+  },
+  "typescript.preferences.quoteStyle": "single",
+  "jest.runMode": "on-demand"
+}

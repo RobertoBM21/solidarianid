@@ -1,0 +1,120 @@
+{
+  "name": "solidarianid",
+  "version": "0.0.1",
+  "description": "",
+  "author": "MISUM 2025 Grupo 2",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "build": "npm run build:admin && npm run build:solidarianid",
+    "build:solidarianid": "nest build solidarianid",
+    "build:admin": "nest build admin && npm run build:css:admin && npm run build:css:admin-reports",
+    "build:css:admin": "postcss apps/admin/assets/main.css -o apps/admin/public/main.css",
+    "build:css:admin-reports": "sass apps/admin/assets/reports.sass apps/admin/public/reports.css --no-source-map",
+    "watch:css:admin": "postcss apps/admin/assets/main.css -o apps/admin/public/main.css --watch",
+    "watch:css:admin-reports": "sass apps/admin/assets/reports.sass:apps/admin/public/reports.css --watch",
+    "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
+    "start": "nest start",
+    "start:dev:admin": "concurrently \"npm run watch:css:admin\" \"npm run watch:css:admin-reports\" \"nest start admin --watch\"",
+    "start:dev:solidarianid": "nest start solidarianid --watch",
+    "start:debug": "nest start --debug --watch",
+    "start:prod": "node dist/apps/solidarianid/main",
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
+    "lint:fix": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "test": "jest --coverage",
+    "test:watch": "jest --coverage --watch",
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "test:e2e:admin": "jest --config ./apps/admin/test/jest-e2e.config.js",
+    "test:e2e:solidarianid": "jest --config ./apps/solidarianid/test/jest-e2e.config.js"
+  },
+  "dependencies": {
+    "@keyv/redis": "^5.1.5",
+    "@nestjs/cache-manager": "^3.0.1",
+    "@nestjs/common": "^11.0.1",
+    "@nestjs/config": "^4.0.2",
+    "@nestjs/core": "^11.0.1",
+    "@nestjs/cqrs": "^11.0.3",
+    "@nestjs/microservices": "^11.1.10",
+    "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/swagger": "^11.2.3",
+    "@nestjs/typeorm": "^11.0.0",
+    "amqp-connection-manager": "^5.0.0",
+    "amqplib": "^0.10.9",
+    "cache-manager": "^7.2.7",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.3",
+    "express-handlebars": "^8.0.4",
+    "express-session": "^1.18.2",
+    "hbs": "^4.2.0",
+    "pg": "^8.16.3",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1",
+    "shallow-equal-object": "^1.1.1",
+    "typeorm": "^0.3.28",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "@darraghor/eslint-plugin-nestjs-typed": "^7.1.0",
+    "@eslint/eslintrc": "^3.2.0",
+    "@eslint/js": "^9.18.0",
+    "@nestjs/cli": "^11.0.0",
+    "@nestjs/schematics": "^11.0.0",
+    "@nestjs/testing": "^11.0.1",
+    "@tailwindcss/cli": "^4.1.17",
+    "@tailwindcss/postcss": "^4.1.17",
+    "@types/express": "^5.0.0",
+    "@types/express-session": "^1.18.2",
+    "@types/hbs": "^4.0.5",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^22.10.7",
+    "@types/supertest": "^6.0.2",
+    "autoprefixer": "^10.4.22",
+    "concurrently": "^9.2.1",
+    "daisyui": "^5.5.14",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-prettier": "^5.2.2",
+    "globals": "^16.0.0",
+    "jest": "^30.0.0",
+    "postcss": "^8.5.6",
+    "postcss-cli": "^11.0.1",
+    "prettier": "^3.4.2",
+    "sass": "^1.94.2",
+    "source-map-support": "^0.5.21",
+    "supertest": "^7.0.0",
+    "tailwindcss": "^4.1.17",
+    "ts-jest": "^29.2.5",
+    "ts-loader": "^9.5.2",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.20.0"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": ".",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "./coverage",
+    "testEnvironment": "node",
+    "roots": [
+      "<rootDir>/apps/",
+      "<rootDir>/libs/"
+    ],
+    "moduleNameMapper": {
+      "^@app/shared(|/.*)$": "<rootDir>/libs/shared/src/$1"
+    },
+    "transformIgnorePatterns": [
+      "node_modules/(?!uuid)"
+    ]
+  }
+}

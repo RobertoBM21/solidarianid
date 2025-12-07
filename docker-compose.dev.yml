@@ -1,0 +1,62 @@
+name: solidariandev
+
+services:
+  db:
+    image: postgres:18.1-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_pass
+      POSTGRES_DB: solidariandb
+    secrets:
+      - db_pass
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d solidariandb']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:4.2.2-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+    secrets:
+      - rabbitmq_password
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    entrypoint:
+      - sh
+      - -c
+      - |
+        export RABBITMQ_DEFAULT_PASS="$(cat /run/secrets/rabbitmq_password)"
+        docker-entrypoint.sh rabbitmq-server
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:8.4.0-alpine
+    ports:
+      - 6379:6379
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      retries: 5
+
+volumes:
+  db_data:
+  rabbitmq_data:
+
+secrets:
+  db_pass:
+    file: ./secrets/solidarian_password.txt
+  rabbitmq_password:
+    file: ./secrets/rabbitmq_password.txt
