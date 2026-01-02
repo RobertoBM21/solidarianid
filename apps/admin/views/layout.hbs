@@ -13,11 +13,9 @@
     crossorigin="anonymous"
     referrerpolicy="no-referrer"
   />
-  <link rel="stylesheet" href="main.css" />
+  <link rel="stylesheet" href="/main.css" />
 
-  {{#if css}}
-    <link rel="stylesheet" href="{{css}}" />
-  {{/if}}
+  {{{ renderCss }}}
 </head>
 
 <body>
@@ -38,5 +36,7 @@
       {{>side}}
     </div>
   </div>
+
+  {{{ renderJs }}}
 </body>
 </html>

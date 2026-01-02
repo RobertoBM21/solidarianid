@@ -7,7 +7,6 @@ export class ReportsController {
   reports() {
     return {
       title: 'Informes',
-      css: 'reports.css',
     };
   }
 }

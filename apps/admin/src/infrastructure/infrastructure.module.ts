@@ -3,7 +3,9 @@ import { Inject, MiddlewareConsumer, Module } from '@nestjs/common';
 import { ConfigModule, type ConfigType } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import session from 'express-session';
+import { CommunityProposalsRepository } from '../domain/repositories/community-proposals.repository';
 import webConfig from './config/web.config';
+import { CommunityProposalsRepositoryImpl } from './persistence/community-proposals.repository.impl';
 import entities from './persistence/entities';
 
 @Module({
@@ -13,7 +15,14 @@ import entities from './persistence/entities';
 
     TypeOrmModule.forFeature(entities),
   ],
-  exports: [CommonInfrastructureModule],
+  providers: [
+    CommunityProposalsRepositoryImpl,
+    {
+      provide: CommunityProposalsRepository,
+      useExisting: CommunityProposalsRepositoryImpl,
+    },
+  ],
+  exports: [CommonInfrastructureModule, CommunityProposalsRepository],
 })
 export class InfrastructureModule {
   constructor(

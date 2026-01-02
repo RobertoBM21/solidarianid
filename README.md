@@ -16,8 +16,8 @@ Es posible ejecutar las consultas de forma sencilla mediante el "Query Explorer"
 
 El proyecto NestJS se divide en tres componentes:
 
-- `apps/solidarianid`: aplicación principal "core".
-- `apps/admin`: aplicación de administración.
+- `apps/solidarianid`: aplicación principal "core" (puerto `3000`).
+- `apps/admin`: aplicación de administración (puerto `3001`).
 - `libs/shared`: librería compartida (módulos comunes, utilidades...).
 
 ## Configuración
@@ -69,6 +69,9 @@ openssl rand -base64 32 > secrets/rabbitmq_password.txt
 
 # Levantar la infraestructura local
 docker compose -f docker-compose.dev.yml up -d --wait
+
+# Instalar dependencias
+npm install
 
 # Lanzar una aplicación
 npm run start:dev:solidarianid

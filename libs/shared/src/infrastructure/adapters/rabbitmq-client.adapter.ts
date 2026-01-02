@@ -30,8 +30,15 @@ export class RabbitmqClientAdapter implements DomainEventsPort {
 
   private async publish(event: IEvent): Promise<void> {
     this.logger.debug(`Publishing event ${event.constructor.name} to RabbitMQ`);
-
     const patternName = event.constructor.name;
-    await lastValueFrom(this.client.emit<DomainEvent>(patternName, event));
+    try {
+      await lastValueFrom(this.client.emit<DomainEvent>(patternName, event));
+    } catch (error) {
+      this.logger.error(
+        `Failed to publish event ${patternName} to RabbitMQ`,
+        (error as Error).message,
+      );
+      throw error;
+    }
   }
 }

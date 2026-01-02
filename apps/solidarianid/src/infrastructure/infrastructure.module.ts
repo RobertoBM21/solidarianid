@@ -4,7 +4,9 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigType } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { CommunitiesRepository } from '../domain/repositories/communities.repository';
 import cacheConfig from './config/cache.config';
+import { CommunitiesRepositoryImpl } from './persistence/communities.repository.impl';
 import entities from './persistence/entities';
 
 @Module({
@@ -21,6 +23,13 @@ import entities from './persistence/entities';
       }),
     }),
   ],
-  exports: [CommonInfrastructureModule, CacheModule],
+  providers: [
+    CommunitiesRepositoryImpl,
+    {
+      provide: CommunitiesRepository,
+      useClass: CommunitiesRepositoryImpl,
+    },
+  ],
+  exports: [CommonInfrastructureModule, CacheModule, CommunitiesRepository],
 })
 export class InfrastructureModule {}

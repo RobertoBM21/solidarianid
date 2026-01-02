@@ -3,6 +3,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import hbs from 'hbs';
 import { join } from 'path';
 import { NotFoundFilter } from '../shared/filters/not-found.filter';
+import { registerHbsHelpers } from './helpers';
 
 export function setupMvcApp(
   app: NestExpressApplication,
@@ -24,6 +25,8 @@ export function setupMvcApp(
   if (process.env.NODE_ENV !== 'production') {
     app.set('view cache', false);
   }
+
+  registerHbsHelpers(hbs);
 
   app.useGlobalFilters(new NotFoundFilter());
 }
