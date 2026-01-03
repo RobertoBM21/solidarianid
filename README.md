@@ -62,10 +62,10 @@ Para facilitar el desarrollo se ha incluido un archivo `docker-compose.dev.yml` 
 cp .env.example .env
 
 # Crear secretos con contenido aleatorio
-openssl rand -base64 32 > secrets/solidarian_password.txt
-openssl rand -base64 32 > secrets/admin_password.txt
-openssl rand -base64 32 > secrets/admin_session_secret.txt
-openssl rand -base64 32 > secrets/rabbitmq_password.txt
+openssl rand -base64 32 | tr -d '\n' > secrets/solidarian_password.txt
+openssl rand -base64 32 | tr -d '\n' > secrets/admin_password.txt
+openssl rand -base64 32 | tr -d '\n' > secrets/admin_session_secret.txt
+openssl rand -base64 32 | tr -d '\n' > secrets/rabbitmq_password.txt
 
 # Levantar la infraestructura local
 docker compose -f docker-compose.dev.yml up -d --wait

@@ -17,9 +17,9 @@ export const rabbitmqConfig = registerAs<RmqOptions>('rabbitmq', () => ({
 }));
 
 function buildRabbitmqUrl(): string {
-  const user = getEnvVar('RABBITMQ_USER');
-  const pass = getFileFromEnvVar('RABBITMQ_PASSWORD_FILE');
-  const host = getEnvVar('RABBITMQ_HOST');
+  const user = encodeURIComponent(getEnvVar('RABBITMQ_USER'));
+  const pass = encodeURIComponent(getFileFromEnvVar('RABBITMQ_PASSWORD_FILE'));
+  const host = encodeURIComponent(getEnvVar('RABBITMQ_HOST'));
   const port = getEnvVarAsInt('RABBITMQ_PORT', 5672).toFixed(0);
 
   return `amqp://${user}:${pass}@${host}:${port}/`;
