@@ -1,13 +1,13 @@
 import { registerAs } from '@nestjs/config';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { getEnvVar, getEnvVarAsInt, getFileFromEnvVar } from '../../utils';
+import { getEnvVar, getEnvVarAsInt, getSecretFromEnvVar } from '../../utils';
 
 export default registerAs<TypeOrmModuleOptions>('database', () => ({
   type: 'postgres',
   host: getEnvVar('DB_HOST'),
   port: getEnvVarAsInt('DB_PORT', 5432),
   username: getEnvVar('DB_USER'),
-  password: getFileFromEnvVar('DB_PASSWORD_FILE'),
+  password: getSecretFromEnvVar('DB_PASSWORD'),
   database: getEnvVar('DB_NAME'),
   autoLoadEntities: true,
 

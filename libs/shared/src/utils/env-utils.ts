@@ -22,8 +22,18 @@ export function getEnvVarAsInt(key: string, defaultValue?: number): number {
   return defaultValue;
 }
 
-export function getFileFromEnvVar(key: string): string {
-  const filePath = getEnvVar(key);
+export function getSecretFromEnvVar(key: string): string {
+  const value = process.env[key];
+  if (value) {
+    return value;
+  }
+
+  const fileKey = `${key}_FILE`;
+  const filePath = process.env[fileKey];
+  if (!filePath) {
+    throw new Error(`Environment variable ${key} or ${fileKey} is not set`);
+  }
+
   try {
     return readFileSync(filePath, 'utf8');
   } catch (err) {

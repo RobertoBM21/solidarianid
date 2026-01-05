@@ -7,7 +7,7 @@ import { AppModule } from './../src/app.module';
 describe('AppController (e2e)', () => {
   let app: NestExpressApplication;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -20,6 +20,7 @@ describe('AppController (e2e)', () => {
     await app.close();
   });
 
+  // Really a smoke test
   it('/ (GET) should return the healthcheck message', async () => {
     const res = await request(app.getHttpServer())
       .get('/')

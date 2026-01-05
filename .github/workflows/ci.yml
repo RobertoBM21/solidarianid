@@ -1,0 +1,38 @@
+name: CI SolidarianID
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-suite:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 24.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Linting (ESLint)
+        run: npm run lint
+
+      - name: Run unit tests (Jest)
+        run: npm run test
+
+      - name: Start services for integration tests
+        run: docker compose -f docker-compose.test.yml --progress plain up -d --wait --quiet-pull
+
+      - name: Run integration tests (Jest)
+        run: npm run test:e2e
+
+      # Don't clean up docker services, the runner is ephemeral and will be discarded after the job

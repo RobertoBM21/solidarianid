@@ -1,6 +1,6 @@
 import { registerAs } from '@nestjs/config';
 import { RmqOptions, Transport } from '@nestjs/microservices';
-import { getEnvVar, getEnvVarAsInt, getFileFromEnvVar } from '../../utils';
+import { getEnvVar, getEnvVarAsInt, getSecretFromEnvVar } from '../../utils';
 
 export const RABBITMQ_CLIENT = 'RABBITMQ_CLIENT';
 
@@ -18,7 +18,7 @@ export const rabbitmqConfig = registerAs<RmqOptions>('rabbitmq', () => ({
 
 function buildRabbitmqUrl(): string {
   const user = encodeURIComponent(getEnvVar('RABBITMQ_USER'));
-  const pass = encodeURIComponent(getFileFromEnvVar('RABBITMQ_PASSWORD_FILE'));
+  const pass = encodeURIComponent(getSecretFromEnvVar('RABBITMQ_PASSWORD'));
   const host = encodeURIComponent(getEnvVar('RABBITMQ_HOST'));
   const port = getEnvVarAsInt('RABBITMQ_PORT', 5672).toFixed(0);
 

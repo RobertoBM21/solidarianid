@@ -1,4 +1,5 @@
 import { Module, OnModuleInit } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { CqrsModule } from '@nestjs/cqrs';
 import { ClientsModule } from '@nestjs/microservices';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -10,6 +11,9 @@ import { RABBITMQ_CLIENT, rabbitmqConfig } from './config/rabbitmq.config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      envFilePath: [`.env.${process.env.NODE_ENV ?? 'development'}`, '.env'],
+    }),
     CqrsModule.forRoot(),
 
     ClientsModule.registerAsync([
@@ -29,7 +33,7 @@ import { RABBITMQ_CLIENT, rabbitmqConfig } from './config/rabbitmq.config';
       useClass: RabbitmqClientAdapter,
     },
   ],
-  exports: [TypeOrmModule, DomainEventsPort],
+  exports: [ConfigModule, TypeOrmModule, DomainEventsPort],
 })
 export class CommonInfrastructureModule implements OnModuleInit {
   constructor(private readonly rabbitmqClientAdapter: RabbitmqClientAdapter) {}

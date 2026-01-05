@@ -77,3 +77,25 @@ npm install
 npm run start:dev:solidarianid
 # ó npm run start:dev:admin
 ```
+
+## Testing
+
+Es posible realizar pruebas básicas mediante los siguientes comandos:
+
+- Linting: `npm run lint`
+- Tests unitarios: `npm run test`
+
+### Tests de integración
+
+Se proporciona un archivo `docker-compose.test.yml` específico para apoyar los tests de integración (e2e en NestJS).
+
+```bash
+# Levantar la infraestructura
+docker compose -f docker-compose.test.yml up -d --wait
+
+# Ejecutar tests de integración
+npm run test:e2e
+
+# Detener servicios
+docker compose -f docker-compose.test.yml down
+```
