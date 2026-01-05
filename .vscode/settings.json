@@ -1,5 +1,9 @@
 {
   "editor.tabSize": 2,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "always"
+  },
+  "editor.formatOnSave": true,
   "files.associations": {
     "*/admin/assets/*.css": "tailwindcss"
   },

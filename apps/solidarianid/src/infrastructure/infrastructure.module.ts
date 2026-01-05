@@ -4,12 +4,14 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigType } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { CommunitiesRepository } from '../domain/repositories/communities.repository';
 import { CausesRepository } from '../domain/repositories/causes.repository';
+import { CommunitiesRepository } from '../domain/repositories/communities.repository';
+import { UserRepository } from '../domain/repositories/user.repository';
 import cacheConfig from './config/cache.config';
-import { CommunitiesRepositoryImpl } from './persistence/communities.repository.impl';
 import { CausesRepositoryImpl } from './persistence/causes.repository.impl';
+import { CommunitiesRepositoryImpl } from './persistence/communities.repository.impl';
 import entities from './persistence/entities';
+import { UsersRepositoryImpl } from './persistence/users.repository.impl';
 
 @Module({
   imports: [
@@ -32,6 +34,11 @@ import entities from './persistence/entities';
       provide: CommunitiesRepository,
       useClass: CommunitiesRepositoryImpl,
     },
+    UsersRepositoryImpl,
+    {
+      provide: UserRepository,
+      useClass: UsersRepositoryImpl,
+    },
     {
       provide: CausesRepository,
       useClass: CausesRepositoryImpl,
@@ -41,6 +48,7 @@ import entities from './persistence/entities';
     CommonInfrastructureModule,
     CacheModule,
     CommunitiesRepository,
+    UserRepository,
     CausesRepository,
   ],
 })

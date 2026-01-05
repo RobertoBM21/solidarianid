@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
-import { InfrastructureModule } from '../infrastructure/infrastructure.module';
-import { CommunitiesService } from './services/communities.service';
-import { CausesService } from './services/causes.service';
 import { CausesServicePort } from '../domain/ports/causes.service.port';
+import { UserPort } from '../domain/ports/user.port';
+import { InfrastructureModule } from '../infrastructure/infrastructure.module';
+import { CausesService } from './services/causes.service';
+import { CommunitiesService } from './services/communities.service';
+import { UserService } from './services/user.service';
 
 @Module({
   imports: [InfrastructureModule],
@@ -13,7 +15,12 @@ import { CausesServicePort } from '../domain/ports/causes.service.port';
       provide: CausesServicePort,
       useExisting: CausesService,
     },
+    UserService,
+    {
+      provide: UserPort,
+      useExisting: UserService,
+    },
   ],
-  exports: [CommunitiesService, CausesServicePort],
+  exports: [CommunitiesService, CausesServicePort, UserPort],
 })
 export class ApplicationModule {}
