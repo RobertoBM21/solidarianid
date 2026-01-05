@@ -50,6 +50,7 @@ export class CommunitiesService {
       name: data.name,
       description: data.description,
       admins: [data.requesterId],
+      causes: [],
     });
     if (communityOrError.isLeft()) {
       return left(communityOrError.value);

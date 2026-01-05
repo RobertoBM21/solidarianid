@@ -22,6 +22,7 @@ describe('CommunitiesService', () => {
     name: 'Community 1',
     description: 'Description 1',
     admins: [UniqueEntityID.create().toString()],
+    causes: [],
   });
   if (community1.isRight()) {
     mockCommunities.push(community1.value);
@@ -30,6 +31,7 @@ describe('CommunitiesService', () => {
     name: 'Community 2',
     description: 'Description 2',
     admins: [UniqueEntityID.create().toString()],
+    causes: [],
   });
   if (community2.isRight()) {
     mockCommunities.push(community2.value);

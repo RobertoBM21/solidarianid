@@ -1,0 +1,30 @@
+import { ApiProperty, ApiSchema } from '@nestjs/swagger';
+
+@ApiSchema({ name: 'Cause' })
+export class CauseDto {
+  @ApiProperty({ description: 'Cause ID' })
+  id: string;
+
+  @ApiProperty({ description: 'Community ID the cause belongs to' })
+  communityId: string;
+
+  @ApiProperty({ description: 'Title of the cause' })
+  title: string;
+
+  @ApiProperty({ description: 'Description of the cause' })
+  description: string;
+
+  @ApiProperty({ description: 'Duration of the cause' })
+  duration: string;
+
+  @ApiProperty({ description: 'ODS number (1-17)' })
+  ods: number;
+
+  @ApiProperty({ description: 'Whether the cause is closed' })
+  closed: boolean;
+
+  @ApiProperty({
+    description: 'Creation date of the cause (ISO 8601 format)',
+  })
+  createdAt: string;
+}

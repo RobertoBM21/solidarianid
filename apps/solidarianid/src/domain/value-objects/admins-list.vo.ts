@@ -20,6 +20,10 @@ export class AdminsList extends ValueObject<UniqueEntityID[]> {
     return this.props;
   }
 
+  has(userId: UniqueEntityID): boolean {
+    return this.props.some((id) => id.equals(userId));
+  }
+
   static create(
     adminIds: (string | UniqueEntityID)[],
   ): Either<InvalidAdminsListError, AdminsList> {

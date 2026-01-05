@@ -1,4 +1,4 @@
-import { DomainError, Repository } from '@app/shared/domain';
+import { DomainError, Repository, UniqueEntityID } from '@app/shared/domain';
 import { Community } from '../aggregates/community.aggregate';
 
 export class CommunityNotFoundError implements DomainError {
@@ -13,4 +13,5 @@ export abstract class CommunitiesRepository extends Repository<
   CommunityNotFoundError
 > {
   abstract findAll(): Promise<Community[]>;
+  abstract exists(id: UniqueEntityID): Promise<boolean>;
 }

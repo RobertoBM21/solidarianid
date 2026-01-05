@@ -8,6 +8,7 @@ import { CommunityDbEntity } from '../src/infrastructure/persistence/entities/co
 import { AppModule } from './../src/app.module';
 
 describe('CommunitiesController (e2e)', () => {
+  let em: EntityManager;
   let ormRepo: Repository<CommunityDbEntity>;
   let app: NestExpressApplication;
 
@@ -31,14 +32,15 @@ describe('CommunitiesController (e2e)', () => {
       imports: [AppModule],
     }).compile();
 
-    ormRepo = moduleFixture.get(EntityManager).getRepository(CommunityDbEntity);
+    em = moduleFixture.get(EntityManager);
+    ormRepo = em.getRepository(CommunityDbEntity);
 
     app = moduleFixture.createNestApplication();
     await app.init();
   });
 
   beforeEach(async () => {
-    await ormRepo.clear();
+    await em.query('TRUNCATE TABLE "communities" CASCADE;');
     await ormRepo.insert(predefinedCommunities);
   });
 

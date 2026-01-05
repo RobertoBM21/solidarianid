@@ -1,3 +1,5 @@
 import { CommunityDbEntity } from './community.db-entity';
+import { CauseDbEntity } from './cause.db-entity';
+import { CommunityMemberDbEntity } from './community-member.db-entity';
 
-export default [CommunityDbEntity];
+export default [CommunityDbEntity, CauseDbEntity, CommunityMemberDbEntity];

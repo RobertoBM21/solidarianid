@@ -5,8 +5,10 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigType } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CommunitiesRepository } from '../domain/repositories/communities.repository';
+import { CausesRepository } from '../domain/repositories/causes.repository';
 import cacheConfig from './config/cache.config';
 import { CommunitiesRepositoryImpl } from './persistence/communities.repository.impl';
+import { CausesRepositoryImpl } from './persistence/causes.repository.impl';
 import entities from './persistence/entities';
 
 @Module({
@@ -25,11 +27,21 @@ import entities from './persistence/entities';
   ],
   providers: [
     CommunitiesRepositoryImpl,
+    CausesRepositoryImpl,
     {
       provide: CommunitiesRepository,
       useClass: CommunitiesRepositoryImpl,
     },
+    {
+      provide: CausesRepository,
+      useClass: CausesRepositoryImpl,
+    },
   ],
-  exports: [CommonInfrastructureModule, CacheModule, CommunitiesRepository],
+  exports: [
+    CommonInfrastructureModule,
+    CacheModule,
+    CommunitiesRepository,
+    CausesRepository,
+  ],
 })
 export class InfrastructureModule {}

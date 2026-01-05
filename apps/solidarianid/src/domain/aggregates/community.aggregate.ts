@@ -1,5 +1,6 @@
 import {
   AggregateRoot,
+  DomainError,
   Either,
   left,
   right,
@@ -18,18 +19,31 @@ import {
   InvalidDateError,
 } from '@app/shared/domain/value-objects/creation-date.vo';
 import { AdminsList } from '../value-objects/admins-list.vo';
+import {
+  CausesList,
+  InvalidCausesListError,
+} from '../value-objects/causes-list.vo';
 
 export interface CommunityProps {
   name: CommunityName;
   description: CommunityDescription;
   createdAt: CreationDate;
   admins: AdminsList;
+  causes: CausesList;
 }
 
 export type CommunityCreationError =
   | InvalidCommunityNameError
   | InvalidCommunityDescriptionError
-  | InvalidDateError;
+  | InvalidDateError
+  | InvalidCausesListError;
+
+export class UserIsNotAdminError implements DomainError {
+  readonly message: string;
+  constructor(public readonly communityId: string) {
+    this.message = `User is not an admin of community ${communityId}`;
+  }
+}
 
 export class Community extends AggregateRoot<CommunityProps> {
   get name(): string {
@@ -48,12 +62,28 @@ export class Community extends AggregateRoot<CommunityProps> {
     return this.props.admins;
   }
 
+  addCause(
+    causeId: UniqueEntityID,
+    requesterId: UniqueEntityID,
+  ): Either<UserIsNotAdminError | InvalidCausesListError, void> {
+    if (!this.props.admins.has(requesterId)) {
+      return left(new UserIsNotAdminError(this.id.toString()));
+    }
+    const updatedCauses = this.props.causes.withAdded(causeId);
+    if (updatedCauses.isLeft()) {
+      return left(updatedCauses.value);
+    }
+    this.props.causes = updatedCauses.value;
+    return right(undefined);
+  }
+
   static create(
     data: {
       name: string;
       description: string;
       createdAt?: Date | string;
       admins: string[];
+      causes?: string[];
     },
     id?: string,
   ): Either<CommunityCreationError, Community> {
@@ -77,6 +107,11 @@ export class Community extends AggregateRoot<CommunityProps> {
       return left(adminsListOrError.value);
     }
 
+    const causesListOrError = CausesList.create(data.causes ?? []);
+    if (causesListOrError.isLeft()) {
+      return left(causesListOrError.value);
+    }
+
     const idObj: UniqueEntityID | undefined = id
       ? UniqueEntityID.create(id)
       : undefined;
@@ -86,6 +121,7 @@ export class Community extends AggregateRoot<CommunityProps> {
       description: descriptionOrError.value,
       createdAt: createdAtOrError.value,
       admins: adminsListOrError.value,
+      causes: causesListOrError.value,
     };
     return right(new Community(props, idObj));
   }

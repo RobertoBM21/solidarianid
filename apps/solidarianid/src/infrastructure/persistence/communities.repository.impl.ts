@@ -1,11 +1,13 @@
 import { Either, left, right, UniqueEntityID } from '@app/shared/domain';
 import { Injectable } from '@nestjs/common';
-import { EntityManager } from 'typeorm';
+import { EntityManager, In } from 'typeorm';
 import { Community } from '../../domain/aggregates/community.aggregate';
 import {
   CommunitiesRepository,
   CommunityNotFoundError,
 } from '../../domain/repositories/communities.repository';
+import { CauseDbEntity } from './entities/cause.db-entity';
+import { CommunityMemberDbEntity } from './entities/community-member.db-entity';
 import { CommunityDbEntity } from './entities/community.db-entity';
 
 @Injectable()
@@ -33,23 +35,62 @@ export class CommunitiesRepositoryImpl extends CommunitiesRepository {
     if (!dbEntity) {
       return left(new CommunityNotFoundError(id.toString()));
     }
-    return right(this.mapCommunityToDomain(dbEntity));
+    return right(await this.mapCommunityToDomain(dbEntity));
   }
 
   async findAll(): Promise<Community[]> {
     const dbEntities = await this.em.find(CommunityDbEntity, {
       order: { createdAt: 'DESC' },
     });
-    return dbEntities.map((com) => this.mapCommunityToDomain(com));
+    if (!dbEntities.length) {
+      return [];
+    }
+
+    const ids = dbEntities.map((com) => com.id);
+    const [adminMap, causeMap] = await Promise.all([
+      this.loadAdminIdsByCommunities(ids),
+      this.loadCauseIdsByCommunities(ids),
+    ]);
+
+    return dbEntities.map((com) =>
+      this.mapCommunityToDomainWithData(
+        com,
+        adminMap.get(com.id) ?? [],
+        causeMap.get(com.id) ?? [],
+      ),
+    );
   }
 
-  private mapCommunityToDomain(entity: CommunityDbEntity): Community {
+  async exists(id: UniqueEntityID): Promise<boolean> {
+    const count = await this.em.count(CommunityDbEntity, {
+      where: { id: id.toString() },
+    });
+    return count > 0;
+  }
+
+  private async mapCommunityToDomain(
+    entity: CommunityDbEntity,
+  ): Promise<Community> {
+    const [adminIds, causeIds] = await Promise.all([
+      this.loadAdminIds(entity.id),
+      this.loadCauseIds(entity.id),
+    ]);
+
+    return this.mapCommunityToDomainWithData(entity, adminIds, causeIds);
+  }
+
+  private mapCommunityToDomainWithData(
+    entity: CommunityDbEntity,
+    adminIds: string[],
+    causeIds: string[],
+  ): Community {
     const obj = Community.create(
       {
         name: entity.name,
         description: entity.description,
         createdAt: entity.createdAt,
-        admins: [], // TODO: Load admins from DB
+        admins: adminIds,
+        causes: causeIds,
       },
       entity.id,
     );
@@ -62,10 +103,66 @@ export class CommunitiesRepositoryImpl extends CommunitiesRepository {
     return obj.value;
   }
 
+  private async loadAdminIds(communityId: string): Promise<string[]> {
+    const members = await this.em.find(CommunityMemberDbEntity, {
+      select: { userId: true },
+      where: { communityId, admin: true },
+    });
+    return members.map((member) => member.userId);
+  }
+
+  private async loadCauseIds(communityId: string): Promise<string[]> {
+    const causes = await this.em.find(CauseDbEntity, {
+      select: { id: true },
+      where: { communityId },
+    });
+    return causes.map((cause) => cause.id);
+  }
+
+  private async loadAdminIdsByCommunities(
+    communityIds: string[],
+  ): Promise<Map<string, string[]>> {
+    const members = await this.em.find(CommunityMemberDbEntity, {
+      select: { communityId: true, userId: true },
+      where: { communityId: In(communityIds), admin: true },
+    });
+    const map = new Map<string, string[]>();
+    for (const member of members) {
+      const list = map.get(member.communityId) ?? [];
+      list.push(member.userId);
+      map.set(member.communityId, list);
+    }
+    return map;
+  }
+
+  private async loadCauseIdsByCommunities(
+    communityIds: string[],
+  ): Promise<Map<string, string[]>> {
+    if (communityIds.length === 0) {
+      return new Map();
+    }
+    const causes = await this.em.find(CauseDbEntity, {
+      select: { id: true, communityId: true },
+      where: { communityId: In(communityIds) },
+    });
+    const map = new Map<string, string[]>();
+    for (const cause of causes) {
+      const list = map.get(cause.communityId) ?? [];
+      list.push(cause.id);
+      map.set(cause.communityId, list);
+    }
+    return map;
+  }
+
   async remove(
     id: UniqueEntityID,
   ): Promise<Either<CommunityNotFoundError, void>> {
-    await this.em.delete(CommunityDbEntity, { id: id.toString() });
+    const result = await this.em.delete(CommunityDbEntity, {
+      id: id.toString(),
+    });
+    if (result.affected === 0) {
+      return left(new CommunityNotFoundError(id.toString()));
+    }
     return right(undefined);
   }
 }
