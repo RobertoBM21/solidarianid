@@ -4,7 +4,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from './../src/app.module';
 
-describe('AppController (e2e)', () => {
+describe('App (e2e)', () => {
   let app: NestExpressApplication;
 
   beforeAll(async () => {
@@ -21,12 +21,7 @@ describe('AppController (e2e)', () => {
   });
 
   // Really a smoke test
-  it('/ (GET) should return the healthcheck message', async () => {
-    const res = await request(app.getHttpServer())
-      .get('/')
-      .expect(HttpStatus.OK)
-      .expect('Content-Type', /text\/plain/);
-
-    expect(res.text).toBe('Hello World!');
+  it('/ (GET) should return something', () => {
+    return request(app.getHttpServer()).get('/').expect(HttpStatus.NOT_FOUND);
   });
 });

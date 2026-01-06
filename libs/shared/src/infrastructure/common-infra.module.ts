@@ -1,4 +1,4 @@
-import { Module, OnModuleInit } from '@nestjs/common';
+import { Global, Module, OnModuleInit } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { CqrsModule } from '@nestjs/cqrs';
 import { ClientsModule } from '@nestjs/microservices';
@@ -9,6 +9,7 @@ import { RabbitmqClientAdapter } from './adapters/rabbitmq-client.adapter';
 import databaseConfig from './config/database.config';
 import { RABBITMQ_CLIENT, rabbitmqConfig } from './config/rabbitmq.config';
 
+@Global()
 @Module({
   imports: [
     ConfigModule.forRoot({

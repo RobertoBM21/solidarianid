@@ -4,6 +4,7 @@
     "source.organizeImports": "always"
   },
   "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "files.associations": {
     "*/admin/assets/*.css": "tailwindcss"
   },
