@@ -4,6 +4,7 @@ import {
   Body,
   Controller,
   Get,
+  Query,
   Logger,
   Post,
 } from '@nestjs/common';
@@ -13,6 +14,7 @@ import {
   ApiCreatedResponse,
   ApiOkResponse,
   ApiTags,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { v4 } from 'uuid';
 import { CommunitiesPort } from '../../../domain/ports/community.port';
@@ -32,8 +34,16 @@ export class CommunitiesController {
     description: 'List of communities retrieved successfully',
     type: [CommunityListItemDto],
   })
-  async list(): Promise<CommunityListItemDto[]> {
-    return await this.communitiesPort.listCommunities();
+  @ApiQuery({ name: 'field', enum: ['name', 'createdAt'], required: false })
+  @ApiQuery({ name: 'order', enum: ['ASC', 'DESC'], required: false })
+  @ApiQuery({ name: 'search', required: false })
+  async list(
+    @Query('field') field?: 'name' | 'createdAt',
+    @Query('order') order?: 'ASC' | 'DESC',
+    @Query('search') search?: string,
+  ): Promise<CommunityListItemDto[]> {
+    const sort = field || order ? { field, order } : undefined;
+    return await this.communitiesPort.listCommunities(search, sort);
   }
 
   @Post()

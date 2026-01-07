@@ -38,6 +38,13 @@ export type CommunityCreationError =
   | InvalidDateError
   | InvalidCausesListError;
 
+export class CommunityNameAlreadyExistsError implements DomainError {
+  readonly message: string;
+  constructor(public readonly name: string) {
+    this.message = `Community name "${name}" already exists.`;
+  }
+}
+
 export class UserIsNotAdminError implements DomainError {
   readonly message: string;
   constructor(public readonly communityId: string) {

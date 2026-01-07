@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { CommunityProposalAcceptedHandler } from './application/handlers/community-proposal-accepted.handler';
 import { CommunityProposalsService } from './application/services/community-proposals.service';
 import { CommunityProposalsPort } from './domain/ports/community-proposals.port';
 import { CommunityProposalRepository } from './domain/repositories/community-proposal.repository';
@@ -20,6 +21,7 @@ import { CommunityProposalsController } from './infrastructure/presentation/cont
       provide: CommunityProposalsPort,
       useExisting: CommunityProposalsService,
     },
+    CommunityProposalAcceptedHandler,
   ],
   controllers: [CommunityProposalsController],
 })

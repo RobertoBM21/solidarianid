@@ -46,6 +46,16 @@ export class CommunityProposalRepositoryImpl extends CommunityProposalRepository
     return dbEntities.map((com) => this.mapCommunityToDomain(com));
   }
 
+  async findPendingByName(name: string): Promise<CommunityProposal[]> {
+    const dbEntities = await this.em.find(CommunityProposalDbEntity, {
+      where: {
+        name,
+        accepted: IsNull(),
+      },
+    });
+    return dbEntities.map((com) => this.mapCommunityToDomain(com));
+  }
+
   private mapCommunityToDomain(
     entity: CommunityProposalDbEntity,
   ): CommunityProposal {

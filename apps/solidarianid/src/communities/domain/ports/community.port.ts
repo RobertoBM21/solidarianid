@@ -9,7 +9,10 @@ export interface CommunityListOut {
 }
 
 export abstract class CommunitiesPort {
-  abstract listCommunities(): Promise<CommunityListOut[]>;
+  abstract listCommunities(
+    search?: string,
+    sort?: { field?: 'name' | 'createdAt'; order?: 'ASC' | 'DESC' },
+  ): Promise<CommunityListOut[]>;
 
   abstract proposeCommunity(
     data: {

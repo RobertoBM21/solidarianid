@@ -1,6 +1,6 @@
 import { Either, left, right, UniqueEntityID } from '@app/shared/domain';
 import { Injectable } from '@nestjs/common';
-import { EntityManager, In } from 'typeorm';
+import { EntityManager, ILike, In } from 'typeorm';
 import { CauseDbEntity } from '../../../../initiatives/infrastructure/persistence/entities/cause.db-entity';
 import { Community } from '../../../domain/community.aggregate';
 import {
@@ -14,6 +14,12 @@ import { CommunityDbEntity } from '../entities/community.db-entity';
 export class CommunityRepositoryImpl extends CommunityRepository {
   constructor(private readonly em: EntityManager) {
     super();
+  }
+
+  async existsByName(name: string): Promise<boolean> {
+    return await this.em.exists(CommunityDbEntity, {
+      where: { name },
+    });
   }
 
   async save(community: Community): Promise<void> {
@@ -38,10 +44,19 @@ export class CommunityRepositoryImpl extends CommunityRepository {
     return right(await this.mapCommunityToDomain(dbEntity));
   }
 
-  async findAll(): Promise<Community[]> {
+  async findAll(
+    search?: string,
+    sort?: { field?: 'name' | 'createdAt'; order?: 'ASC' | 'DESC' },
+  ): Promise<Community[]> {
+    const where = search ? { name: ILike(`%${search}%`) } : undefined;
+    const orderField = sort?.field ?? 'createdAt';
+    const orderDirection: 'ASC' | 'DESC' = sort?.order ?? 'DESC';
+
     const dbEntities = await this.em.find(CommunityDbEntity, {
-      order: { createdAt: 'DESC' },
+      where,
+      order: { [orderField]: orderDirection },
     });
+
     if (!dbEntities.length) {
       return [];
     }

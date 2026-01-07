@@ -13,4 +13,5 @@ export abstract class CommunityProposalRepository extends Repository<
   CommunityProposalNotFoundError
 > {
   abstract findAllPending(): Promise<CommunityProposal[]>;
+  abstract findPendingByName(name: string): Promise<CommunityProposal[]>;
 }
