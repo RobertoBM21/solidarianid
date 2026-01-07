@@ -6,5 +6,19 @@
   >
     <i class='fas fa-bars'></i>
   </label>
-  <div class='px-4'>SolidarianID</div>
+  <div class='px-4 text-lg font-bold'>SolidarianID</div>
+  <div class='flex-1'></div>
+  {{#if @root.userId}}
+    <div class='dropdown dropdown-end'>
+      <div tabindex='0' role='button' class='btn btn-ghost btn-circle'>
+        <i class='fa-solid fa-user text-xl'></i>
+      </div>
+      <ul
+        tabindex='0'
+        class='menu menu-sm dropdown-content mt-3 z-1 p-2 shadow bg-base-300 rounded-box w-52'
+      >
+        <li><a href='/auth/logout'>Cerrar sesión</a></li>
+      </ul>
+    </div>
+  {{/if}}
 </nav>

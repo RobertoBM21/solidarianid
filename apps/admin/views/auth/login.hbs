@@ -1,0 +1,60 @@
+{{addLib 'axios'}}
+{{addJs '/login.js'}}
+
+<div class='flex justify-center items-center h-full'>
+  <div class='card w-96 bg-base-100 shadow-xl mt-10'>
+    <div class='card-body'>
+      <h2 class='card-title justify-center mb-4'>Iniciar Sesión</h2>
+
+      <div
+        id='js-error-container'
+        role='alert'
+        class='alert alert-error mb-4 hidden'
+      >
+        <i class='fa-solid fa-circle-xmark text-2xl shrink-0'></i>
+        <span id='js-error-message'></span>
+      </div>
+
+      <form action='/auth/login' method='POST' id='login-form'>
+        <div class='form-control w-full max-w-xs'>
+          <label class='label'>
+            <span class='label-text'>Correo electrónico</span>
+          </label>
+          <input
+            type='email'
+            name='email'
+            id='email'
+            placeholder='Correo electrónico'
+            class='input input-bordered w-full max-w-xs'
+            required
+          />
+        </div>
+
+        <div class='form-control w-full max-w-xs mt-2'>
+          <label class='label'>
+            <span class='label-text'>Contraseña</span>
+          </label>
+          <input
+            type='password'
+            name='password'
+            id='password'
+            placeholder='Contraseña'
+            class='input input-bordered w-full max-w-xs'
+            required
+          />
+        </div>
+
+        <div class='card-actions justify-end mt-6'>
+          <button type='submit' class='btn btn-primary w-full'>Entrar</button>
+        </div>
+      </form>
+
+      <div class='divider'>O</div>
+
+      <div class='text-center'>
+        <a href='/auth/register' class='link link-hover text-sm'>¿No tienes
+          cuenta? Regístrate</a>
+      </div>
+    </div>
+  </div>
+</div>

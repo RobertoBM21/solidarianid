@@ -1,0 +1,93 @@
+{{addLib 'axios'}}
+{{addJs '/register.js'}}
+
+<div class='flex justify-center items-center h-full'>
+  <div class='card w-96 bg-base-100 shadow-xl mt-10'>
+    <div class='card-body'>
+      <h2 class='card-title justify-center mb-4'>Registro de Administrador</h2>
+
+      <div
+        id='js-error-container'
+        role='alert'
+        class='alert alert-error mb-4 hidden'
+      >
+        <i class='fa-solid fa-circle-xmark text-2xl shrink-0'></i>
+        <span id='js-error-message'></span>
+      </div>
+
+      <form action='/auth/register' method='POST' id='register-form'>
+        <div class='form-control w-full max-w-xs'>
+          <label class='label'>
+            <span class='label-text'>Nombre completo</span>
+          </label>
+          <input
+            type='text'
+            name='name'
+            id='name'
+            placeholder='Juan Perez'
+            class='input input-bordered w-full max-w-xs'
+            required
+            pattern='^[a-zA-Z\s]+$'
+          />
+        </div>
+
+        <div class='form-control w-full max-w-xs mt-2'>
+          <label class='label'>
+            <span class='label-text'>Correo electrónico</span>
+          </label>
+          <input
+            type='email'
+            name='email'
+            id='email'
+            placeholder='admin@solidarianid.com'
+            class='input input-bordered w-full max-w-xs'
+            required
+          />
+        </div>
+
+        <div class='form-control w-full max-w-xs mt-2'>
+          <label class='label'>
+            <span class='label-text'>Teléfono</span>
+          </label>
+          <input
+            type='tel'
+            name='phone'
+            id='phone'
+            placeholder='123 45 67 89'
+            class='input input-bordered w-full max-w-xs'
+            required
+          />
+        </div>
+
+        <div class='form-control w-full max-w-xs mt-2'>
+          <label class='label'>
+            <span class='label-text'>Contraseña</span>
+          </label>
+          <input
+            type='password'
+            name='password'
+            id='password'
+            placeholder='Contraseña'
+            class='input input-bordered w-full max-w-xs'
+            required
+            minlength='8'
+          />
+        </div>
+
+        <div class='card-actions justify-end mt-6'>
+          <button
+            type='submit'
+            class='btn btn-primary w-full'
+          >Registrarse</button>
+        </div>
+      </form>
+
+      <div class='divider'>O</div>
+
+      <div class='text-center'>
+        <a href='/auth/login' class='link link-hover text-sm'>¿Ya tienes cuenta?
+          Inicia sesión</a>
+      </div>
+    </div>
+  </div>
+</div>

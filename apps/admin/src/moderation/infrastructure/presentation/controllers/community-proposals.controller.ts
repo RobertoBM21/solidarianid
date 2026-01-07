@@ -9,12 +9,15 @@ import {
   ParseUUIDPipe,
   Post,
   Render,
+  UseGuards,
 } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
+import { LoggedInGuard } from '../../../../authentication/infrastructure/presentation/guards/logged-in.guard';
 import { CommunityProposalsPort } from '../../../domain/ports/community-proposals.port';
 import { CommunityProposalNotFoundError } from '../../../domain/repositories/community-proposal.repository';
 
 @Controller()
+@UseGuards(LoggedInGuard)
 export class CommunityProposalsController {
   constructor(private readonly service: CommunityProposalsPort) {}
 

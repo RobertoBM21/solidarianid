@@ -19,23 +19,29 @@
 </head>
 
 <body>
-  <div class="drawer lg:drawer-open">
-    <input id="drawer-toggle" type="checkbox" class="drawer-toggle" />
+  {{#if @root.userId}}
+    <div class="drawer lg:drawer-open">
+      <input id="drawer-toggle" type="checkbox" class="drawer-toggle" />
 
-    <div class="drawer-content min-h-screen flex flex-col">
-      {{>header}}
+      <div class="drawer-content min-h-screen flex flex-col">
+        {{>header}}
 
-      <main class="flex-1 p-4">
-        {{{body}}}
-      </main>
+        <main class="flex-1 p-4">
+          {{{ body }}}
+        </main>
 
-      {{>footer}}
+        {{>footer}}
+      </div>
+
+      <div class="drawer-side is-drawer-close:overflow-visible">
+        {{>side}}
+      </div>
     </div>
-
-    <div class="drawer-side is-drawer-close:overflow-visible">
-      {{>side}}
+  {{else}}
+    <div class="min-h-screen bg-base-200">
+      {{{ body }}}
     </div>
-  </div>
+  {{/if}}
 
   {{{ renderJs }}}
 </body>

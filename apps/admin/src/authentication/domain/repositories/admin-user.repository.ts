@@ -4,7 +4,7 @@ import { AdminUser } from '../aggregates/admin-user.aggregate';
 export class AdminUserNotFoundError implements DomainError {
   readonly message: string;
   constructor(public readonly idOrEmail: string) {
-    this.message = `AdminUser with ID or Email ${idOrEmail} not found.`;
+    this.message = `AdminUser with Email ${idOrEmail} not found.`;
   }
 }
 
