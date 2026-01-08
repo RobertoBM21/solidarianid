@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { GetCommunityExistsHandler } from './application/handlers/get-community-exists.handler';
+import { IsCommunityAdminHandler } from './application/handlers/is-community-admin.handler';
 import { CommunitiesService } from './application/services/communities.service';
 import { CommunitiesPort } from './domain/ports/community.port';
 import { CommunityRepository } from './domain/repositories/community.repository';
@@ -15,6 +16,9 @@ import { CommunitiesController } from './infrastructure/presentation/controllers
     TypeOrmModule.forFeature([CommunityDbEntity, CommunityMemberDbEntity]),
   ],
   providers: [
+    GetCommunityExistsHandler,
+    IsCommunityAdminHandler,
+
     CommunityRepositoryImpl,
     {
       provide: CommunityRepository,

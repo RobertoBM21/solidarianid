@@ -1,6 +1,18 @@
-import { ApiProperty, ApiSchema } from '@nestjs/swagger';
+import {
+  ApiExtraModels,
+  ApiProperty,
+  ApiPropertyOptional,
+  ApiSchema,
+  getSchemaPath,
+} from '@nestjs/swagger';
+import {
+  ActionDto,
+  FundingActionDto,
+  VolunteeringActionDto,
+} from './action.dto';
 
 @ApiSchema({ name: 'Cause' })
+@ApiExtraModels(FundingActionDto, VolunteeringActionDto)
 export class CauseDto {
   @ApiProperty({ description: 'Cause ID' })
   id: string;
@@ -27,4 +39,14 @@ export class CauseDto {
     description: 'Creation date of the cause (ISO 8601 format)',
   })
   createdAt: string;
+
+  @ApiPropertyOptional({
+    description: 'Actions associated with this cause',
+    isArray: true,
+    oneOf: [
+      { $ref: getSchemaPath(FundingActionDto) },
+      { $ref: getSchemaPath(VolunteeringActionDto) },
+    ],
+  })
+  actions?: ActionDto[];
 }

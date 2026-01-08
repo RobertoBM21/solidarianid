@@ -1,0 +1,263 @@
+import {
+  AggregateRoot,
+  DomainError,
+  Either,
+  left,
+  right,
+  UniqueEntityID,
+} from '@app/shared/domain';
+import {
+  CreationDate,
+  InvalidDateError,
+} from '@app/shared/domain/value-objects/creation-date.vo';
+import {
+  ActionDescription,
+  InvalidActionDescriptionError,
+} from '../value-objects/action-description.vo';
+import {
+  ActionCurrentAmount,
+  ActionTargetAmount,
+  InvalidActionCurrentAmountError,
+  InvalidActionTargetAmountError,
+} from '../value-objects/action-funding.vo';
+import {
+  ActionObjectives,
+  InvalidActionObjectivesError,
+} from '../value-objects/action-objectives.vo';
+import {
+  ActionSchedule,
+  InvalidActionScheduleError,
+} from '../value-objects/action-schedule.vo';
+import { ActionStatus } from '../value-objects/action-status.vo';
+import {
+  ActionTitle,
+  InvalidActionTitleError,
+} from '../value-objects/action-title.vo';
+
+export class InvalidActionTypeError implements DomainError {
+  message = 'Action type must be volunteering or funding.';
+}
+
+export interface ActionProps {
+  title: ActionTitle;
+  description: ActionDescription;
+  objectives: ActionObjectives;
+  status: ActionStatus;
+  createdAt: CreationDate;
+  causeId: UniqueEntityID;
+}
+
+export interface VolunteeringActionProps extends ActionProps {
+  schedule: ActionSchedule;
+}
+
+export interface FundingActionProps extends ActionProps {
+  targetAmount: ActionTargetAmount;
+  currentAmount: ActionCurrentAmount;
+}
+
+export type VolunteeringActionCreationError =
+  | InvalidActionTypeError
+  | InvalidActionTitleError
+  | InvalidActionDescriptionError
+  | InvalidActionObjectivesError
+  | InvalidActionScheduleError
+  | InvalidDateError;
+
+export type FundingActionCreationError =
+  | InvalidActionTypeError
+  | InvalidActionTitleError
+  | InvalidActionDescriptionError
+  | InvalidActionObjectivesError
+  | InvalidActionTargetAmountError
+  | InvalidActionCurrentAmountError
+  | InvalidDateError;
+
+export type ActionCreationError =
+  | VolunteeringActionCreationError
+  | FundingActionCreationError;
+
+export abstract class Action<
+  P extends ActionProps = ActionProps,
+> extends AggregateRoot<P> {
+  protected constructor(props: P, id?: UniqueEntityID) {
+    super(props, id);
+  }
+
+  abstract get type(): 'volunteering' | 'funding';
+
+  get title(): string {
+    return this.props.title.value;
+  }
+
+  get description(): string {
+    return this.props.description.value;
+  }
+
+  get objectives(): readonly string[] {
+    return this.props.objectives.value;
+  }
+
+  get closed(): boolean {
+    return this.props.status.isClosed();
+  }
+
+  get createdAt(): Date {
+    return this.props.createdAt.value;
+  }
+
+  get causeId(): UniqueEntityID {
+    return this.props.causeId;
+  }
+
+  protected static buildCommonProps(data: {
+    title: string;
+    description: string;
+    objectives: string[];
+    closed?: boolean;
+    createdAt?: Date | string;
+    causeId: string;
+  }): Either<
+    | InvalidActionTitleError
+    | InvalidActionDescriptionError
+    | InvalidActionObjectivesError
+    | InvalidDateError,
+    ActionProps
+  > {
+    const titleOrError = ActionTitle.create(data.title);
+    if (titleOrError.isLeft()) {
+      return left(titleOrError.value);
+    }
+
+    const descriptionOrError = ActionDescription.create(data.description);
+    if (descriptionOrError.isLeft()) {
+      return left(descriptionOrError.value);
+    }
+
+    const objectivesOrError = ActionObjectives.create(data.objectives);
+    if (objectivesOrError.isLeft()) {
+      return left(objectivesOrError.value);
+    }
+
+    const createdAtOrError = CreationDate.create(data.createdAt);
+    if (createdAtOrError.isLeft()) {
+      return left(createdAtOrError.value);
+    }
+
+    return right({
+      title: titleOrError.value,
+      description: descriptionOrError.value,
+      objectives: objectivesOrError.value,
+      status: ActionStatus.create(data.closed ?? false),
+      createdAt: createdAtOrError.value,
+      causeId: UniqueEntityID.create(data.causeId),
+    });
+  }
+}
+
+export class VolunteeringAction extends Action<VolunteeringActionProps> {
+  private constructor(props: VolunteeringActionProps, id?: UniqueEntityID) {
+    super(props, id);
+  }
+
+  readonly type = 'volunteering';
+
+  get start(): Date {
+    return this.props.schedule.start;
+  }
+
+  get end(): Date {
+    return this.props.schedule.end;
+  }
+
+  static create(
+    data: {
+      title: string;
+      description: string;
+      objectives: string[];
+      closed?: boolean;
+      createdAt?: Date | string;
+      causeId: string;
+      start: Date | string;
+      end: Date | string;
+    },
+    id?: string,
+  ): Either<VolunteeringActionCreationError, VolunteeringAction> {
+    const commonPropsOrError = this.buildCommonProps(data);
+    if (commonPropsOrError.isLeft()) {
+      return left(commonPropsOrError.value);
+    }
+
+    const scheduleOrError = ActionSchedule.create({
+      start: data.start,
+      end: data.end,
+    });
+    if (scheduleOrError.isLeft()) {
+      return left(scheduleOrError.value);
+    }
+
+    const props = {
+      ...commonPropsOrError.value,
+      schedule: scheduleOrError.value,
+    };
+
+    const idObj = id ? UniqueEntityID.create(id) : undefined;
+    return right(new VolunteeringAction(props, idObj));
+  }
+}
+
+export class FundingAction extends Action<FundingActionProps> {
+  private constructor(props: FundingActionProps, id?: UniqueEntityID) {
+    super(props, id);
+  }
+
+  readonly type = 'funding';
+
+  get targetAmountValue(): number {
+    return this.props.targetAmount.value;
+  }
+
+  get currentAmountValue(): number {
+    return this.props.currentAmount.value;
+  }
+
+  static create(
+    data: {
+      title: string;
+      description: string;
+      objectives: string[];
+      closed?: boolean;
+      createdAt?: Date | string;
+      causeId: string;
+      targetAmount?: number;
+      currentAmount?: number;
+    },
+    id?: string,
+  ): Either<FundingActionCreationError, FundingAction> {
+    const commonPropsOrError = this.buildCommonProps(data);
+    if (commonPropsOrError.isLeft()) {
+      return left(commonPropsOrError.value);
+    }
+
+    const targetAmountOrError = ActionTargetAmount.create(data.targetAmount);
+    if (targetAmountOrError.isLeft()) {
+      return left(targetAmountOrError.value);
+    }
+
+    const currentAmountOrError = ActionCurrentAmount.create(
+      data.currentAmount ?? 0,
+    );
+    if (currentAmountOrError.isLeft()) {
+      return left(currentAmountOrError.value);
+    }
+
+    const props = {
+      ...commonPropsOrError.value,
+      targetAmount: targetAmountOrError.value,
+      currentAmount: currentAmountOrError.value,
+    };
+
+    const idObj = id ? UniqueEntityID.create(id) : undefined;
+    return right(new FundingAction(props, idObj));
+  }
+}

@@ -9,6 +9,7 @@ import {
   CauseNotFoundError,
   CauseRepository,
 } from '../../domain/repositories/cause.repository';
+import { ActionRepository } from '../../domain/repositories/action.repository';
 import { CausesService } from './causes.service';
 
 describe('CausesService', () => {
@@ -24,6 +25,13 @@ describe('CausesService', () => {
 
   const mockDomainEvents: DomainEventsPort = {
     dispatch: jest.fn(),
+  };
+
+  const mockActionRepository = {
+    save: jest.fn(),
+    findById: jest.fn(),
+    remove: jest.fn(),
+    listByCause: jest.fn(),
   };
 
   const mockQueryBus = {
@@ -48,6 +56,10 @@ describe('CausesService', () => {
         {
           provide: DomainEventsPort,
           useValue: mockDomainEvents,
+        },
+        {
+          provide: ActionRepository,
+          useValue: mockActionRepository,
         },
       ],
     }).compile();
@@ -177,6 +189,7 @@ describe('CausesService', () => {
       }).value as Cause;
 
       mockCauseRepository.findByIdAndCommunity.mockResolvedValue(right(cause));
+      mockActionRepository.listByCause.mockResolvedValue([]);
 
       const result = await service.getCause(communityId, cause.id.toString());
 
@@ -184,6 +197,7 @@ describe('CausesService', () => {
       if (result.isRight()) {
         expect(result.value.id).toBe(cause.id.toString());
       }
+      expect(mockActionRepository.listByCause).toHaveBeenCalledTimes(1);
     });
 
     it('should fail when a cause is not found', async () => {

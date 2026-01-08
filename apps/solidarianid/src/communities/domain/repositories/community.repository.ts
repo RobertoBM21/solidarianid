@@ -13,6 +13,10 @@ export abstract class CommunityRepository extends Repository<
   CommunityNotFoundError
 > {
   abstract exists(id: UniqueEntityID): Promise<boolean>;
+  abstract isAdmin(
+    communityId: UniqueEntityID,
+    userId: UniqueEntityID,
+  ): Promise<boolean>;
   abstract existsByName(name: string): Promise<boolean>;
   abstract findAll(
     search?: string,

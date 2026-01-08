@@ -83,6 +83,19 @@ export class CommunityRepositoryImpl extends CommunityRepository {
     return count > 0;
   }
 
+  async isAdmin(
+    communityId: UniqueEntityID,
+    userId: UniqueEntityID,
+  ): Promise<boolean> {
+    return this.em.exists(CommunityMemberDbEntity, {
+      where: {
+        communityId: communityId.toString(),
+        userId: userId.toString(),
+        admin: true,
+      },
+    });
+  }
+
   private async mapCommunityToDomain(
     entity: CommunityDbEntity,
   ): Promise<Community> {

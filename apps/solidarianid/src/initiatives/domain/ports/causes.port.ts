@@ -1,5 +1,6 @@
 import { Either } from '@app/shared/domain';
 import { CommunityNotFoundError } from '../../../communities/domain/repositories/community.repository';
+import { ActionOut } from '../../application/ports/actions.port';
 import {
   CauseAlreadyClosedError,
   CauseCreationError,
@@ -28,6 +29,7 @@ export interface CauseOut {
   ods: number;
   closed: boolean;
   createdAt: string;
+  actions?: ActionOut[];
 }
 
 export abstract class CausesServicePort {

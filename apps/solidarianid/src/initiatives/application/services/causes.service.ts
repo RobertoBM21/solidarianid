@@ -15,10 +15,12 @@ import {
   CloseCauseError,
   CreateCauseError,
 } from '../../domain/ports/causes.port';
+import { ActionRepository } from '../../domain/repositories/action.repository';
 import {
   CauseNotFoundError,
   CauseRepository,
 } from '../../domain/repositories/cause.repository';
+import { mapActionToOutDto } from '../dtos/action-out.dto';
 import { CauseOutDto } from '../dtos/cause-out.dto';
 
 @Injectable()
@@ -27,6 +29,7 @@ export class CausesService extends CausesServicePort {
     private readonly causeRepository: CauseRepository,
     private readonly domainEvents: DomainEventsPort,
     private readonly queryBus: QueryBus,
+    private readonly actionRepository: ActionRepository,
   ) {
     super();
   }
@@ -70,7 +73,9 @@ export class CausesService extends CausesServicePort {
       return left(causeResult.value);
     }
     const cause = causeResult.value;
-    return right(new CauseOutDto(cause));
+    const actions = await this.actionRepository.listByCause(cause.id);
+    const actionDtos = actions.map((action) => mapActionToOutDto(action));
+    return right(new CauseOutDto(cause, actionDtos));
   }
 
   async closeCause(
