@@ -49,7 +49,6 @@ document.addEventListener('DOMContentLoaded', () => {
           window.location.href = '/';
         })
         .catch((error) => {
-          console.error('Login error:', error);
           const msg =
             error.response?.data?.message ||
             'Error al iniciar sesión. Inténtelo de nuevo.';

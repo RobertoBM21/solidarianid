@@ -3,9 +3,9 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { Test, TestingModule } from '@nestjs/testing';
 import { join } from 'path';
 import request from 'supertest';
-import { AdminModule } from '../src/admin.module';
-import { AuthPort } from '../src/authentication/domain/ports/auth.port';
-import { setupMvcApp } from '../src/presentation/setup-mvc';
+import { AdminModule } from '../../src/admin.module';
+import { AuthPort } from '../../src/authentication/domain/ports/auth.port';
+import { setupMvcApp } from '../../src/presentation/setup-mvc';
 
 describe('Auth Guards (e2e)', () => {
   let app: NestExpressApplication;
@@ -23,7 +23,7 @@ describe('Auth Guards (e2e)', () => {
       .compile();
 
     app = moduleFixture.createNestApplication();
-    setupMvcApp(app, join(__dirname, '..'));
+    setupMvcApp(app, join(__dirname, '../..'));
     await app.init();
   });
 

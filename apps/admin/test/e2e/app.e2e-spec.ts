@@ -3,14 +3,14 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { Test, TestingModule } from '@nestjs/testing';
 import { join } from 'path';
 import request from 'supertest';
-import { AdminModule } from '../src/admin.module';
-import { LoggedInGuard } from '../src/authentication/infrastructure/presentation/guards/logged-in.guard';
-import { setupMvcApp } from '../src/presentation/setup-mvc';
+import { AdminModule } from '../../src/admin.module';
+import { LoggedInGuard } from '../../src/authentication/infrastructure/presentation/guards/logged-in.guard';
+import { setupMvcApp } from '../../src/presentation/setup-mvc';
 
 describe('AdminController (e2e)', () => {
   let app: NestExpressApplication;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AdminModule],
     })
@@ -19,7 +19,7 @@ describe('AdminController (e2e)', () => {
       .compile();
 
     app = moduleFixture.createNestApplication();
-    setupMvcApp(app, join(__dirname, '..'));
+    setupMvcApp(app, join(__dirname, '../..'));
     await app.init();
   });
 

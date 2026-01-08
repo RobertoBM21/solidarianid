@@ -35,4 +35,7 @@ jobs:
       - name: Run integration tests (Jest)
         run: npm run test:e2e
 
+      - name: Run MVC tests (Jest)
+        run: npm run test:mvc:admin
+
       # Don't clean up docker services, the runner is ephemeral and will be discarded after the job

@@ -1,7 +1,9 @@
 // @ts-check
 import eslintNestJs from '@darraghor/eslint-plugin-nestjs-typed';
 import eslint from '@eslint/js';
+import jestDom from 'eslint-plugin-jest-dom';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
+import testingLibrary from 'eslint-plugin-testing-library';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
@@ -11,7 +13,7 @@ export default [
       'eslint.config.mjs',
       'postcss.config.mjs',
       'tailwind.config.js',
-      '**/jest-e2e.config.js',
+      '**/jest-*.config.js',
       'dist/**',
       'coverage/**',
       '**/admin/public/*.js',
@@ -68,13 +70,29 @@ export default [
   },
   {
     // Allow `any` use in tests
-    files: ['**/*.spec.ts', '**/*.e2e-spec.ts'],
+    files: ['**/*.spec.ts', '**/*.*-spec.ts'],
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unsafe-return': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
+    },
+  },
+  {
+    // MVC test files
+    files: ['**/*.mvc-spec.ts'],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.jest,
+      },
+    },
+    ...testingLibrary.configs['flat/dom'],
+    ...jestDom.configs['flat/recommended'],
+    rules: {
+      // Allow loading client JS files with require()
+      '@typescript-eslint/no-require-imports': 'off',
     },
   },
 ];
