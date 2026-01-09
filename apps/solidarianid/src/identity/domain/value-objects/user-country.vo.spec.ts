@@ -1,32 +1,52 @@
 import { InvalidUserCountryError, UserCountry } from './user-country.vo';
 
 describe('User country value object', () => {
+  const mockCountryChecker = {
+    isValidCountryCode: jest.fn(),
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  // Basic path tests
+
+  // 1. S1-C1-S2-FIN
+  it('should return an error when the country code is not 2 characters long', () => {
+    const result = UserCountry.create('e', mockCountryChecker);
+
+    expect(result.isLeft()).toBe(true);
+    if (result.isLeft()) {
+      expect(result.value).toBeInstanceOf(InvalidUserCountryError);
+    }
+    expect(mockCountryChecker.isValidCountryCode).not.toHaveBeenCalled();
+  });
+
+  // 2. S1-C1-C2-S2-FIN
+  it('should return an error when the country code is not a valid alfa-2 code', () => {
+    mockCountryChecker.isValidCountryCode.mockReturnValue(false);
+
+    const result = UserCountry.create('xx', mockCountryChecker);
+
+    expect(result.isLeft()).toBe(true);
+    if (result.isLeft()) {
+      expect(result.value).toBeInstanceOf(InvalidUserCountryError);
+    }
+    expect(mockCountryChecker.isValidCountryCode).toHaveBeenCalledWith('xx');
+  });
+
+  // 3. S1-C1-C2-S3-FIN
   it('should create a valid user country', () => {
-    const result = UserCountry.create('es');
+    mockCountryChecker.isValidCountryCode.mockReturnValue(true);
+
+    const result = UserCountry.create('es', mockCountryChecker);
 
     expect(result.isRight()).toBe(true);
     if (result.isRight()) {
       const userCountry = result.value;
       expect(userCountry.value).toBe('es');
     }
-  });
 
-  it('should return an error when the country name is empty', () => {
-    const result = UserCountry.create('');
-
-    expect(result.isLeft()).toBe(true);
-    if (result.isLeft()) {
-      expect(result.value).toBeInstanceOf(InvalidUserCountryError);
-    }
-  });
-
-  it('should return an error when the country name length is too long', () => {
-    const longCountryName = 'esp';
-    const result = UserCountry.create(longCountryName);
-
-    expect(result.isLeft()).toBe(true);
-    if (result.isLeft()) {
-      expect(result.value).toBeInstanceOf(InvalidUserCountryError);
-    }
+    expect(mockCountryChecker.isValidCountryCode).toHaveBeenCalledWith('es');
   });
 });

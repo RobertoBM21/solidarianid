@@ -33,6 +33,28 @@ describe('usersController', () => {
     expect(controller).toBeDefined();
   });
 
+  // Basic path tests
+
+  // 1. S1-C1-S2-FIN
+  it('should throw BadRequestException when user creation fails', async () => {
+    const mockCreateUserDto = {
+      name: 'John Doe',
+      email: 'john.doe@example.com',
+      phone: '1234567890',
+      password: 'securepassword',
+      city: 'New York',
+      country: 'USA',
+    };
+    mockUserPort.createUser.mockResolvedValue(
+      left({ message: 'Email already exists' }),
+    );
+
+    await expect(controller.createUser(mockCreateUserDto)).rejects.toThrow(
+      'Email already exists',
+    );
+  });
+
+  // 2. S1-C1-S3-S4-S5-FIN
   it('should create a user and return CreateUserResponseDto', async () => {
     const mockUserId = uuidv4();
     const mockCreateUserDto = {
@@ -50,23 +72,5 @@ describe('usersController', () => {
 
     expect(mockUserPort.createUser).toHaveBeenCalledWith(mockCreateUserDto);
     expect(response).toEqual({ userId: mockUserId });
-  });
-
-  it('should throw BadRequestException when user creation fails', async () => {
-    const mockCreateUserDto = {
-      name: 'John Doe',
-      email: 'john.doe@example.com',
-      phone: '1234567890',
-      password: 'securepassword',
-      city: 'New York',
-      country: 'USA',
-    };
-    mockUserPort.createUser.mockResolvedValue(
-      left({ message: 'Email already exists' }),
-    );
-
-    await expect(controller.createUser(mockCreateUserDto)).rejects.toThrow(
-      'Email already exists',
-    );
   });
 });

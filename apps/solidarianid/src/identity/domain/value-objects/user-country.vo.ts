@@ -5,9 +5,10 @@ import {
   right,
   ValueObject,
 } from '@app/shared/domain';
+import { CountryCheckerPort } from '../ports/country-checker.port';
 
 export class InvalidUserCountryError implements DomainError {
-  message = 'User country must be a 2-letter alpha code.';
+  message = 'User country must be a valid 2-letter alpha code.';
 }
 
 export class UserCountry extends ValueObject<string> {
@@ -21,10 +22,16 @@ export class UserCountry extends ValueObject<string> {
     return this.props;
   }
 
-  static create(country: string): Either<InvalidUserCountryError, UserCountry> {
+  static create(
+    country: string,
+    checker: CountryCheckerPort,
+  ): Either<InvalidUserCountryError, UserCountry> {
     const trimmedCountry = country.trim().toLowerCase();
 
-    if (trimmedCountry.length !== this.ALPHA_2_CODE_LENGTH) {
+    if (
+      trimmedCountry.length !== this.ALPHA_2_CODE_LENGTH ||
+      !checker.isValidCountryCode(trimmedCountry)
+    ) {
       return left(new InvalidUserCountryError());
     }
 

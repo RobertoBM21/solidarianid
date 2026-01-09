@@ -2,6 +2,7 @@ import { Either, left, right, UniqueEntityID } from '@app/shared/domain';
 import { Injectable } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
 import { User } from '../../domain/aggregates/user.aggregate';
+import { CountryCheckerPort } from '../../domain/ports/country-checker.port';
 import {
   UserNotFoundError,
   UserRepository,
@@ -10,7 +11,10 @@ import { UserDbEntity } from './entities/user.db-entity';
 
 @Injectable()
 export class UserRepositoryImpl extends UserRepository {
-  constructor(private readonly em: EntityManager) {
+  constructor(
+    private readonly countryChecker: CountryCheckerPort,
+    private readonly em: EntityManager,
+  ) {
     super();
   }
 
@@ -61,6 +65,7 @@ export class UserRepositoryImpl extends UserRepository {
         city: entity.city,
         country: entity.country,
       },
+      this.countryChecker,
       entity.id,
     );
     if (obj.isLeft()) {

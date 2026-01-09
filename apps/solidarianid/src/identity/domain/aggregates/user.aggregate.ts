@@ -22,6 +22,7 @@ import {
   InvalidUserPhoneError,
   UserPhone,
 } from '@app/shared/domain/value-objects/user-phone.vo';
+import { CountryCheckerPort } from '../ports/country-checker.port';
 import { InvalidUserCityError, UserCity } from '../value-objects/user-city.vo';
 import {
   InvalidUserCountryError,
@@ -83,6 +84,7 @@ export class User extends AggregateRoot<UserProps> {
       city: string;
       country: string;
     },
+    countryChecker: CountryCheckerPort,
     id?: string,
   ): Either<UserCreationError, User> {
     const nameOrError = UserName.create(data.name);
@@ -110,7 +112,7 @@ export class User extends AggregateRoot<UserProps> {
       return left(cityOrError.value);
     }
 
-    const countryOrError = UserCountry.create(data.country);
+    const countryOrError = UserCountry.create(data.country, countryChecker);
     if (countryOrError.isLeft()) {
       return left(countryOrError.value);
     }
