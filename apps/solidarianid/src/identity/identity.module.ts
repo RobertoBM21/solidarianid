@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { GetUserExistsHandler } from './application/handlers/get-user-exists.handler';
 import { UserService } from './application/user.service';
@@ -6,6 +6,7 @@ import { CountryCheckerPort } from './domain/ports/country-checker.port';
 import { UserPort } from './domain/ports/user.port';
 import { UserRepository } from './domain/repositories/user.repository';
 import { CountryCheckerAdapter } from './infrastructure/adapters/country-checker.adapter';
+import { AuthMiddleware } from './infrastructure/middlewares/auth.middleware';
 import { UserDbEntity } from './infrastructure/persistence/entities/user.db-entity';
 import { UserRepositoryImpl } from './infrastructure/persistence/user.repository.impl';
 import { UsersController } from './infrastructure/presentation/controllers/users.controller';
@@ -32,4 +33,8 @@ import { UsersController } from './infrastructure/presentation/controllers/users
   ],
   controllers: [UsersController],
 })
-export class IdentityModule {}
+export class IdentityModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(AuthMiddleware).forRoutes('*');
+  }
+}

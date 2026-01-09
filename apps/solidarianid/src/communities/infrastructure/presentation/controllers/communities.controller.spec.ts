@@ -69,16 +69,17 @@ describe('CommunitiesController', () => {
         name: 'New Community',
         description: 'New Description',
       };
+      const userId = v4();
       mockCommunitiesService.proposeCommunity.mockResolvedValue(
         right({ proposalId: '12345' }),
       );
 
-      const result = await controller.proposeCommunity(dto);
+      const result = await controller.proposeCommunity(dto, userId);
 
       expect(mockCommunitiesService.proposeCommunity).toHaveBeenCalledTimes(1);
       expect(mockCommunitiesService.proposeCommunity).toHaveBeenCalledWith(
         dto,
-        expect.any(String),
+        userId,
       );
       expect(result).toHaveProperty('proposalId');
     });
@@ -94,7 +95,7 @@ describe('CommunitiesController', () => {
         left(new InvalidCommunityNameError(errorMessage)),
       );
 
-      await expect(controller.proposeCommunity(dto)).rejects.toThrow(
+      await expect(controller.proposeCommunity(dto, v4())).rejects.toThrow(
         BadRequestException,
       );
       expect(mockCommunitiesService.proposeCommunity).toHaveBeenCalledTimes(1);

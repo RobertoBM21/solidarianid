@@ -12,7 +12,15 @@ describe('CommunityRepositoryImpl', () => {
   const mockEntityManager: jest.Mocked<
     Pick<
       EntityManager,
-      'save' | 'findOne' | 'find' | 'count' | 'delete' | 'exists' | 'findBy'
+      | 'save'
+      | 'findOne'
+      | 'find'
+      | 'count'
+      | 'delete'
+      | 'exists'
+      | 'findBy'
+      | 'transaction'
+      | 'upsert'
     >
   > = {
     save: jest.fn(),
@@ -22,6 +30,8 @@ describe('CommunityRepositoryImpl', () => {
     delete: jest.fn(),
     exists: jest.fn(),
     findBy: jest.fn(),
+    upsert: jest.fn(),
+    transaction: jest.fn().mockImplementation((cb) => cb(mockEntityManager)),
   };
 
   const communityId = UniqueEntityID.create().toString();

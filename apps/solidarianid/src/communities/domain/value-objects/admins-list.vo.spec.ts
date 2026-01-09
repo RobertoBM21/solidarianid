@@ -26,4 +26,15 @@ describe('AdminsList Value Object', () => {
       expect(error).toBeInstanceOf(InvalidAdminsListError);
     }
   });
+
+  it('should return an error for empty admin list', () => {
+    const result = AdminsList.create([]);
+
+    expect(result.isLeft()).toBe(true);
+    if (result.isLeft()) {
+      const error = result.value;
+      expect(error).toBeInstanceOf(InvalidAdminsListError);
+      expect(error.message).toBe('A community must have at least one admin.');
+    }
+  });
 });

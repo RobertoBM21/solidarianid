@@ -19,6 +19,16 @@ async function bootstrap() {
     .setTitle('SolidarianID API')
     .setDescription('The SolidarianID official API')
     .setVersion('1.0')
+    .addApiKey(
+      {
+        type: 'apiKey',
+        name: 'Authorization',
+        in: 'header',
+        description:
+          'Enter your UUIDv4 token directly (e.g., 550e8400-e29b-41d4-a716-446655440000)',
+      },
+      'userId',
+    )
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);

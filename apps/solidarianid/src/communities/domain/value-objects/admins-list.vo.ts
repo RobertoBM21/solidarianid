@@ -33,6 +33,12 @@ export class AdminsList extends ValueObject<UniqueEntityID[]> {
       );
     }
 
+    if (adminIds.length === 0) {
+      return left(
+        new InvalidAdminsListError('A community must have at least one admin.'),
+      );
+    }
+
     const ids: UniqueEntityID[] = [];
     const seen = new Set<string>();
 

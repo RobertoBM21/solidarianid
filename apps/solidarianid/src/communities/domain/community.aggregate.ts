@@ -22,7 +22,10 @@ import {
   CausesList,
   InvalidCausesListError,
 } from '../../initiatives/domain/value-objects/causes-list.vo';
-import { AdminsList } from './value-objects/admins-list.vo';
+import {
+  AdminsList,
+  InvalidAdminsListError,
+} from './value-objects/admins-list.vo';
 
 export interface CommunityProps {
   name: CommunityName;
@@ -36,7 +39,8 @@ export type CommunityCreationError =
   | InvalidCommunityNameError
   | InvalidCommunityDescriptionError
   | InvalidDateError
-  | InvalidCausesListError;
+  | InvalidCausesListError
+  | InvalidAdminsListError;
 
 export class CommunityNameAlreadyExistsError implements DomainError {
   readonly message: string;

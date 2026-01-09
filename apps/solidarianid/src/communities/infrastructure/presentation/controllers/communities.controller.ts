@@ -4,19 +4,22 @@ import {
   Body,
   Controller,
   Get,
-  Query,
   Logger,
   Post,
+  Query,
+  UseGuards,
 } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
 import {
   ApiBody,
   ApiCreatedResponse,
   ApiOkResponse,
-  ApiTags,
   ApiQuery,
+  ApiSecurity,
+  ApiTags,
 } from '@nestjs/swagger';
-import { v4 } from 'uuid';
+import { AuthId } from '../../../../identity/infrastructure/decorators/auth-id.decorator';
+import { AuthGuard } from '../../../../identity/infrastructure/guards/auth.guard';
 import { CommunitiesPort } from '../../../domain/ports/community.port';
 import { CommunityListItemDto } from '../dtos/community-list-item.dto';
 import { CommunityProposalDto } from '../dtos/community-proposal.dto';
@@ -24,6 +27,7 @@ import { ProposeCommunityDto } from '../dtos/propose-community.dto';
 
 @Controller('communities')
 @ApiTags('communities')
+@ApiSecurity('userId')
 export class CommunitiesController {
   private readonly logger = new Logger(CommunitiesController.name);
 
@@ -52,10 +56,11 @@ export class CommunitiesController {
     description: 'Community proposal created successfully',
     type: CommunityProposalDto,
   })
+  @UseGuards(AuthGuard)
   async proposeCommunity(
     @Body() dto: ProposeCommunityDto,
+    @AuthId() requesterId: string,
   ): Promise<CommunityProposalDto> {
-    const requesterId = v4(); // TODO: get requester from authenticated user when authentication is implemented
     const result = await this.communitiesPort.proposeCommunity(
       dto,
       requesterId,

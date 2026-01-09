@@ -1,5 +1,6 @@
 import { UniqueEntityID } from '@app/shared/domain';
 import { Community, UserIsNotAdminError } from './community.aggregate';
+import { InvalidAdminsListError } from './value-objects/admins-list.vo';
 
 describe('Community Aggregate', () => {
   it('should create a Community with valid properties', () => {
@@ -20,6 +21,19 @@ describe('Community Aggregate', () => {
     expect(community.name).toBe(data.name);
     expect(community.description).toBe(data.description);
     expect(community.admins.has(adminId)).toBe(true);
+  });
+
+  it('should fail to create a community with no admins', () => {
+    const data = {
+      name: 'Test Community',
+      description: 'This is a test community',
+      admins: [],
+    };
+
+    const result = Community.create(data);
+
+    expect(result.isLeft()).toBe(true);
+    expect(result.value).toBeInstanceOf(InvalidAdminsListError);
   });
 
   describe('addCause', () => {

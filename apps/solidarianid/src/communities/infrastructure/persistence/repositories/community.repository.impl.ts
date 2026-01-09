@@ -23,13 +23,30 @@ export class CommunityRepositoryImpl extends CommunityRepository {
   }
 
   async save(community: Community): Promise<void> {
-    const dbEntity = new CommunityDbEntity();
-    dbEntity.id = community.id.toString();
-    dbEntity.name = community.name;
-    dbEntity.description = community.description;
-    dbEntity.createdAt = community.createdAt;
+    await this.em.transaction(async (manager) => {
+      const dbEntity = new CommunityDbEntity();
+      dbEntity.id = community.id.toString();
+      dbEntity.name = community.name;
+      dbEntity.description = community.description;
+      dbEntity.createdAt = community.createdAt;
 
-    await this.em.save(CommunityDbEntity, dbEntity);
+      await manager.save(CommunityDbEntity, dbEntity);
+
+      const admins = community.admins.value;
+      await manager.upsert(
+        CommunityMemberDbEntity,
+        admins.map((adminId) => ({
+          id: UniqueEntityID.create().toString(),
+          communityId: community.id.toString(),
+          userId: adminId.toString(),
+          admin: true,
+        })),
+        {
+          conflictPaths: ['communityId', 'userId'],
+          skipUpdateIfNoValuesChanged: true,
+        },
+      );
+    });
   }
 
   async findById(
