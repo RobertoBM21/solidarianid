@@ -11,7 +11,7 @@ import { GetCommunityExistsQuery } from '../../../communities/application/querie
 import { CommunityNotFoundError } from '../../../communities/domain/repositories/community.repository';
 import { Cause } from '../../domain/aggregates/cause.aggregate';
 import {
-  CausesServicePort,
+  CausesPort,
   CloseCauseError,
   CreateCauseError,
 } from '../../domain/ports/causes.port';
@@ -22,9 +22,10 @@ import {
 } from '../../domain/repositories/cause.repository';
 import { mapActionToOutDto } from '../dtos/action-out.dto';
 import { CauseOutDto } from '../dtos/cause-out.dto';
+import { IsCauseSupportedByUserQuery } from '../queries/is-cause-supported-by-user.query';
 
 @Injectable()
-export class CausesService extends CausesServicePort {
+export class CausesService extends CausesPort {
   constructor(
     private readonly causeRepository: CauseRepository,
     private readonly domainEvents: DomainEventsPort,
@@ -64,6 +65,7 @@ export class CausesService extends CausesServicePort {
   async getCause(
     communityId: string,
     causeId: string,
+    userId?: string,
   ): Promise<Either<CauseNotFoundError, CauseOutDto>> {
     const causeResult = await this.causeRepository.findByIdAndCommunity(
       UniqueEntityID.create(causeId),
@@ -75,7 +77,16 @@ export class CausesService extends CausesServicePort {
     const cause = causeResult.value;
     const actions = await this.actionRepository.listByCause(cause.id);
     const actionDtos = actions.map((action) => mapActionToOutDto(action));
-    return right(new CauseOutDto(cause, actionDtos));
+    let supportedByUser: boolean | undefined = undefined;
+    if (userId) {
+      supportedByUser = await this.queryBus.execute(
+        new IsCauseSupportedByUserQuery(
+          UniqueEntityID.create(causeId),
+          UniqueEntityID.create(userId),
+        ),
+      );
+    }
+    return right(new CauseOutDto(cause, supportedByUser, actionDtos));
   }
 
   async closeCause(

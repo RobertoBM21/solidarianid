@@ -1,9 +1,10 @@
-import { Global, Module, OnModuleInit } from '@nestjs/common';
+import { Global, Module, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { CqrsModule } from '@nestjs/cqrs';
 import { ClientsModule } from '@nestjs/microservices';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import 'reflect-metadata';
+import { Subscription } from 'rxjs';
 import { DomainEventsPort } from '../domain/ports/domain-events.port';
 import { RabbitmqClientAdapter } from './adapters/rabbitmq-client.adapter';
 import databaseConfig from './config/database.config';
@@ -36,10 +37,18 @@ import { RABBITMQ_CLIENT, rabbitmqConfig } from './config/rabbitmq.config';
   ],
   exports: [ConfigModule, TypeOrmModule, DomainEventsPort],
 })
-export class CommonInfrastructureModule implements OnModuleInit {
+export class CommonInfrastructureModule
+  implements OnModuleInit, OnModuleDestroy
+{
+  private sub?: Subscription;
+
   constructor(private readonly rabbitmqClientAdapter: RabbitmqClientAdapter) {}
 
   onModuleInit() {
-    this.rabbitmqClientAdapter.setupIntegrationEvents();
+    this.sub = this.rabbitmqClientAdapter.setupIntegrationEvents();
+  }
+
+  onModuleDestroy() {
+    this.sub?.unsubscribe();
   }
 }

@@ -60,4 +60,21 @@ describe('Cause Aggregate', () => {
       expect(cause.closed).toBe(true);
     }
   });
+
+  it('should not allow closing an already closed cause', () => {
+    const causeOrError = Cause.create({
+      title: 'Sample cause',
+      description: 'A description',
+      duration: '1 month',
+      ods: 5,
+      communityId: 'c6bfa3d6-3f4e-4c20-8d2e-4d2ff6b9d8c1',
+      closed: true,
+    });
+    expect(causeOrError.isRight()).toBe(true);
+    if (causeOrError.isRight()) {
+      const cause = causeOrError.value;
+      const result = cause.close();
+      expect(result.isLeft()).toBe(true);
+    }
+  });
 });

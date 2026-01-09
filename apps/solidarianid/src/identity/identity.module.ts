@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { GetUserExistsHandler } from './application/handlers/get-user-exists.handler';
 import { UserService } from './application/user.service';
 import { CountryCheckerPort } from './domain/ports/country-checker.port';
 import { UserPort } from './domain/ports/user.port';
@@ -22,6 +23,7 @@ import { UsersController } from './infrastructure/presentation/controllers/users
       provide: UserRepository,
       useExisting: UserRepositoryImpl,
     },
+    GetUserExistsHandler,
     UserService,
     {
       provide: UserPort,

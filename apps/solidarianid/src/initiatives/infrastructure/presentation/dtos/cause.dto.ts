@@ -41,6 +41,12 @@ export class CauseDto {
   createdAt: string;
 
   @ApiPropertyOptional({
+    description:
+      'Whether the current user supports this cause (only present when authenticated)',
+  })
+  supportedByUser?: boolean;
+
+  @ApiPropertyOptional({
     description: 'Actions associated with this cause',
     isArray: true,
     oneOf: [

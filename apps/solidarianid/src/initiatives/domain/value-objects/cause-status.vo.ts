@@ -6,7 +6,7 @@ import {
   ValueObject,
 } from '@app/shared/domain';
 
-export class CauseAlreadyClosedError extends Error implements DomainError {
+export class CauseAlreadyClosedError implements DomainError {
   message = 'Cause is already closed.';
 }
 

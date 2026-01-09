@@ -4,6 +4,7 @@ import {
   Body,
   Controller,
   Get,
+  Headers,
   NotFoundException,
   Param,
   ParseUUIDPipe,
@@ -12,12 +13,13 @@ import {
 import {
   ApiBody,
   ApiCreatedResponse,
+  ApiHeader,
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { CommunityNotFoundError } from '../../../../communities/domain/repositories/community.repository';
 import { CauseOutDto } from '../../../application/dtos/cause-out.dto';
-import { CausesServicePort } from '../../../domain/ports/causes.port';
+import { CausesPort } from '../../../domain/ports/causes.port';
 import { CauseNotFoundError } from '../../../domain/repositories/cause.repository';
 import { CauseDto } from '../dtos/cause.dto';
 import { CreateCauseDto } from '../dtos/create-cause.dto';
@@ -25,7 +27,7 @@ import { CreateCauseDto } from '../dtos/create-cause.dto';
 @Controller('communities/:communityId/causes')
 @ApiTags('causes')
 export class CausesController {
-  constructor(private readonly causesService: CausesServicePort) {}
+  constructor(private readonly causesPort: CausesPort) {}
 
   @Post()
   @ApiBody({ type: CreateCauseDto })
@@ -37,7 +39,7 @@ export class CausesController {
     @Param('communityId', ParseUUIDPipe) communityId: string,
     @Body() dto: CreateCauseDto,
   ): Promise<CauseOutDto> {
-    const result = await this.causesService.createCause(communityId, dto);
+    const result = await this.causesPort.createCause(communityId, dto);
 
     if (result.isLeft()) {
       if (result.value instanceof CommunityNotFoundError) {
@@ -57,7 +59,7 @@ export class CausesController {
   async list(
     @Param('communityId', ParseUUIDPipe) communityId: string,
   ): Promise<CauseDto[]> {
-    const result = await this.causesService.listByCommunity(communityId);
+    const result = await this.causesPort.listByCommunity(communityId);
     if (result.isLeft()) {
       throw new NotFoundException(result.value.message);
     }
@@ -65,6 +67,12 @@ export class CausesController {
   }
 
   @Get(':causeId')
+  @ApiHeader({
+    name: 'userId',
+    required: false,
+    description:
+      'Registered user id used to compute supportedByUser when authenticated',
+  })
   @ApiOkResponse({
     description: 'Cause detail',
     type: CauseDto,
@@ -72,8 +80,9 @@ export class CausesController {
   async detail(
     @Param('communityId', ParseUUIDPipe) communityId: string,
     @Param('causeId', ParseUUIDPipe) causeId: string,
+    @Headers('userId') userId?: string,
   ): Promise<CauseDto> {
-    const result = await this.causesService.getCause(communityId, causeId);
+    const result = await this.causesPort.getCause(communityId, causeId, userId);
     if (result.isLeft()) {
       const err: DomainError = result.value;
       if (err instanceof CauseNotFoundError) {
@@ -92,7 +101,7 @@ export class CausesController {
     @Param('communityId', ParseUUIDPipe) communityId: string,
     @Param('causeId', ParseUUIDPipe) causeId: string,
   ): Promise<void> {
-    const result = await this.causesService.closeCause(communityId, causeId);
+    const result = await this.causesPort.closeCause(communityId, causeId);
     if (result.isLeft()) {
       if (result.value instanceof CommunityNotFoundError) {
         throw new NotFoundException(result.value.message);

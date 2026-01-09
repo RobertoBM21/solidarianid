@@ -5,11 +5,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { GetCommunityExistsQuery } from '../../../communities/application/queries/get-community-exists.query';
 import { CommunityNotFoundError } from '../../../communities/domain/repositories/community.repository';
 import { Cause } from '../../domain/aggregates/cause.aggregate';
+import { ActionRepository } from '../../domain/repositories/action.repository';
 import {
   CauseNotFoundError,
   CauseRepository,
 } from '../../domain/repositories/cause.repository';
-import { ActionRepository } from '../../domain/repositories/action.repository';
+import { IsCauseSupportedByUserQuery } from '../queries/is-cause-supported-by-user.query';
 import { CausesService } from './causes.service';
 
 describe('CausesService', () => {
@@ -65,6 +66,9 @@ describe('CausesService', () => {
     }).compile();
 
     service = module.get<CausesService>(CausesService);
+  });
+
+  afterEach(() => {
     jest.clearAllMocks();
   });
 
@@ -111,71 +115,75 @@ describe('CausesService', () => {
     });
   });
 
-  it('should list causes by community', async () => {
-    const cause = Cause.create({
-      title: 'Causa demo',
-      description: 'Descripcion',
-      duration: '3 meses',
-      ods: 2,
-      communityId,
-    }).value as Cause;
+  describe('listByCommunity', () => {
+    it('should list causes by community', async () => {
+      const cause = Cause.create({
+        title: 'Causa demo',
+        description: 'Descripcion',
+        duration: '3 meses',
+        ods: 2,
+        communityId,
+      }).value as Cause;
 
-    mockQueryBus.execute.mockResolvedValue(true);
-    mockCauseRepository.listByCommunity.mockResolvedValue([cause]);
+      mockQueryBus.execute.mockResolvedValue(true);
+      mockCauseRepository.listByCommunity.mockResolvedValue([cause]);
 
-    const result = await service.listByCommunity(communityId);
+      const result = await service.listByCommunity(communityId);
 
-    expect(result.isRight()).toBe(true);
-    if (result.isRight()) {
-      expect(result.value).toHaveLength(1);
-      expect(result.value[0].id).toBe(cause.id.toString());
-    }
+      expect(result.isRight()).toBe(true);
+      if (result.isRight()) {
+        expect(result.value).toHaveLength(1);
+        expect(result.value[0].id).toBe(cause.id.toString());
+      }
+    });
   });
 
-  it('should close a cause', async () => {
-    const cause = Cause.create({
-      title: 'Causa demo',
-      description: 'Descripcion',
-      duration: '3 meses',
-      ods: 2,
-      communityId,
-    }).value as Cause;
+  describe('closeCause', () => {
+    it('should close a cause', async () => {
+      const cause = Cause.create({
+        title: 'Causa demo',
+        description: 'Descripcion',
+        duration: '3 meses',
+        ods: 2,
+        communityId,
+      }).value as Cause;
 
-    const closeFn = jest
-      .spyOn(cause, 'close')
-      .mockReturnValue(right(undefined));
+      const closeFn = jest
+        .spyOn(cause, 'close')
+        .mockReturnValue(right(undefined));
 
-    mockCauseRepository.findById.mockResolvedValue(right(cause));
-    mockCauseRepository.findByIdAndCommunity.mockResolvedValue(right(cause));
-    mockCauseRepository.save.mockResolvedValue(undefined);
+      mockCauseRepository.findById.mockResolvedValue(right(cause));
+      mockCauseRepository.findByIdAndCommunity.mockResolvedValue(right(cause));
+      mockCauseRepository.save.mockResolvedValue(undefined);
 
-    const result = await service.closeCause(communityId, cause.id.toString());
+      const result = await service.closeCause(communityId, cause.id.toString());
 
-    expect(result.isRight()).toBe(true);
-    expect(closeFn).toHaveBeenCalledTimes(1);
-    expect(mockCauseRepository.save).toHaveBeenCalledTimes(1);
-  });
+      expect(result.isRight()).toBe(true);
+      expect(closeFn).toHaveBeenCalledTimes(1);
+      expect(mockCauseRepository.save).toHaveBeenCalledTimes(1);
+    });
 
-  it('should fail closing a cause when not found', async () => {
-    const cause = Cause.create({
-      title: 'Causa demo',
-      description: 'Descripcion',
-      duration: '3 meses',
-      ods: 2,
-      communityId: otherCommunityId,
-    }).value as Cause;
+    it('should fail closing a cause when not found', async () => {
+      const cause = Cause.create({
+        title: 'Causa demo',
+        description: 'Descripcion',
+        duration: '3 meses',
+        ods: 2,
+        communityId: otherCommunityId,
+      }).value as Cause;
 
-    mockCauseRepository.findByIdAndCommunity.mockResolvedValue(
-      left(new CauseNotFoundError(cause.id.toString())),
-    );
+      mockCauseRepository.findByIdAndCommunity.mockResolvedValue(
+        left(new CauseNotFoundError(cause.id.toString())),
+      );
 
-    const result = await service.closeCause(communityId, cause.id.toString());
+      const result = await service.closeCause(communityId, cause.id.toString());
 
-    expect(result.isLeft()).toBe(true);
-    if (result.isLeft()) {
-      expect(result.value).toBeInstanceOf(CauseNotFoundError);
-    }
-    expect(mockCauseRepository.save).not.toHaveBeenCalled();
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft()) {
+        expect(result.value).toBeInstanceOf(CauseNotFoundError);
+      }
+      expect(mockCauseRepository.save).not.toHaveBeenCalled();
+    });
   });
 
   describe('getCause', () => {
@@ -189,14 +197,22 @@ describe('CausesService', () => {
       }).value as Cause;
 
       mockCauseRepository.findByIdAndCommunity.mockResolvedValue(right(cause));
+      mockQueryBus.execute.mockResolvedValue(true);
       mockActionRepository.listByCause.mockResolvedValue([]);
 
-      const result = await service.getCause(communityId, cause.id.toString());
+      const result = await service.getCause(
+        communityId,
+        cause.id.toString(),
+        UniqueEntityID.create().toString(),
+      );
 
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.id).toBe(cause.id.toString());
       }
+      expect(mockQueryBus.execute).toHaveBeenCalledWith(
+        expect.any(IsCauseSupportedByUserQuery),
+      );
       expect(mockActionRepository.listByCause).toHaveBeenCalledTimes(1);
     });
 

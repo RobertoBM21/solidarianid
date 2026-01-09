@@ -115,7 +115,10 @@
     },
     "collectCoverageFrom": [
       "**/*.(t|j)s",
-      "!**/index.ts"
+      "!**/index.ts",
+      "!**/*.*spec.ts",
+      "!**/test/**",
+      "!**/*.db-entity.ts"
     ],
     "coverageDirectory": "./coverage",
     "testEnvironment": "node",

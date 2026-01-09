@@ -29,10 +29,11 @@ export interface CauseOut {
   ods: number;
   closed: boolean;
   createdAt: string;
+  supportedByUser?: boolean;
   actions?: ActionOut[];
 }
 
-export abstract class CausesServicePort {
+export abstract class CausesPort {
   abstract createCause(
     communityId: string,
     data: CreateCauseData,
@@ -45,6 +46,7 @@ export abstract class CausesServicePort {
   abstract getCause(
     communityId: string,
     causeId: string,
+    userId?: string,
   ): Promise<Either<CauseNotFoundError, CauseOut>>;
 
   abstract closeCause(
