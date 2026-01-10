@@ -4,21 +4,22 @@ import {
   Body,
   Controller,
   ForbiddenException,
-  Headers,
   Inject,
   NotFoundException,
   Param,
   ParseUUIDPipe,
   Post,
-  UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBody,
   ApiCreatedResponse,
-  ApiHeader,
+  ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
 import { UserIsNotAdminError } from '../../../../communities/domain/community.aggregate';
+import { AuthId } from '../../../../identity/infrastructure/decorators/auth-id.decorator';
+import { AuthGuard } from '../../../../identity/infrastructure/guards/auth.guard';
 import {
   ActionsPort,
   CreateActionError,
@@ -33,6 +34,7 @@ import { CreateVolunteeringActionDto } from '../dtos/create-volunteering-action.
 
 @Controller('causes/:causeId/actions')
 @ApiTags('actions')
+@UseGuards(AuthGuard)
 export class ActionsController {
   constructor(
     @Inject(ActionsPort)
@@ -40,25 +42,17 @@ export class ActionsController {
   ) {}
 
   @Post('funding')
-  @ApiHeader({
-    name: 'userId',
-    required: true,
-    description: 'Administrator user id of the community',
-  })
   @ApiBody({ type: CreateFundingActionDto })
   @ApiCreatedResponse({
     description: 'Action created successfully',
     type: FundingActionDto,
   })
+  @ApiSecurity('userId')
   async createFunding(
     @Param('causeId', ParseUUIDPipe) causeId: string,
     @Body() dto: CreateFundingActionDto,
-    @Headers('userId') userId?: string,
+    @AuthId() userId: string,
   ): Promise<FundingActionOut> {
-    if (!userId) {
-      throw new UnauthorizedException('userId header is required');
-    }
-
     return this.mapResult(
       await this.actionsService.createFundingAction({
         causeId,
@@ -69,25 +63,17 @@ export class ActionsController {
   }
 
   @Post('volunteering')
-  @ApiHeader({
-    name: 'userId',
-    required: true,
-    description: 'Administrator user id of the community',
-  })
   @ApiBody({ type: CreateVolunteeringActionDto })
   @ApiCreatedResponse({
     description: 'Action created successfully',
     type: VolunteeringActionDto,
   })
+  @ApiSecurity('userId')
   async createVolunteering(
     @Param('causeId', ParseUUIDPipe) causeId: string,
     @Body() dto: CreateVolunteeringActionDto,
-    @Headers('userId') userId?: string,
+    @AuthId() userId: string,
   ): Promise<VolunteeringActionOut> {
-    if (!userId) {
-      throw new UnauthorizedException('userId header is required');
-    }
-
     return this.mapResult(
       await this.actionsService.createVolunteeringAction({
         causeId,

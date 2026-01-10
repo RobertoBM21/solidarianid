@@ -37,6 +37,7 @@ export abstract class CausesPort {
   abstract createCause(
     communityId: string,
     data: CreateCauseData,
+    userId: string,
   ): Promise<Either<CreateCauseError, CauseOut>>;
 
   abstract listByCommunity(
@@ -52,5 +53,6 @@ export abstract class CausesPort {
   abstract closeCause(
     communityId: string,
     causeId: string,
+    userId: string,
   ): Promise<Either<CloseCauseError, void>>;
 }

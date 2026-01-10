@@ -3,20 +3,21 @@ import {
   Body,
   Controller,
   Delete,
-  Headers,
   NotFoundException,
   Param,
   ParseUUIDPipe,
   Post,
-  UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBody,
   ApiCreatedResponse,
-  ApiHeader,
   ApiOkResponse,
+  ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
+import { AuthId } from '../../../../identity/infrastructure/decorators/auth-id.decorator';
+import { AuthGuard } from '../../../../identity/infrastructure/guards/auth.guard';
 import { CauseSupportsPort } from '../../../domain/ports/cause-supports.port';
 import { CauseNotFoundError } from '../../../domain/repositories/cause.repository';
 import { RegisterAnonymousSupportDto } from '../dtos/register-anonymous-support.dto';
@@ -27,20 +28,13 @@ export class CauseSupportsController {
   constructor(private readonly causeSupportsPort: CauseSupportsPort) {}
 
   @Post()
-  @ApiHeader({
-    name: 'userId',
-    required: true,
-    description: 'Registered user id',
-  })
+  @UseGuards(AuthGuard)
   @ApiCreatedResponse({ description: 'Support registered' })
+  @ApiSecurity('userId')
   async supportRegistered(
     @Param('causeId', ParseUUIDPipe) causeId: string,
-    @Headers('userId') userId?: string,
+    @AuthId() userId: string,
   ): Promise<void> {
-    if (!userId) {
-      throw new BadRequestException('userId header is required');
-    }
-
     const result = await this.causeSupportsPort.registerSupportForUser({
       causeId,
       userId,
@@ -81,19 +75,13 @@ export class CauseSupportsController {
   }
 
   @Delete()
+  @UseGuards(AuthGuard)
   @ApiOkResponse({ description: 'Support cancelled' })
-  @ApiHeader({
-    name: 'userId',
-    required: true,
-    description: 'Registered user ID for authentication',
-  })
+  @ApiSecurity('userId')
   async cancelSupport(
     @Param('causeId', ParseUUIDPipe) causeId: string,
-    @Headers('userId') userId?: string,
+    @AuthId() userId: string,
   ): Promise<void> {
-    if (!userId) {
-      throw new UnauthorizedException();
-    }
     const result = await this.causeSupportsPort.cancelSupport({
       causeId,
       userId,

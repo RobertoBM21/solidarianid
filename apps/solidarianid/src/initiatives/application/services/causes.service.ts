@@ -8,6 +8,8 @@ import {
 import { Injectable } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 import { GetCommunityExistsQuery } from '../../../communities/application/queries/get-community-exists.query';
+import { IsCommunityAdminQuery } from '../../../communities/application/queries/is-community-admin.query';
+import { UserIsNotAdminError } from '../../../communities/domain/community.aggregate';
 import { CommunityNotFoundError } from '../../../communities/domain/repositories/community.repository';
 import { Cause } from '../../domain/aggregates/cause.aggregate';
 import {
@@ -43,14 +45,17 @@ export class CausesService extends CausesPort {
       duration: string;
       ods: number;
     },
+    userId: string,
   ): Promise<Either<CreateCauseError, CauseOutDto>> {
-    const exists = await this.queryBus.execute(
-      new GetCommunityExistsQuery(UniqueEntityID.create(communityId)),
+    const isAdmin = await this.queryBus.execute(
+      new IsCommunityAdminQuery(
+        UniqueEntityID.create(communityId),
+        UniqueEntityID.create(userId),
+      ),
     );
-    if (!exists) {
-      return left(new CommunityNotFoundError(communityId));
+    if (!isAdmin) {
+      return left(new UserIsNotAdminError(communityId));
     }
-
     const causeOrError = Cause.create({ ...data, communityId });
     if (causeOrError.isLeft()) {
       return left(causeOrError.value);
@@ -92,7 +97,17 @@ export class CausesService extends CausesPort {
   async closeCause(
     communityId: string,
     causeId: string,
+    userId: string,
   ): Promise<Either<CloseCauseError, void>> {
+    const isAdmin = await this.queryBus.execute(
+      new IsCommunityAdminQuery(
+        UniqueEntityID.create(communityId),
+        UniqueEntityID.create(userId),
+      ),
+    );
+    if (!isAdmin) {
+      return left(new UserIsNotAdminError(communityId));
+    }
     const causeResult = await this.causeRepository.findByIdAndCommunity(
       UniqueEntityID.create(causeId),
       UniqueEntityID.create(communityId),

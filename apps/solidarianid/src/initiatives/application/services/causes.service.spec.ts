@@ -2,8 +2,8 @@ import { left, right, UniqueEntityID } from '@app/shared/domain';
 import { DomainEventsPort } from '@app/shared/domain/ports/domain-events.port';
 import { QueryBus } from '@nestjs/cqrs';
 import { Test, TestingModule } from '@nestjs/testing';
-import { GetCommunityExistsQuery } from '../../../communities/application/queries/get-community-exists.query';
-import { CommunityNotFoundError } from '../../../communities/domain/repositories/community.repository';
+import { IsCommunityAdminQuery } from '../../../communities/application/queries/is-community-admin.query';
+import { UserIsNotAdminError } from '../../../communities/domain/community.aggregate';
 import { Cause } from '../../domain/aggregates/cause.aggregate';
 import { ActionRepository } from '../../domain/repositories/action.repository';
 import {
@@ -73,16 +73,22 @@ describe('CausesService', () => {
   });
 
   describe('createCause', () => {
-    it('should create a cause when community exists', async () => {
+    it('should create a cause when user is admin', async () => {
       mockCauseRepository.save.mockResolvedValue(undefined);
       mockQueryBus.execute.mockResolvedValue(true);
 
-      const result = await service.createCause(communityId, {
-        title: 'Causa demo',
-        description: 'Descripcion',
-        duration: '3 meses',
-        ods: 2,
-      });
+      const userId = UniqueEntityID.create().toString();
+
+      const result = await service.createCause(
+        communityId,
+        {
+          title: 'Causa demo',
+          description: 'Descripcion',
+          duration: '3 meses',
+          ods: 2,
+        },
+        userId,
+      );
 
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
@@ -90,26 +96,32 @@ describe('CausesService', () => {
       }
       expect(mockCauseRepository.save).toHaveBeenCalledTimes(1);
       expect(mockQueryBus.execute).toHaveBeenCalledWith(
-        expect.any(GetCommunityExistsQuery),
+        expect.any(IsCommunityAdminQuery),
       );
     });
 
-    it('should fail when community is not found', async () => {
+    it('should fail when user is not admin or community is not found', async () => {
       mockQueryBus.execute.mockResolvedValue(false);
 
-      const result = await service.createCause(communityId, {
-        title: 'Causa demo',
-        description: 'Descripcion',
-        duration: '3 meses',
-        ods: 2,
-      });
+      const userId = UniqueEntityID.create().toString();
+
+      const result = await service.createCause(
+        communityId,
+        {
+          title: 'Causa demo',
+          description: 'Descripcion',
+          duration: '3 meses',
+          ods: 2,
+        },
+        userId,
+      );
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
-        expect(result.value).toBeInstanceOf(CommunityNotFoundError);
+        expect(result.value).toBeInstanceOf(UserIsNotAdminError);
       }
       expect(mockQueryBus.execute).toHaveBeenCalledWith(
-        expect.any(GetCommunityExistsQuery),
+        expect.any(IsCommunityAdminQuery),
       );
       expect(mockCauseRepository.save).not.toHaveBeenCalled();
     });
@@ -147,20 +159,29 @@ describe('CausesService', () => {
         ods: 2,
         communityId,
       }).value as Cause;
+      const userId = UniqueEntityID.create().toString();
 
       const closeFn = jest
         .spyOn(cause, 'close')
         .mockReturnValue(right(undefined));
 
+      mockQueryBus.execute.mockResolvedValue(true);
       mockCauseRepository.findById.mockResolvedValue(right(cause));
       mockCauseRepository.findByIdAndCommunity.mockResolvedValue(right(cause));
       mockCauseRepository.save.mockResolvedValue(undefined);
 
-      const result = await service.closeCause(communityId, cause.id.toString());
+      const result = await service.closeCause(
+        communityId,
+        cause.id.toString(),
+        userId,
+      );
 
       expect(result.isRight()).toBe(true);
       expect(closeFn).toHaveBeenCalledTimes(1);
       expect(mockCauseRepository.save).toHaveBeenCalledTimes(1);
+      expect(mockQueryBus.execute).toHaveBeenCalledWith(
+        expect.any(IsCommunityAdminQuery),
+      );
     });
 
     it('should fail closing a cause when not found', async () => {
@@ -171,17 +192,26 @@ describe('CausesService', () => {
         ods: 2,
         communityId: otherCommunityId,
       }).value as Cause;
+      const userId = UniqueEntityID.create().toString();
 
+      mockQueryBus.execute.mockResolvedValue(true);
       mockCauseRepository.findByIdAndCommunity.mockResolvedValue(
         left(new CauseNotFoundError(cause.id.toString())),
       );
 
-      const result = await service.closeCause(communityId, cause.id.toString());
+      const result = await service.closeCause(
+        communityId,
+        cause.id.toString(),
+        userId,
+      );
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(CauseNotFoundError);
       }
+      expect(mockQueryBus.execute).toHaveBeenCalledWith(
+        expect.any(IsCommunityAdminQuery),
+      );
       expect(mockCauseRepository.save).not.toHaveBeenCalled();
     });
   });
@@ -218,6 +248,7 @@ describe('CausesService', () => {
 
     it('should fail when a cause is not found', async () => {
       const missingId = UniqueEntityID.create().toString();
+
       mockCauseRepository.findByIdAndCommunity.mockResolvedValue(
         left(new CauseNotFoundError(missingId)),
       );

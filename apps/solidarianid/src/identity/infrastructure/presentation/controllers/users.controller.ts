@@ -10,7 +10,7 @@ export class UsersController {
   constructor(private readonly userService: UserPort) {}
 
   @Post()
-  @ApiBody({ type: CreateUserResponseDto })
+  @ApiBody({ type: CreateUserDto })
   @ApiCreatedResponse({
     description: 'User created successfully',
     type: CreateUserResponseDto,

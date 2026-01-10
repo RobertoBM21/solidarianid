@@ -1,9 +1,5 @@
-import {
-  BadRequestException,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
 import { left, right, UniqueEntityID } from '@app/shared/domain';
+import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CauseSupportsPort } from '../../../domain/ports/cause-supports.port';
 import { CauseNotFoundError } from '../../../domain/repositories/cause.repository';
@@ -51,12 +47,6 @@ describe('CauseSupportsController', () => {
           userId,
         },
       );
-    });
-
-    it('should fail without userId header', async () => {
-      await expect(
-        controller.cancelSupport(causeId, undefined),
-      ).rejects.toBeInstanceOf(UnauthorizedException);
     });
 
     it('should map cause not found to 404', async () => {
@@ -114,12 +104,6 @@ describe('CauseSupportsController', () => {
         causeId,
         userId,
       });
-    });
-
-    it('should fail without userId header', async () => {
-      await expect(
-        controller.supportRegistered(causeId, undefined),
-      ).rejects.toBeInstanceOf(BadRequestException);
     });
 
     it('should map cause not found to 404', async () => {
