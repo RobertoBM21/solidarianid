@@ -4,7 +4,7 @@ import { QueryBus } from '@nestjs/cqrs';
 import { Test, TestingModule } from '@nestjs/testing';
 import { GetUserExistsQuery } from '../../../identity/application/queries/get-user-exists.query';
 import { Cause } from '../../domain/aggregates/cause.aggregate';
-import { AnonymousSupporterRepository } from '../../domain/ports/anonymous-supporter.repository';
+import { AnonymousSupporterRepository } from '../../domain/repositories/anonymous-supporter.repository';
 import {
   CauseSupportNotFoundError,
   CauseSupportRepository,

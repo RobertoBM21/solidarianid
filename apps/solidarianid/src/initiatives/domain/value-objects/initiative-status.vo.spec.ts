@@ -1,26 +1,29 @@
-import { CauseAlreadyClosedError, CauseStatus } from './cause-status.vo';
+import {
+  InitiativeAlreadyClosedError,
+  InitiativeStatus,
+} from './initiative-status.vo';
 
-describe('CauseStatus VO', () => {
+describe('InitiativeStatus VO', () => {
   it('should create an open status by default', () => {
-    const status = CauseStatus.create(false);
+    const status = InitiativeStatus.create(false);
 
     expect(status.isOpen()).toBe(true);
   });
 
   it('should create an open status explicitly', () => {
-    const status = CauseStatus.open();
+    const status = InitiativeStatus.open();
 
     expect(status.isOpen()).toBe(true);
   });
 
   it('should create a closed status', () => {
-    const status = CauseStatus.closed();
+    const status = InitiativeStatus.closed();
 
     expect(status.isClosed()).toBe(true);
   });
 
-  it('should close an open cause status', () => {
-    const status = CauseStatus.open();
+  it('should close an open initiative status', () => {
+    const status = InitiativeStatus.open();
 
     const result = status.close();
 
@@ -30,14 +33,14 @@ describe('CauseStatus VO', () => {
     }
   });
 
-  it('should fail to close an already closed cause status', () => {
-    const status = CauseStatus.closed();
+  it('should fail to close an already closed initiative status', () => {
+    const status = InitiativeStatus.closed();
 
     const result = status.close();
 
     expect(result.isLeft()).toBe(true);
     if (result.isLeft()) {
-      expect(result.value).toBeInstanceOf(CauseAlreadyClosedError);
+      expect(result.value).toBeInstanceOf(InitiativeAlreadyClosedError);
     }
   });
 });

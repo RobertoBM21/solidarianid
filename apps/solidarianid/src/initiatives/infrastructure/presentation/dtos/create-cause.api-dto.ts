@@ -1,8 +1,9 @@
 import { ApiProperty, ApiSchema } from '@nestjs/swagger';
 import { IsInt, IsString } from 'class-validator';
+import { CreateCauseData } from '../../../application/ports/causes.port';
 
-@ApiSchema({ name: 'CreateCauseRequest' })
-export class CreateCauseDto {
+@ApiSchema({ name: 'Create cause data' })
+export class CreateCauseApiDto implements CreateCauseData {
   @ApiProperty({
     description: 'Title of the cause',
     example: 'Recogida de alimentos',

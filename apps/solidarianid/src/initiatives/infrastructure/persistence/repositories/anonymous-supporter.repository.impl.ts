@@ -4,7 +4,7 @@ import { EntityManager } from 'typeorm';
 import {
   AnonymousSupporterError,
   AnonymousSupporterRepository,
-} from '../../../domain/ports/anonymous-supporter.repository';
+} from '../../../domain/repositories/anonymous-supporter.repository';
 import { AnonymousUserDbEntity } from '../entities/anonymous-user.db-entity';
 
 @Injectable()

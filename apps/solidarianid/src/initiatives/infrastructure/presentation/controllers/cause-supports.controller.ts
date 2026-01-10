@@ -18,9 +18,9 @@ import {
 } from '@nestjs/swagger';
 import { AuthId } from '../../../../identity/infrastructure/decorators/auth-id.decorator';
 import { AuthGuard } from '../../../../identity/infrastructure/guards/auth.guard';
-import { CauseSupportsPort } from '../../../domain/ports/cause-supports.port';
+import { CauseSupportsPort } from '../../../application/ports/cause-supports.port';
 import { CauseNotFoundError } from '../../../domain/repositories/cause.repository';
-import { RegisterAnonymousSupportDto } from '../dtos/register-anonymous-support.dto';
+import { RegisterAnonymousSupportApiDto } from '../dtos/register-anonymous-support.api-dto';
 
 @Controller(':causeId/supports')
 @ApiTags('causes')
@@ -49,20 +49,20 @@ export class CauseSupportsController {
     }
   }
 
-  @Post('anonymous')
+  @Post('create-anonymous')
   @ApiBody({
-    type: RegisterAnonymousSupportDto,
+    type: RegisterAnonymousSupportApiDto,
     description: 'Anonymous support data',
   })
   @ApiCreatedResponse({ description: 'Support registered' })
   async supportAnonymous(
     @Param('causeId', ParseUUIDPipe) causeId: string,
-    @Body() dto: RegisterAnonymousSupportDto,
+    @Body() dto: RegisterAnonymousSupportApiDto,
   ): Promise<void> {
     const result = await this.causeSupportsPort.registerSupportForAnonymous({
       causeId,
-      anonymousEmail: dto.anonymousEmail,
-      anonymousName: dto.anonymousName,
+      email: dto.email,
+      name: dto.name,
     });
 
     if (result.isLeft()) {

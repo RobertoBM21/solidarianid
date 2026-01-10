@@ -6,11 +6,11 @@ import {
   ValueObject,
 } from '@app/shared/domain';
 
-export class InvalidActionTitleError implements DomainError {
-  message = 'Action title must be between 1 and 255 characters.';
+export class InvalidTitleError implements DomainError {
+  message = 'Cause title must be between 1 and 255 characters.';
 }
 
-export class ActionTitle extends ValueObject<string> {
+export class Title extends ValueObject<string> {
   private static readonly MAX_LENGTH = 255;
 
   private constructor(value: string) {
@@ -21,13 +21,13 @@ export class ActionTitle extends ValueObject<string> {
     return this.props;
   }
 
-  static create(title: string): Either<InvalidActionTitleError, ActionTitle> {
+  static create(title: string): Either<InvalidTitleError, Title> {
     const cleanValue = title.trim();
 
     if (cleanValue.length === 0 || cleanValue.length > this.MAX_LENGTH) {
-      return left(new InvalidActionTitleError());
+      return left(new InvalidTitleError());
     }
 
-    return right(new ActionTitle(cleanValue));
+    return right(new Title(cleanValue));
   }
 }

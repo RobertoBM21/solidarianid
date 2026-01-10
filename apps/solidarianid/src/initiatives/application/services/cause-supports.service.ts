@@ -10,13 +10,7 @@ import { QueryBus } from '@nestjs/cqrs';
 import { GetUserExistsQuery } from '../../../identity/application/queries/get-user-exists.query';
 import { UserNotFoundError } from '../../../identity/domain/repositories/user.repository';
 import { CauseSupport } from '../../domain/aggregates/cause-support.aggregate';
-import { AnonymousSupporterRepository } from '../../domain/ports/anonymous-supporter.repository';
-import {
-  AlreadySupportingError,
-  CauseSupportsPort,
-  RegisterAnonymousSupportError,
-  RegisterUserSupportError,
-} from '../../domain/ports/cause-supports.port';
+import { AnonymousSupporterRepository } from '../../domain/repositories/anonymous-supporter.repository';
 import {
   CauseSupportNotFoundError,
   CauseSupportRepository,
@@ -27,6 +21,12 @@ import {
   Supporter,
   UserSupporter,
 } from '../../domain/value-objects/supporter.vo';
+import {
+  AlreadySupportingError,
+  CauseSupportsPort,
+  RegisterAnonymousSupportError,
+  RegisterUserSupportError,
+} from '../ports/cause-supports.port';
 
 @Injectable()
 export class CauseSupportsService extends CauseSupportsPort {
@@ -58,12 +58,12 @@ export class CauseSupportsService extends CauseSupportsPort {
 
   async registerSupportForAnonymous(options: {
     causeId: string;
-    anonymousName: string;
-    anonymousEmail: string;
+    name: string;
+    email: string;
   }): Promise<Either<RegisterAnonymousSupportError, void>> {
     const anonIdResult = await this.anonymousSupporters.getOrCreate(
-      options.anonymousName,
-      options.anonymousEmail,
+      options.name,
+      options.email,
     );
     if (anonIdResult.isLeft()) {
       return left(anonIdResult.value);

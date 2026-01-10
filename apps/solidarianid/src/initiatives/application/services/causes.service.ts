@@ -12,18 +12,20 @@ import { IsCommunityAdminQuery } from '../../../communities/application/queries/
 import { UserIsNotAdminError } from '../../../communities/domain/community.aggregate';
 import { CommunityNotFoundError } from '../../../communities/domain/repositories/community.repository';
 import { Cause } from '../../domain/aggregates/cause.aggregate';
-import {
-  CausesPort,
-  CloseCauseError,
-  CreateCauseError,
-} from '../../domain/ports/causes.port';
 import { ActionRepository } from '../../domain/repositories/action.repository';
 import {
   CauseNotFoundError,
   CauseRepository,
 } from '../../domain/repositories/cause.repository';
 import { mapActionToOutDto } from '../dtos/action-out.dto';
-import { CauseOutDto } from '../dtos/cause-out.dto';
+import { CauseListItemDto } from '../dtos/cause-list-item.dto';
+import { CauseDto } from '../dtos/cause.dto';
+import {
+  CausesPort,
+  CloseCauseError,
+  CreateCauseData,
+  CreateCauseError,
+} from '../ports/causes.port';
 import { IsCauseSupportedByUserQuery } from '../queries/is-cause-supported-by-user.query';
 
 @Injectable()
@@ -39,14 +41,9 @@ export class CausesService extends CausesPort {
 
   async createCause(
     communityId: string,
-    data: {
-      title: string;
-      description: string;
-      duration: string;
-      ods: number;
-    },
+    data: CreateCauseData,
     userId: string,
-  ): Promise<Either<CreateCauseError, CauseOutDto>> {
+  ): Promise<Either<CreateCauseError, { causeId: string }>> {
     const isAdmin = await this.queryBus.execute(
       new IsCommunityAdminQuery(
         UniqueEntityID.create(communityId),
@@ -64,17 +61,15 @@ export class CausesService extends CausesPort {
 
     await this.causeRepository.save(cause);
     await this.domainEvents.dispatch(cause);
-    return right(new CauseOutDto(cause));
+    return right({ causeId: cause.id.toString() });
   }
 
   async getCause(
-    communityId: string,
     causeId: string,
     userId?: string,
-  ): Promise<Either<CauseNotFoundError, CauseOutDto>> {
-    const causeResult = await this.causeRepository.findByIdAndCommunity(
+  ): Promise<Either<CauseNotFoundError, CauseDto>> {
+    const causeResult = await this.causeRepository.findById(
       UniqueEntityID.create(causeId),
-      UniqueEntityID.create(communityId),
     );
     if (causeResult.isLeft()) {
       return left(causeResult.value);
@@ -91,31 +86,29 @@ export class CausesService extends CausesPort {
         ),
       );
     }
-    return right(new CauseOutDto(cause, supportedByUser, actionDtos));
+    return right(new CauseDto(cause, supportedByUser, actionDtos));
   }
 
   async closeCause(
-    communityId: string,
     causeId: string,
     userId: string,
   ): Promise<Either<CloseCauseError, void>> {
-    const isAdmin = await this.queryBus.execute(
-      new IsCommunityAdminQuery(
-        UniqueEntityID.create(communityId),
-        UniqueEntityID.create(userId),
-      ),
-    );
-    if (!isAdmin) {
-      return left(new UserIsNotAdminError(communityId));
-    }
-    const causeResult = await this.causeRepository.findByIdAndCommunity(
+    const causeResult = await this.causeRepository.findById(
       UniqueEntityID.create(causeId),
-      UniqueEntityID.create(communityId),
     );
     if (causeResult.isLeft()) {
       return left(causeResult.value);
     }
     const cause = causeResult.value;
+    const isAdmin = await this.queryBus.execute(
+      new IsCommunityAdminQuery(
+        cause.communityId,
+        UniqueEntityID.create(userId),
+      ),
+    );
+    if (!isAdmin) {
+      return left(new UserIsNotAdminError(cause.communityId.toString()));
+    }
     const closedOrError = cause.close();
     if (closedOrError.isLeft()) {
       return left(closedOrError.value);
@@ -126,7 +119,7 @@ export class CausesService extends CausesPort {
 
   async listByCommunity(
     communityId: string,
-  ): Promise<Either<CommunityNotFoundError, CauseOutDto[]>> {
+  ): Promise<Either<CommunityNotFoundError, CauseListItemDto[]>> {
     const communityExists = await this.queryBus.execute(
       new GetCommunityExistsQuery(UniqueEntityID.create(communityId)),
     );
@@ -137,6 +130,6 @@ export class CausesService extends CausesPort {
     const causes = await this.causeRepository.listByCommunity(
       UniqueEntityID.create(communityId),
     );
-    return right(causes.map((cause) => new CauseOutDto(cause)));
+    return right(causes.map((cause) => new CauseListItemDto(cause)));
   }
 }

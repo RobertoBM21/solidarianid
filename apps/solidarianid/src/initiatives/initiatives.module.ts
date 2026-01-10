@@ -3,13 +3,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { IdentityModule } from '../identity/identity.module';
 import { IsCauseSupportedByUserHandler } from './application/handlers/is-cause-supported-by-user.handler';
 import { ActionsPort } from './application/ports/actions.port';
+import { CauseSupportsPort } from './application/ports/cause-supports.port';
+import { CausesPort } from './application/ports/causes.port';
 import { ActionsService } from './application/services/actions.service';
 import { CauseSupportsService } from './application/services/cause-supports.service';
 import { CausesService } from './application/services/causes.service';
-import { AnonymousSupporterRepository } from './domain/ports/anonymous-supporter.repository';
-import { CauseSupportsPort } from './domain/ports/cause-supports.port';
-import { CausesPort } from './domain/ports/causes.port';
 import { ActionRepository } from './domain/repositories/action.repository';
+import { AnonymousSupporterRepository } from './domain/repositories/anonymous-supporter.repository';
 import { CauseSupportRepository } from './domain/repositories/cause-support.repository';
 import { CauseRepository } from './domain/repositories/cause.repository';
 import { ActionDbEntity } from './infrastructure/persistence/entities/action.db-entity';
@@ -22,6 +22,7 @@ import { CauseSupportRepositoryImpl } from './infrastructure/persistence/reposit
 import { CauseRepositoryImpl } from './infrastructure/persistence/repositories/cause.repository.impl';
 import { ActionsController } from './infrastructure/presentation/controllers/actions.controller';
 import { CauseSupportsController } from './infrastructure/presentation/controllers/cause-supports.controller';
+import { CauseController } from './infrastructure/presentation/controllers/cause.controller';
 import { CausesController } from './infrastructure/presentation/controllers/causes.controller';
 
 @Module({
@@ -72,6 +73,11 @@ import { CausesController } from './infrastructure/presentation/controllers/caus
       useExisting: CauseSupportsService,
     },
   ],
-  controllers: [CausesController, CauseSupportsController, ActionsController],
+  controllers: [
+    CausesController,
+    CauseController,
+    CauseSupportsController,
+    ActionsController,
+  ],
 })
 export class InitiativesModule {}

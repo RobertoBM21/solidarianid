@@ -11,37 +11,34 @@ import {
 } from '@app/shared/domain/value-objects/creation-date.vo';
 import { CauseCreated } from '../events/cause-created.event';
 import {
-  CauseDescription,
-  InvalidCauseDescriptionError,
-} from '../value-objects/cause-description.vo';
-import {
   CauseDuration,
   InvalidCauseDurationError,
 } from '../value-objects/cause-duration.vo';
 import { CauseOds, InvalidCauseOdsError } from '../value-objects/cause-ods.vo';
 import {
-  CauseAlreadyClosedError,
-  CauseStatus,
-} from '../value-objects/cause-status.vo';
+  Description,
+  InvalidDescriptionError,
+} from '../value-objects/description.vo';
 import {
-  CauseTitle,
-  InvalidCauseTitleError,
-} from '../value-objects/cause-title.vo';
-export { CauseAlreadyClosedError } from '../value-objects/cause-status.vo';
+  InitiativeAlreadyClosedError,
+  InitiativeStatus,
+} from '../value-objects/initiative-status.vo';
+import { InvalidTitleError, Title } from '../value-objects/title.vo';
+export { InitiativeAlreadyClosedError as CauseAlreadyClosedError } from '../value-objects/initiative-status.vo';
 
 export interface CauseProps {
-  title: CauseTitle;
-  description: CauseDescription;
+  title: Title;
+  description: Description;
   duration: CauseDuration;
   ods: CauseOds;
-  status: CauseStatus;
+  status: InitiativeStatus;
   createdAt: CreationDate;
   communityId: UniqueEntityID;
 }
 
 export type CauseCreationError =
-  | InvalidCauseTitleError
-  | InvalidCauseDescriptionError
+  | InvalidTitleError
+  | InvalidDescriptionError
   | InvalidCauseDurationError
   | InvalidCauseOdsError
   | InvalidDateError;
@@ -85,7 +82,7 @@ export class Cause extends AggregateRoot<CauseProps> {
     return this.props.communityId;
   }
 
-  close(): Either<CauseAlreadyClosedError, void> {
+  close(): Either<InitiativeAlreadyClosedError, void> {
     const statusOrError = this.props.status.close();
     if (statusOrError.isLeft()) {
       return left(statusOrError.value);
@@ -106,12 +103,12 @@ export class Cause extends AggregateRoot<CauseProps> {
     },
     id?: string,
   ): Either<CauseCreationError, Cause> {
-    const titleOrError = CauseTitle.create(data.title);
+    const titleOrError = Title.create(data.title);
     if (titleOrError.isLeft()) {
       return left(titleOrError.value);
     }
 
-    const descriptionOrError = CauseDescription.create(data.description);
+    const descriptionOrError = Description.create(data.description);
     if (descriptionOrError.isLeft()) {
       return left(descriptionOrError.value);
     }
@@ -136,7 +133,7 @@ export class Cause extends AggregateRoot<CauseProps> {
       description: descriptionOrError.value,
       duration: durationOrError.value,
       ods: odsOrError.value,
-      status: CauseStatus.create(data.closed ?? false),
+      status: InitiativeStatus.create(data.closed ?? false),
       createdAt: createdAtOrError.value,
       communityId: UniqueEntityID.create(data.communityId),
     };

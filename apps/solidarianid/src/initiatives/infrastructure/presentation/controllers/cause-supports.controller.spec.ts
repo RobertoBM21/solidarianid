@@ -1,7 +1,7 @@
 import { left, right, UniqueEntityID } from '@app/shared/domain';
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { CauseSupportsPort } from '../../../domain/ports/cause-supports.port';
+import { CauseSupportsPort } from '../../../application/ports/cause-supports.port';
 import { CauseNotFoundError } from '../../../domain/repositories/cause.repository';
 import { CauseSupportsController } from './cause-supports.controller';
 
@@ -67,16 +67,16 @@ describe('CauseSupportsController', () => {
       );
 
       await controller.supportAnonymous(causeId, {
-        anonymousEmail: 'anon@test.com',
-        anonymousName: 'Anon',
+        email: 'anon@test.com',
+        name: 'Anon',
       });
 
       expect(
         mockCauseSupportsPort.registerSupportForAnonymous,
       ).toHaveBeenCalledWith({
         causeId,
-        anonymousEmail: 'anon@test.com',
-        anonymousName: 'Anon',
+        email: 'anon@test.com',
+        name: 'Anon',
       });
     });
 
@@ -87,8 +87,8 @@ describe('CauseSupportsController', () => {
 
       await expect(
         controller.supportAnonymous(causeId, {
-          anonymousEmail: 'anon@test.com',
-          anonymousName: 'Anon',
+          email: 'anon@test.com',
+          name: 'Anon',
         }),
       ).rejects.toBeInstanceOf(NotFoundException);
     });

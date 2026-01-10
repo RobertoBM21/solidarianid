@@ -8,7 +8,7 @@ import {
   CauseNotFoundError,
   CauseRepository,
 } from '../../domain/repositories/cause.repository';
-import { CauseAlreadyClosedError } from '../../domain/value-objects/cause-status.vo';
+import { InitiativeAlreadyClosedError } from '../../domain/value-objects/initiative-status.vo';
 import { ActionsService } from './actions.service';
 
 describe('ActionsService', () => {
@@ -150,7 +150,7 @@ describe('ActionsService', () => {
 
     expect(result.isLeft()).toBe(true);
     if (result.isLeft()) {
-      expect(result.value).toBeInstanceOf(CauseAlreadyClosedError);
+      expect(result.value).toBeInstanceOf(InitiativeAlreadyClosedError);
     }
   });
 

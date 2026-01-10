@@ -6,11 +6,11 @@ import {
   ValueObject,
 } from '@app/shared/domain';
 
-export class InvalidCauseDescriptionError implements DomainError {
+export class InvalidDescriptionError implements DomainError {
   constructor(public readonly message: string) {}
 }
 
-export class CauseDescription extends ValueObject<string> {
+export class Description extends ValueObject<string> {
   private constructor(value: string) {
     super(value);
   }
@@ -21,15 +21,15 @@ export class CauseDescription extends ValueObject<string> {
 
   static create(
     description: string,
-  ): Either<InvalidCauseDescriptionError, CauseDescription> {
+  ): Either<InvalidDescriptionError, Description> {
     const cleanValue = description.trim();
 
     if (cleanValue.length === 0) {
       return left(
-        new InvalidCauseDescriptionError('Cause description cannot be empty.'),
+        new InvalidDescriptionError('Cause description cannot be empty.'),
       );
     }
 
-    return right(new CauseDescription(cleanValue));
+    return right(new Description(cleanValue));
   }
 }

@@ -1,8 +1,8 @@
 import { ApiProperty, ApiSchema } from '@nestjs/swagger';
-import { IsArray, IsNumber, IsString } from 'class-validator';
+import { IsArray, IsString } from 'class-validator';
 
-@ApiSchema({ name: 'CreateFundingActionRequest' })
-export class CreateFundingActionDto {
+@ApiSchema({ name: 'Create volunteering action request' })
+export class CreateVolunteeringActionApiDto {
   @ApiProperty({ description: 'Title of the action' })
   @IsString()
   title: string;
@@ -20,7 +20,11 @@ export class CreateFundingActionDto {
   @IsString({ each: true })
   objectives: string[];
 
-  @ApiProperty({ description: 'Target amount for funding actions' })
-  @IsNumber()
-  targetAmount: number;
+  @ApiProperty({ description: 'Start date (ISO 8601 format)' })
+  @IsString()
+  start: string;
+
+  @ApiProperty({ description: 'End date (ISO 8601 format)' })
+  @IsString()
+  end: string;
 }

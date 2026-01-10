@@ -11,10 +11,6 @@ import {
   InvalidDateError,
 } from '@app/shared/domain/value-objects/creation-date.vo';
 import {
-  ActionDescription,
-  InvalidActionDescriptionError,
-} from '../value-objects/action-description.vo';
-import {
   ActionCurrentAmount,
   ActionTargetAmount,
   InvalidActionCurrentAmountError,
@@ -28,21 +24,22 @@ import {
   ActionSchedule,
   InvalidActionScheduleError,
 } from '../value-objects/action-schedule.vo';
-import { ActionStatus } from '../value-objects/action-status.vo';
 import {
-  ActionTitle,
-  InvalidActionTitleError,
-} from '../value-objects/action-title.vo';
+  Description,
+  InvalidDescriptionError,
+} from '../value-objects/description.vo';
+import { InitiativeStatus } from '../value-objects/initiative-status.vo';
+import { InvalidTitleError, Title } from '../value-objects/title.vo';
 
 export class InvalidActionTypeError implements DomainError {
   message = 'Action type must be volunteering or funding.';
 }
 
 export interface ActionProps {
-  title: ActionTitle;
-  description: ActionDescription;
+  title: Title;
+  description: Description;
   objectives: ActionObjectives;
-  status: ActionStatus;
+  status: InitiativeStatus;
   createdAt: CreationDate;
   causeId: UniqueEntityID;
 }
@@ -58,16 +55,16 @@ export interface FundingActionProps extends ActionProps {
 
 export type VolunteeringActionCreationError =
   | InvalidActionTypeError
-  | InvalidActionTitleError
-  | InvalidActionDescriptionError
+  | InvalidTitleError
+  | InvalidDescriptionError
   | InvalidActionObjectivesError
   | InvalidActionScheduleError
   | InvalidDateError;
 
 export type FundingActionCreationError =
   | InvalidActionTypeError
-  | InvalidActionTitleError
-  | InvalidActionDescriptionError
+  | InvalidTitleError
+  | InvalidDescriptionError
   | InvalidActionObjectivesError
   | InvalidActionTargetAmountError
   | InvalidActionCurrentAmountError
@@ -118,18 +115,18 @@ export abstract class Action<
     createdAt?: Date | string;
     causeId: string;
   }): Either<
-    | InvalidActionTitleError
-    | InvalidActionDescriptionError
+    | InvalidTitleError
+    | InvalidDescriptionError
     | InvalidActionObjectivesError
     | InvalidDateError,
     ActionProps
   > {
-    const titleOrError = ActionTitle.create(data.title);
+    const titleOrError = Title.create(data.title);
     if (titleOrError.isLeft()) {
       return left(titleOrError.value);
     }
 
-    const descriptionOrError = ActionDescription.create(data.description);
+    const descriptionOrError = Description.create(data.description);
     if (descriptionOrError.isLeft()) {
       return left(descriptionOrError.value);
     }
@@ -148,7 +145,7 @@ export abstract class Action<
       title: titleOrError.value,
       description: descriptionOrError.value,
       objectives: objectivesOrError.value,
-      status: ActionStatus.create(data.closed ?? false),
+      status: InitiativeStatus.create(data.closed ?? false),
       createdAt: createdAtOrError.value,
       causeId: UniqueEntityID.create(data.causeId),
     });

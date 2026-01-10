@@ -9,7 +9,7 @@ import {
 } from '../../domain/aggregates/action.aggregate';
 import { ActionRepository } from '../../domain/repositories/action.repository';
 import { CauseRepository } from '../../domain/repositories/cause.repository';
-import { CauseAlreadyClosedError } from '../../domain/value-objects/cause-status.vo';
+import { InitiativeAlreadyClosedError } from '../../domain/value-objects/initiative-status.vo';
 import {
   FundingActionOutDto,
   VolunteeringActionOutDto,
@@ -95,7 +95,7 @@ export class ActionsService extends ActionsPort {
     }
     const cause = causeResult.value;
     if (cause.closed) {
-      return left(new CauseAlreadyClosedError());
+      return left(new InitiativeAlreadyClosedError());
     }
 
     const isAdmin = await this.queryBus.execute(

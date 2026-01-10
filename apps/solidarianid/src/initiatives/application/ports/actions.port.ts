@@ -3,14 +3,14 @@ import { UserIsNotAdminError } from '../../../communities/domain/community.aggre
 import { CommunityNotFoundError } from '../../../communities/domain/repositories/community.repository';
 import { ActionCreationError } from '../../domain/aggregates/action.aggregate';
 import { CauseNotFoundError } from '../../domain/repositories/cause.repository';
-import { CauseAlreadyClosedError } from '../../domain/value-objects/cause-status.vo';
+import { InitiativeAlreadyClosedError } from '../../domain/value-objects/initiative-status.vo';
 
 export type CreateActionError =
   | ActionCreationError
   | CauseNotFoundError
   | CommunityNotFoundError
   | UserIsNotAdminError
-  | CauseAlreadyClosedError;
+  | InitiativeAlreadyClosedError;
 
 export interface CreateBaseActionData {
   title: string;

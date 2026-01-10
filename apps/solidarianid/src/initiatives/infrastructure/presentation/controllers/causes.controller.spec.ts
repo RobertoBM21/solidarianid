@@ -3,9 +3,9 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { v4 } from 'uuid';
 import { CommunityNotFoundError } from '../../../../communities/domain/repositories/community.repository';
-import { CauseOut, CausesPort } from '../../../domain/ports/causes.port';
-import { CauseNotFoundError } from '../../../domain/repositories/cause.repository';
-import { CreateCauseDto } from '../dtos/create-cause.dto';
+import { CauseListItemDto } from '../../../application/dtos/cause-list-item.dto';
+import { CausesPort } from '../../../application/ports/causes.port';
+import { CreateCauseApiDto } from '../dtos/create-cause.api-dto';
 import { CausesController } from './causes.controller';
 
 describe('CausesController', () => {
@@ -41,29 +41,19 @@ describe('CausesController', () => {
 
   describe('create', () => {
     it('should return created cause when service succeeds', async () => {
-      const dto: CreateCauseDto = {
+      const dto: CreateCauseApiDto = {
         title: 't',
         description: 'd',
         duration: '1m',
         ods: 1,
       };
       const userId = v4();
-      const created: CauseOut = {
-        id: causeId,
-        communityId,
-        title: dto.title,
-        description: dto.description,
-        duration: dto.duration,
-        ods: dto.ods,
-        closed: false,
-        createdAt: new Date().toISOString(),
-      };
 
-      mockCausesPort.createCause.mockResolvedValue(right(created));
+      mockCausesPort.createCause.mockResolvedValue(right({ causeId: causeId }));
 
       const result = await controller.create(communityId, dto, userId);
 
-      expect(result).toBe(created);
+      expect(result).toEqual({ causeId: causeId });
       expect(mockCausesPort.createCause).toHaveBeenCalledWith(
         communityId,
         dto,
@@ -76,7 +66,7 @@ describe('CausesController', () => {
         left(new CommunityNotFoundError(communityId)),
       );
 
-      const dto: CreateCauseDto = {
+      const dto: CreateCauseApiDto = {
         title: 't',
         description: 'd',
         duration: '1m',
@@ -97,7 +87,7 @@ describe('CausesController', () => {
     it('should throw 400 on other errors', async () => {
       mockCausesPort.createCause.mockResolvedValue(left(new Error('boom')));
 
-      const dto: CreateCauseDto = {
+      const dto: CreateCauseApiDto = {
         title: 't',
         description: 'd',
         duration: '1m',
@@ -118,10 +108,9 @@ describe('CausesController', () => {
 
   describe('list', () => {
     it('should return list of causes', async () => {
-      const list: CauseOut[] = [
+      const list: CauseListItemDto[] = [
         {
           id: causeId,
-          communityId,
           title: 't',
           description: 'd',
           duration: '1m',
@@ -146,110 +135,6 @@ describe('CausesController', () => {
       const result = controller.list(communityId);
 
       await expect(result).rejects.toBeInstanceOf(NotFoundException);
-    });
-  });
-
-  describe('detail', () => {
-    it('should return cause detail', async () => {
-      const detail: CauseOut = {
-        id: causeId,
-        communityId,
-        title: 't',
-        description: 'd',
-        duration: '1m',
-        ods: 1,
-        closed: false,
-        createdAt: new Date().toISOString(),
-      };
-      const userId = v4();
-
-      mockCausesPort.getCause.mockResolvedValue(right(detail));
-
-      const result = await controller.detail(communityId, causeId, userId);
-
-      expect(result).toBe(detail);
-      expect(mockCausesPort.getCause).toHaveBeenCalledWith(
-        communityId,
-        causeId,
-        userId,
-      );
-    });
-
-    it('should throw 404 when cause not found', async () => {
-      mockCausesPort.getCause.mockResolvedValue(
-        left(new CauseNotFoundError(causeId)),
-      );
-
-      const result = controller.detail(communityId, causeId, undefined);
-
-      await expect(result).rejects.toBeInstanceOf(NotFoundException);
-      expect(mockCausesPort.getCause).toHaveBeenCalledWith(
-        communityId,
-        causeId,
-        undefined,
-      );
-    });
-
-    it('should throw 400 on other errors', async () => {
-      mockCausesPort.getCause.mockResolvedValue(left(new Error('boom')));
-      const userId = v4();
-
-      const result = controller.detail(communityId, causeId, userId);
-
-      await expect(result).rejects.toBeInstanceOf(BadRequestException);
-      expect(mockCausesPort.getCause).toHaveBeenCalledWith(
-        communityId,
-        causeId,
-        userId,
-      );
-    });
-  });
-
-  describe('close', () => {
-    it('should call service and return void on success', async () => {
-      mockCausesPort.closeCause.mockResolvedValue(right(undefined));
-
-      const userId = v4();
-
-      await controller.close(communityId, causeId, userId);
-
-      expect(mockCausesPort.closeCause).toHaveBeenCalledWith(
-        communityId,
-        causeId,
-        userId,
-      );
-    });
-
-    it('should throw 404 when community not found', async () => {
-      mockCausesPort.closeCause.mockResolvedValue(
-        left(new CommunityNotFoundError(communityId)),
-      );
-
-      const userId = v4();
-
-      const result = controller.close(communityId, causeId, userId);
-
-      await expect(result).rejects.toBeInstanceOf(NotFoundException);
-      expect(mockCausesPort.closeCause).toHaveBeenCalledWith(
-        communityId,
-        causeId,
-        userId,
-      );
-    });
-
-    it('should throw 400 on other errors', async () => {
-      mockCausesPort.closeCause.mockResolvedValue(left(new Error('boom')));
-
-      const userId = v4();
-
-      const result = controller.close(communityId, causeId, userId);
-
-      await expect(result).rejects.toBeInstanceOf(BadRequestException);
-      expect(mockCausesPort.closeCause).toHaveBeenCalledWith(
-        communityId,
-        causeId,
-        userId,
-      );
     });
   });
 });

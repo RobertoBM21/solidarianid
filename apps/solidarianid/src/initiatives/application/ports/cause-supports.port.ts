@@ -1,9 +1,9 @@
 import { DomainError, Either } from '@app/shared/domain';
 import { InvalidDateError } from '@app/shared/domain/value-objects/creation-date.vo';
 import { UserNotFoundError } from '../../../identity/domain/repositories/user.repository';
-import { CauseSupportNotFoundError } from '../repositories/cause-support.repository';
-import { CauseNotFoundError } from '../repositories/cause.repository';
-import { AnonymousSupporterError } from './anonymous-supporter.repository';
+import { AnonymousSupporterError } from '../../domain/repositories/anonymous-supporter.repository';
+import { CauseSupportNotFoundError } from '../../domain/repositories/cause-support.repository';
+import { CauseNotFoundError } from '../../domain/repositories/cause.repository';
 
 export class AlreadySupportingError implements DomainError {
   message = 'Support already registered for this cause and supporter.';
@@ -29,8 +29,8 @@ export abstract class CauseSupportsPort {
 
   abstract registerSupportForAnonymous(options: {
     causeId: string;
-    anonymousName: string;
-    anonymousEmail: string;
+    name: string;
+    email: string;
   }): Promise<Either<RegisterAnonymousSupportError, void>>;
 
   abstract cancelSupport(options: {

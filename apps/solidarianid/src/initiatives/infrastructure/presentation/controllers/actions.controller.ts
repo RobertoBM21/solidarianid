@@ -27,10 +27,13 @@ import {
   VolunteeringActionOut,
 } from '../../../application/ports/actions.port';
 import { CauseNotFoundError } from '../../../domain/repositories/cause.repository';
-import { CauseAlreadyClosedError } from '../../../domain/value-objects/cause-status.vo';
-import { FundingActionDto, VolunteeringActionDto } from '../dtos/action.dto';
-import { CreateFundingActionDto } from '../dtos/create-funding-action.dto';
-import { CreateVolunteeringActionDto } from '../dtos/create-volunteering-action.dto';
+import { InitiativeAlreadyClosedError } from '../../../domain/value-objects/initiative-status.vo';
+import {
+  FundingActionApiDto,
+  VolunteeringActionApiDto,
+} from '../dtos/action.api-dto';
+import { CreateFundingActionApiDto } from '../dtos/create-funding-action.api-dto';
+import { CreateVolunteeringActionApiDto } from '../dtos/create-volunteering-action.api-dto';
 
 @Controller('causes/:causeId/actions')
 @ApiTags('actions')
@@ -42,15 +45,15 @@ export class ActionsController {
   ) {}
 
   @Post('funding')
-  @ApiBody({ type: CreateFundingActionDto })
+  @ApiBody({ type: CreateFundingActionApiDto })
   @ApiCreatedResponse({
     description: 'Action created successfully',
-    type: FundingActionDto,
+    type: FundingActionApiDto,
   })
   @ApiSecurity('userId')
   async createFunding(
     @Param('causeId', ParseUUIDPipe) causeId: string,
-    @Body() dto: CreateFundingActionDto,
+    @Body() dto: CreateFundingActionApiDto,
     @AuthId() userId: string,
   ): Promise<FundingActionOut> {
     return this.mapResult(
@@ -63,15 +66,15 @@ export class ActionsController {
   }
 
   @Post('volunteering')
-  @ApiBody({ type: CreateVolunteeringActionDto })
+  @ApiBody({ type: CreateVolunteeringActionApiDto })
   @ApiCreatedResponse({
     description: 'Action created successfully',
-    type: VolunteeringActionDto,
+    type: VolunteeringActionApiDto,
   })
   @ApiSecurity('userId')
   async createVolunteering(
     @Param('causeId', ParseUUIDPipe) causeId: string,
-    @Body() dto: CreateVolunteeringActionDto,
+    @Body() dto: CreateVolunteeringActionApiDto,
     @AuthId() userId: string,
   ): Promise<VolunteeringActionOut> {
     return this.mapResult(
@@ -94,7 +97,7 @@ export class ActionsController {
       if (err instanceof UserIsNotAdminError) {
         throw new ForbiddenException(err.message);
       }
-      if (err instanceof CauseAlreadyClosedError) {
+      if (err instanceof InitiativeAlreadyClosedError) {
         throw new BadRequestException(err.message);
       }
       throw new BadRequestException(err.message);

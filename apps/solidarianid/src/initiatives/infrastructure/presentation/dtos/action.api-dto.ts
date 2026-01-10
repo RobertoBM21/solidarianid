@@ -1,6 +1,6 @@
 import { ApiProperty, ApiSchema } from '@nestjs/swagger';
 
-class BaseActionDto {
+class BaseActionApiDto {
   @ApiProperty({ description: 'Action ID' })
   id: string;
 
@@ -36,7 +36,7 @@ class BaseActionDto {
 }
 
 @ApiSchema({ name: 'FundingAction' })
-export class FundingActionDto extends BaseActionDto {
+export class FundingActionApiDto extends BaseActionApiDto {
   type = 'funding' as const;
 
   @ApiProperty({ description: 'Target amount for funding actions' })
@@ -47,7 +47,7 @@ export class FundingActionDto extends BaseActionDto {
 }
 
 @ApiSchema({ name: 'VolunteeringAction' })
-export class VolunteeringActionDto extends BaseActionDto {
+export class VolunteeringActionApiDto extends BaseActionApiDto {
   type = 'volunteering' as const;
 
   @ApiProperty({ description: 'Start date (ISO 8601 format)' })
@@ -57,4 +57,4 @@ export class VolunteeringActionDto extends BaseActionDto {
   end: string;
 }
 
-export type ActionDto = FundingActionDto | VolunteeringActionDto;
+export type ActionApiDto = FundingActionApiDto | VolunteeringActionApiDto;

@@ -91,10 +91,10 @@ describe('CausesService', () => {
       );
 
       expect(result.isRight()).toBe(true);
-      if (result.isRight()) {
-        expect(result.value.title).toBe('Causa demo');
+      if (result.isLeft()) {
+        return;
       }
-      expect(mockCauseRepository.save).toHaveBeenCalledTimes(1);
+      expect(mockCauseRepository.save).toHaveBeenCalledWith(expect.any(Cause));
       expect(mockQueryBus.execute).toHaveBeenCalledWith(
         expect.any(IsCommunityAdminQuery),
       );
@@ -170,11 +170,7 @@ describe('CausesService', () => {
       mockCauseRepository.findByIdAndCommunity.mockResolvedValue(right(cause));
       mockCauseRepository.save.mockResolvedValue(undefined);
 
-      const result = await service.closeCause(
-        communityId,
-        cause.id.toString(),
-        userId,
-      );
+      const result = await service.closeCause(cause.id.toString(), userId);
 
       expect(result.isRight()).toBe(true);
       expect(closeFn).toHaveBeenCalledTimes(1);
@@ -195,23 +191,16 @@ describe('CausesService', () => {
       const userId = UniqueEntityID.create().toString();
 
       mockQueryBus.execute.mockResolvedValue(true);
-      mockCauseRepository.findByIdAndCommunity.mockResolvedValue(
+      mockCauseRepository.findById.mockResolvedValue(
         left(new CauseNotFoundError(cause.id.toString())),
       );
 
-      const result = await service.closeCause(
-        communityId,
-        cause.id.toString(),
-        userId,
-      );
+      const result = await service.closeCause(cause.id.toString(), userId);
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
         expect(result.value).toBeInstanceOf(CauseNotFoundError);
       }
-      expect(mockQueryBus.execute).toHaveBeenCalledWith(
-        expect.any(IsCommunityAdminQuery),
-      );
       expect(mockCauseRepository.save).not.toHaveBeenCalled();
     });
   });
@@ -226,12 +215,11 @@ describe('CausesService', () => {
         communityId,
       }).value as Cause;
 
-      mockCauseRepository.findByIdAndCommunity.mockResolvedValue(right(cause));
+      mockCauseRepository.findById.mockResolvedValue(right(cause));
       mockQueryBus.execute.mockResolvedValue(true);
       mockActionRepository.listByCause.mockResolvedValue([]);
 
       const result = await service.getCause(
-        communityId,
         cause.id.toString(),
         UniqueEntityID.create().toString(),
       );
@@ -249,7 +237,7 @@ describe('CausesService', () => {
     it('should fail when a cause is not found', async () => {
       const missingId = UniqueEntityID.create().toString();
 
-      mockCauseRepository.findByIdAndCommunity.mockResolvedValue(
+      mockCauseRepository.findById.mockResolvedValue(
         left(new CauseNotFoundError(missingId)),
       );
 
