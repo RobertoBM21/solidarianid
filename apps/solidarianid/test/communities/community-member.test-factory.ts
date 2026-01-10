@@ -1,4 +1,4 @@
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 import { CommunityMemberDbEntity } from '../../src/communities/infrastructure/persistence/entities/community-member.db-entity';
 import { CommunityDbEntity } from '../../src/communities/infrastructure/persistence/entities/community.db-entity';
 import { UserDbEntity } from '../../src/identity/infrastructure/persistence/entities/user.db-entity';
@@ -17,6 +17,7 @@ export class CommunityMemberTestFactory {
     community: CommunityDbEntity,
     user?: UserDbEntity,
     admin = true,
+    manager?: EntityManager,
   ): Promise<CommunityMemberDbEntity> {
     user ??= await this.users.create();
 
@@ -26,6 +27,11 @@ export class CommunityMemberTestFactory {
       userId: user.id,
       admin,
     });
+
+    // If there's an ongoing transaction, use it. If not, use the normal repo.
+    if (manager) {
+      return manager.save(CommunityMemberDbEntity, communityMember);
+    }
     return this.repository.save(communityMember);
   }
 }
