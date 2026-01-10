@@ -17,6 +17,10 @@ export class MembershipRequestAlreadyExistsError implements DomainError {
   readonly message: string = 'A membership request already exists';
 }
 
+export class UserAlreadyMemberError implements DomainError {
+  readonly message: string = 'User is already a member of this community';
+}
+
 export class MembershipRequestNotPendingError implements DomainError {
   readonly message: string = 'Membership request is not pending';
 }

@@ -1,7 +1,7 @@
 import { Either, left, right, UniqueEntityID } from '@app/shared/domain';
 import { Injectable } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
-import { CommunityMember } from '../../../domain/entities/community-member.entity';
+import { CommunityMember } from '../../../domain/community-member.aggregate';
 import {
   CommunityMemberNotFoundError,
   CommunityMemberRepository,
@@ -19,9 +19,9 @@ export class CommunityMemberRepositoryImpl extends CommunityMemberRepository {
     dbEntity.id = member.id.toString();
     dbEntity.communityId = member.communityId.toString();
     dbEntity.userId = member.userId.toString();
-    dbEntity.admin = member.admin;
+    dbEntity.admin = member.role.asBoolean();
 
-    await this.em.insert(CommunityMemberDbEntity, dbEntity);
+    await this.em.save(CommunityMemberDbEntity, dbEntity);
   }
 
   async findById(
@@ -57,14 +57,30 @@ export class CommunityMemberRepositoryImpl extends CommunityMemberRepository {
     return entities.map((e) => this.mapToDomain(e));
   }
 
+  async findByCommunityIdAndUserId(
+    communityId: UniqueEntityID,
+    userId: UniqueEntityID,
+  ): Promise<Either<CommunityMemberNotFoundError, CommunityMember>> {
+    const dbEntity = await this.em.findOne(CommunityMemberDbEntity, {
+      where: {
+        communityId: communityId.toString(),
+        userId: userId.toString(),
+      },
+    });
+    if (!dbEntity) {
+      return left(new CommunityMemberNotFoundError(userId.toString()));
+    }
+    return right(this.mapToDomain(dbEntity));
+  }
+
   private mapToDomain(entity: CommunityMemberDbEntity): CommunityMember {
     return CommunityMember.create(
       {
-        communityId: UniqueEntityID.create(entity.communityId),
-        userId: UniqueEntityID.create(entity.userId),
+        communityId: entity.communityId,
+        userId: entity.userId,
         admin: entity.admin,
       },
-      UniqueEntityID.create(entity.id),
+      entity.id,
     );
   }
 }

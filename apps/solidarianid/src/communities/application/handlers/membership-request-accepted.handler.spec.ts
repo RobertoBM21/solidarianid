@@ -1,6 +1,6 @@
 import { UniqueEntityID } from '@app/shared/domain';
 import { Test, TestingModule } from '@nestjs/testing';
-import { CommunityMember } from '../../domain/entities/community-member.entity';
+import { CommunityMember } from '../../domain/community-member.aggregate';
 import { MembershipRequestAcceptedEvent } from '../../domain/events/membership-request-accepted.event';
 import { CommunityMemberRepository } from '../../domain/repositories/community-member.repository';
 import { MembershipRequestAcceptedHandler } from './membership-request-accepted.handler';
@@ -45,9 +45,10 @@ describe('MembershipRequestAcceptedHandler', () => {
       expect.any(CommunityMember),
     );
 
-    const savedMember = mockCommunityMemberRepository.save.mock.calls[0][0];
+    const savedMember: CommunityMember =
+      mockCommunityMemberRepository.save.mock.calls[0][0];
     expect(savedMember.communityId.toString()).toBe(communityId);
     expect(savedMember.userId.toString()).toBe(userId);
-    expect(savedMember.admin).toBe(false);
+    expect(savedMember.role.isAdmin()).toBe(false);
   });
 });

@@ -3,7 +3,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { GetCommunityExistsHandler } from './application/handlers/get-community-exists.handler';
 import { IsCommunityAdminHandler } from './application/handlers/is-community-admin.handler';
 import { MembershipRequestAcceptedHandler } from './application/handlers/membership-request-accepted.handler';
+import { CommunityMembersPort } from './application/ports/community-members.port';
 import { CommunitiesService } from './application/services/communities.service';
+import { CommunityMembersService } from './application/services/community-members.service';
 import { MembershipRequestsService } from './application/services/membership-requests.service';
 import { CommunitiesPort } from './domain/ports/community.port';
 import { MembershipRequestsPort } from './domain/ports/membership-requests.port';
@@ -18,6 +20,7 @@ import { CommunityMemberRepositoryImpl } from './infrastructure/persistence/repo
 import { CommunityRepositoryImpl } from './infrastructure/persistence/repositories/community.repository.impl';
 import { MembershipRequestRepositoryImpl } from './infrastructure/persistence/repositories/membership-request.repository.impl';
 import { CommunitiesController } from './infrastructure/presentation/controllers/communities.controller';
+import { CommunityMembersController } from './infrastructure/presentation/controllers/community-members.controller';
 import { MembershipRequestsController } from './infrastructure/presentation/controllers/membership-requests.controller';
 
 @Module({
@@ -69,7 +72,16 @@ import { MembershipRequestsController } from './infrastructure/presentation/cont
       provide: MembershipRequestsPort,
       useExisting: MembershipRequestsService,
     },
+    CommunityMembersService,
+    {
+      provide: CommunityMembersPort,
+      useExisting: CommunityMembersService,
+    },
   ],
-  controllers: [CommunitiesController, MembershipRequestsController],
+  controllers: [
+    CommunitiesController,
+    MembershipRequestsController,
+    CommunityMembersController,
+  ],
 })
 export class CommunitiesModule {}

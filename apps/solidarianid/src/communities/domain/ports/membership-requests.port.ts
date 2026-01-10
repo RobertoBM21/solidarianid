@@ -8,6 +8,7 @@ import {
   MembershipRequestAlreadyExistsError,
   MembershipRequestCreationError,
   MembershipRequestNotPendingError,
+  UserAlreadyMemberError,
 } from '../membership-request.aggregate';
 import { CommunityNotFoundError } from '../repositories/community.repository';
 import { MembershipRequestNotFoundError } from '../repositories/membership-request.repository';
@@ -28,7 +29,8 @@ export abstract class MembershipRequestsPort {
     Either<
       | CommunityNotFoundError
       | MembershipRequestAlreadyExistsError
-      | MembershipRequestCreationError,
+      | MembershipRequestCreationError
+      | UserAlreadyMemberError,
       MembershipRequestOut
     >
   >;

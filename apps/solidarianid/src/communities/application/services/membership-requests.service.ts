@@ -16,8 +16,10 @@ import {
   MembershipRequestAlreadyExistsError,
   MembershipRequestCreationError,
   MembershipRequestNotPendingError,
+  UserAlreadyMemberError,
 } from '../../domain/membership-request.aggregate';
 import { MembershipRequestsPort } from '../../domain/ports/membership-requests.port';
+import { CommunityMemberRepository } from '../../domain/repositories/community-member.repository';
 import {
   CommunityNotFoundError,
   CommunityRepository,
@@ -33,6 +35,7 @@ export class MembershipRequestsService implements MembershipRequestsPort {
   constructor(
     private readonly membershipRepository: MembershipRequestRepository,
     private readonly communityRepository: CommunityRepository,
+    private readonly memberRepository: CommunityMemberRepository,
     private readonly domainEvents: DomainEventsPort,
   ) {}
 
@@ -43,7 +46,8 @@ export class MembershipRequestsService implements MembershipRequestsPort {
     Either<
       | CommunityNotFoundError
       | MembershipRequestAlreadyExistsError
-      | MembershipRequestCreationError,
+      | MembershipRequestCreationError
+      | UserAlreadyMemberError,
       MembershipRequestOutDto
     >
   > {
@@ -53,6 +57,12 @@ export class MembershipRequestsService implements MembershipRequestsPort {
     const communityExists = await this.communityRepository.exists(community);
     if (!communityExists) {
       return left(new CommunityNotFoundError(communityId));
+    }
+
+    const memberOrError =
+      await this.memberRepository.findByCommunityIdAndUserId(community, user);
+    if (memberOrError.isRight()) {
+      return left(new UserAlreadyMemberError());
     }
 
     const existingRequest =

@@ -1,5 +1,10 @@
-import { DomainError, Repository, UniqueEntityID } from '@app/shared/domain';
-import { CommunityMember } from '../entities/community-member.entity';
+import {
+  DomainError,
+  Either,
+  Repository,
+  UniqueEntityID,
+} from '@app/shared/domain';
+import { CommunityMember } from '../community-member.aggregate';
 
 export class CommunityMemberNotFoundError implements DomainError {
   readonly message: string;
@@ -15,4 +20,9 @@ export abstract class CommunityMemberRepository extends Repository<
   abstract findByCommunityId(
     communityId: UniqueEntityID,
   ): Promise<CommunityMember[]>;
+
+  abstract findByCommunityIdAndUserId(
+    communityId: UniqueEntityID,
+    userId: UniqueEntityID,
+  ): Promise<Either<CommunityMemberNotFoundError, CommunityMember>>;
 }

@@ -11,6 +11,7 @@ import { MembershipRequestStatus } from '../../../domain/membership-request-stat
 import {
   MembershipRequestAlreadyExistsError,
   MembershipRequestNotPendingError,
+  UserAlreadyMemberError,
 } from '../../../domain/membership-request.aggregate';
 import { MembershipRequestsPort } from '../../../domain/ports/membership-requests.port';
 import { CommunityNotFoundError } from '../../../domain/repositories/community.repository';
@@ -90,6 +91,16 @@ describe('MembershipRequestsController', () => {
     it('should throw BadRequestException given MembershipRequestAlreadyExistsError', async () => {
       mockMembershipPort.requestMembership.mockResolvedValue(
         left(new MembershipRequestAlreadyExistsError()),
+      );
+
+      const res = controller.requestMembership(communityId, v4());
+
+      await expect(res).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw BadRequestException given UserAlreadyMemberError', async () => {
+      mockMembershipPort.requestMembership.mockResolvedValue(
+        left(new UserAlreadyMemberError()),
       );
 
       const res = controller.requestMembership(communityId, v4());

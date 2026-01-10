@@ -11,7 +11,12 @@ import {
   MembershipRequest,
   MembershipRequestAlreadyExistsError,
   MembershipRequestNotPendingError,
+  UserAlreadyMemberError,
 } from '../../domain/membership-request.aggregate';
+import {
+  CommunityMemberNotFoundError,
+  CommunityMemberRepository,
+} from '../../domain/repositories/community-member.repository';
 import {
   CommunityNotFoundError,
   CommunityRepository,
@@ -38,6 +43,10 @@ describe('MembershipRequestsService', () => {
     findById: jest.fn(),
   };
 
+  const mockMemberRepository = {
+    findByCommunityIdAndUserId: jest.fn(),
+  };
+
   const mockDomainEvents = {
     dispatch: jest.fn(),
   };
@@ -53,6 +62,10 @@ describe('MembershipRequestsService', () => {
         {
           provide: CommunityRepository,
           useValue: mockCommunityRepository,
+        },
+        {
+          provide: CommunityMemberRepository,
+          useValue: mockMemberRepository,
         },
         {
           provide: DomainEventsPort,
@@ -71,6 +84,9 @@ describe('MembershipRequestsService', () => {
 
     it('should create a membership request successfully', async () => {
       mockCommunityRepository.exists.mockResolvedValue(true);
+      mockMemberRepository.findByCommunityIdAndUserId.mockResolvedValue(
+        left(new CommunityMemberNotFoundError(userId)),
+      );
       mockMembershipRepository.findByUserAndCommunity.mockResolvedValue(
         left(new Error('Not found')),
       );
@@ -94,8 +110,23 @@ describe('MembershipRequestsService', () => {
       expect(result.value).toBeInstanceOf(CommunityNotFoundError);
     });
 
+    it('should return error if user is already a member', async () => {
+      mockCommunityRepository.exists.mockResolvedValue(true);
+      mockMemberRepository.findByCommunityIdAndUserId.mockResolvedValue(
+        right({}),
+      );
+
+      const result = await service.requestMembership(userId, communityId);
+
+      expect(result.isLeft()).toBe(true);
+      expect(result.value).toBeInstanceOf(UserAlreadyMemberError);
+    });
+
     it('should return error if request already exists', async () => {
       mockCommunityRepository.exists.mockResolvedValue(true);
+      mockMemberRepository.findByCommunityIdAndUserId.mockResolvedValue(
+        left(new CommunityMemberNotFoundError(userId)),
+      );
       mockMembershipRepository.findByUserAndCommunity.mockResolvedValue(
         right({}),
       );
