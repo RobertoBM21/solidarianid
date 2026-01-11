@@ -10,3 +10,19 @@ export async function clearDatabase(dataSource: DataSource): Promise<void> {
     await dataSource.query(`TRUNCATE ${tableNames} RESTART IDENTITY CASCADE;`);
   }
 }
+
+export async function waitFor(
+  predicate: () => Promise<boolean> | boolean,
+  timeout = 5000,
+  interval = 100,
+): Promise<void> {
+  const startTime = Date.now();
+
+  while (Date.now() - startTime < timeout) {
+    const result = await predicate();
+    if (result) return;
+    await new Promise((r) => setTimeout(r, interval));
+  }
+
+  throw new Error('Timed out waiting for system to stabilize');
+}

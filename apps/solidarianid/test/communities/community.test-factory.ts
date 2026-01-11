@@ -1,6 +1,6 @@
 import { DataSource, Repository } from 'typeorm';
 import { CommunityDbEntity } from '../../src/communities/infrastructure/persistence/entities/community.db-entity';
-import { CommunityMemberTestFactory } from './community-member.test-factory';
+import { CommunityMemberTestFactory } from './memberships/community-member.test-factory';
 
 export class CommunityTestFactory {
   private repository: Repository<CommunityDbEntity>;

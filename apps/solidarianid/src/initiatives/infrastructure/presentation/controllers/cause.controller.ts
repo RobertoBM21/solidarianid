@@ -3,6 +3,7 @@ import {
   BadRequestException,
   Controller,
   Get,
+  HttpCode,
   NotFoundException,
   Param,
   ParseUUIDPipe,
@@ -10,14 +11,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiOkResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
-import { CommunityNotFoundError } from '../../../../communities/domain/repositories/community.repository';
 import { AuthId } from '../../../../identity/infrastructure/decorators/auth-id.decorator';
 import { AuthGuard } from '../../../../identity/infrastructure/guards/auth.guard';
 import { CausesPort } from '../../../application/ports/causes.port';
 import { CauseNotFoundError } from '../../../domain/repositories/cause.repository';
 import { CauseApiDto } from '../dtos/cause.api-dto';
 
-@Controller(':causeId')
+@Controller('causes/:causeId')
 @ApiTags('causes')
 export class CauseController {
   constructor(private readonly causesPort: CausesPort) {}
@@ -45,6 +45,7 @@ export class CauseController {
 
   @Post('close')
   @UseGuards(AuthGuard)
+  @HttpCode(200)
   @ApiOkResponse({
     description: 'Cause closed successfully',
   })
@@ -55,7 +56,7 @@ export class CauseController {
   ): Promise<void> {
     const result = await this.causesPort.closeCause(causeId, userId);
     if (result.isLeft()) {
-      if (result.value instanceof CommunityNotFoundError) {
+      if (result.value instanceof CauseNotFoundError) {
         throw new NotFoundException(result.value.message);
       }
       throw new BadRequestException(result.value.message);

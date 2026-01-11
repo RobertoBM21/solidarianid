@@ -22,7 +22,7 @@ import { RegisterAnonymousSupportDto } from '../../../application/dtos/register-
 import { CauseSupportsPort } from '../../../application/ports/cause-supports.port';
 import { CauseNotFoundError } from '../../../domain/repositories/cause.repository';
 
-@Controller(':causeId/supports')
+@Controller('causes/:causeId/supports')
 @ApiTags('causes')
 export class CauseSupportsController {
   constructor(private readonly causeSupportsPort: CauseSupportsPort) {}

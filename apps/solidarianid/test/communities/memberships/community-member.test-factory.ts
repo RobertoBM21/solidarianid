@@ -1,8 +1,8 @@
 import { DataSource, EntityManager, Repository } from 'typeorm';
-import { CommunityMemberDbEntity } from '../../src/communities/infrastructure/persistence/entities/community-member.db-entity';
-import { CommunityDbEntity } from '../../src/communities/infrastructure/persistence/entities/community.db-entity';
-import { UserDbEntity } from '../../src/identity/infrastructure/persistence/entities/user.db-entity';
-import { UserTestFactory } from '../identity/user.test-factory';
+import { CommunityMemberDbEntity } from '../../../src/communities/infrastructure/persistence/entities/community-member.db-entity';
+import { CommunityDbEntity } from '../../../src/communities/infrastructure/persistence/entities/community.db-entity';
+import { UserDbEntity } from '../../../src/identity/infrastructure/persistence/entities/user.db-entity';
+import { UserTestFactory } from '../../identity/user.test-factory';
 
 export class CommunityMemberTestFactory {
   private repository: Repository<CommunityMemberDbEntity>;

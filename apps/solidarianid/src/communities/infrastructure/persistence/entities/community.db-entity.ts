@@ -15,6 +15,8 @@ export class CommunityDbEntity {
   @Column({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 
-  @OneToMany(() => CommunityMemberDbEntity, (member) => member.community)
+  @OneToMany(() => CommunityMemberDbEntity, (member) => member.community, {
+    onDelete: 'CASCADE',
+  })
   members: CommunityMemberDbEntity[];
 }

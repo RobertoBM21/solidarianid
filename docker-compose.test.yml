@@ -19,7 +19,7 @@ services:
     image: nats:2.12.3-alpine
     command: '-js -m 8222'
     ports:
-      - 127.0.0.1:24222:24222
+      - 127.0.0.1:24222:4222
     healthcheck:
       test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:8222/varz']
       interval: 10s

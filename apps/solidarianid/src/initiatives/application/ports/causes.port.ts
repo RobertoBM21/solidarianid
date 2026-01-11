@@ -11,10 +11,7 @@ import { CauseListItemDto } from '../dtos/cause-list-item.dto';
 import { CauseDto } from '../dtos/cause.dto';
 
 export type CreateCauseError = CauseCreationError | CommunityNotFoundError;
-export type CloseCauseError =
-  | CauseNotFoundError
-  | CauseAlreadyClosedError
-  | Error;
+export type CloseCauseError = CauseNotFoundError | CauseAlreadyClosedError;
 
 export abstract class CausesPort {
   abstract createCause(

@@ -4,6 +4,7 @@ import {
   Delete,
   ForbiddenException,
   Get,
+  HttpCode,
   NotFoundException,
   Param,
   Post,
@@ -44,12 +45,16 @@ export class CommunityMembersController {
       if (error instanceof UserIsNotAdminError) {
         throw new ForbiddenException(error.message);
       }
+      if (error instanceof CommunityMemberNotFoundError) {
+        throw new NotFoundException(error.message);
+      }
       throw new BadRequestException(result.value.message);
     }
     return result.value;
   }
 
   @Post('community-members/:memberId/promote')
+  @HttpCode(200)
   @ApiOkResponse({
     description: 'Member promoted to admin successfully',
     type: CommunityMemberDto,

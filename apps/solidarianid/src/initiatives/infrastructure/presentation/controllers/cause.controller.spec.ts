@@ -2,7 +2,6 @@ import { left, right, UniqueEntityID } from '@app/shared/domain';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { v4 } from 'uuid';
-import { CommunityNotFoundError } from '../../../../communities/domain/repositories/community.repository';
 import { CauseDto } from '../../../application/dtos/cause.dto';
 import { CausesPort } from '../../../application/ports/causes.port';
 import { CauseNotFoundError } from '../../../domain/repositories/cause.repository';
@@ -97,7 +96,7 @@ describe('CauseController', () => {
 
     it('should throw 404 when community not found', async () => {
       mockCausesPort.closeCause.mockResolvedValue(
-        left(new CommunityNotFoundError(communityId)),
+        left(new CauseNotFoundError(causeId)),
       );
 
       const userId = v4();
