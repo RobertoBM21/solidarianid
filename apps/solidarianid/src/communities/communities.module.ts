@@ -4,11 +4,11 @@ import { GetCommunityExistsHandler } from './application/handlers/get-community-
 import { IsCommunityAdminHandler } from './application/handlers/is-community-admin.handler';
 import { MembershipRequestAcceptedHandler } from './application/handlers/membership-request-accepted.handler';
 import { CommunityMembersPort } from './application/ports/community-members.port';
+import { CommunitiesPort } from './application/ports/communities.port';
+import { MembershipRequestsPort } from './application/ports/membership-requests.port';
 import { CommunitiesService } from './application/services/communities.service';
 import { CommunityMembersService } from './application/services/community-members.service';
 import { MembershipRequestsService } from './application/services/membership-requests.service';
-import { CommunitiesPort } from './domain/ports/community.port';
-import { MembershipRequestsPort } from './domain/ports/membership-requests.port';
 import { CommunityMemberRepository } from './domain/repositories/community-member.repository';
 import { CommunityRepository } from './domain/repositories/community.repository';
 import { MembershipRequestRepository } from './domain/repositories/membership-request.repository';

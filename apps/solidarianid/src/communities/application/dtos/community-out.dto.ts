@@ -1,10 +1,21 @@
-import { CommunityListOut } from '../../../communities/domain/ports/community.port';
 import { Community } from '../../domain/community.aggregate';
 
-export class CommunityOutDto implements CommunityListOut {
+export class CommunityOutDto {
+  /**
+   * The unique identifier of the community.
+   */
   readonly id: string;
+  /**
+   * The name of the community.
+   */
   readonly name: string;
+  /**
+   * The description of the community.
+   */
   readonly description: string;
+  /**
+   * The creation date of the community (ISO 8601 format).
+   */
   readonly createdAt: string;
 
   constructor(data: Community) {

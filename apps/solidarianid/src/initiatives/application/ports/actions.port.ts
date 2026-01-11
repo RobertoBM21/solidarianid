@@ -4,6 +4,8 @@ import { CommunityNotFoundError } from '../../../communities/domain/repositories
 import { ActionCreationError } from '../../domain/aggregates/action.aggregate';
 import { CauseNotFoundError } from '../../domain/repositories/cause.repository';
 import { InitiativeAlreadyClosedError } from '../../domain/value-objects/initiative-status.vo';
+import { CreateFundingActionDto } from '../dtos/create-funding-action.dto';
+import { CreateVolunteeringActionDto } from '../dtos/create-volunteering-action.dto';
 
 export type CreateActionError =
   | ActionCreationError
@@ -11,27 +13,6 @@ export type CreateActionError =
   | CommunityNotFoundError
   | UserIsNotAdminError
   | InitiativeAlreadyClosedError;
-
-export interface CreateBaseActionData {
-  title: string;
-  description: string;
-  objectives: string[];
-}
-
-export interface CreateFundingActionData extends CreateBaseActionData {
-  targetAmount: number;
-}
-
-export interface CreateVolunteeringActionData extends CreateBaseActionData {
-  start: Date | string;
-  end: Date | string;
-}
-
-export interface CreateActionRequest<T> {
-  causeId: string;
-  requesterId: string;
-  data: T;
-}
 
 interface BaseActionOut {
   id: string;
@@ -57,12 +38,24 @@ export interface VolunteeringActionOut extends BaseActionOut {
 
 export type ActionOut = FundingActionOut | VolunteeringActionOut;
 
+export interface CreateFundingActionRequest {
+  causeId: string;
+  requesterId: string;
+  data: CreateFundingActionDto;
+}
+
+export interface CreateVolunteeringActionRequest {
+  causeId: string;
+  requesterId: string;
+  data: CreateVolunteeringActionDto;
+}
+
 export abstract class ActionsPort {
   abstract createFundingAction(
-    request: CreateActionRequest<CreateFundingActionData>,
+    options: CreateFundingActionRequest,
   ): Promise<Either<CreateActionError, FundingActionOut>>;
 
   abstract createVolunteeringAction(
-    request: CreateActionRequest<CreateVolunteeringActionData>,
+    options: CreateVolunteeringActionRequest,
   ): Promise<Either<CreateActionError, VolunteeringActionOut>>;
 }

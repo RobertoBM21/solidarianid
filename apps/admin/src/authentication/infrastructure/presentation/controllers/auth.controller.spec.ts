@@ -3,9 +3,9 @@ import { InvalidCredentialsError } from '@app/shared/domain/aggregates/abstract-
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Request, Response } from 'express';
-import { AuthPort } from '../../../domain/ports/auth.port';
-import { LoginDto } from '../dtos/login.dto';
-import { RegisterDto } from '../dtos/register.dto';
+import { LoginDto } from '../../../application/dtos/login.dto';
+import { RegisterDto } from '../../../application/dtos/register.dto';
+import { AuthPort } from '../../../application/ports/auth.port';
 import { AuthController } from './auth.controller';
 
 describe('AuthController', () => {

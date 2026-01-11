@@ -19,10 +19,10 @@ import {
 import { CommunityNotFoundError } from '../../../../communities/domain/repositories/community.repository';
 import { AuthId } from '../../../../identity/infrastructure/decorators/auth-id.decorator';
 import { AuthGuard } from '../../../../identity/infrastructure/guards/auth.guard';
+import { CauseCreatedDto } from '../../../application/dtos/cause-created.dto';
+import { CauseListItemDto } from '../../../application/dtos/cause-list-item.dto';
+import { CreateCauseDto } from '../../../application/dtos/create-cause.dto';
 import { CausesPort } from '../../../application/ports/causes.port';
-import { CauseCreatedApiDto } from '../dtos/cause-created.api-dto';
-import { CauseListItemApiDto } from '../dtos/cause-list-item.api-dto';
-import { CreateCauseApiDto } from '../dtos/create-cause.api-dto';
 
 @Controller('communities/:communityId/causes')
 @ApiTags('causes')
@@ -31,17 +31,17 @@ export class CausesController {
 
   @Post()
   @UseGuards(AuthGuard)
-  @ApiBody({ type: CreateCauseApiDto })
+  @ApiBody({ type: CreateCauseDto })
   @ApiCreatedResponse({
     description: 'Cause created successfully',
-    type: CauseCreatedApiDto,
+    type: CauseCreatedDto,
   })
   @ApiSecurity('userId')
   async create(
     @Param('communityId', ParseUUIDPipe) communityId: string,
-    @Body() dto: CreateCauseApiDto,
+    @Body() dto: CreateCauseDto,
     @AuthId() userId: string,
-  ): Promise<CauseCreatedApiDto> {
+  ): Promise<CauseCreatedDto> {
     const result = await this.causesPort.createCause(communityId, dto, userId);
 
     if (result.isLeft()) {
@@ -57,11 +57,11 @@ export class CausesController {
   @Get()
   @ApiOkResponse({
     description: 'List of causes for the community',
-    type: [CauseListItemApiDto],
+    type: [CauseListItemDto],
   })
   async list(
     @Param('communityId', ParseUUIDPipe) communityId: string,
-  ): Promise<CauseListItemApiDto[]> {
+  ): Promise<CauseListItemDto[]> {
     const result = await this.causesPort.listByCommunity(communityId);
     if (result.isLeft()) {
       throw new NotFoundException(result.value.message);

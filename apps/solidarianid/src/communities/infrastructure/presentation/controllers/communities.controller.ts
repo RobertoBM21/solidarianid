@@ -18,7 +18,7 @@ import {
 } from '@nestjs/swagger';
 import { AuthId } from '../../../../identity/infrastructure/decorators/auth-id.decorator';
 import { AuthGuard } from '../../../../identity/infrastructure/guards/auth.guard';
-import { CommunitiesPort } from '../../../domain/ports/community.port';
+import { CommunitiesPort } from '../../../application/ports/communities.port';
 import { CommunityListItemDto } from '../dtos/community-list-item.dto';
 import { CommunityProposalDto } from '../dtos/community-proposal.dto';
 import { ProposeCommunityDto } from '../dtos/propose-community.dto';

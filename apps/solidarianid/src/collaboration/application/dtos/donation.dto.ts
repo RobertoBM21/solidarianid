@@ -4,27 +4,27 @@ export class DonationDto {
   /**
    * Unique identifier of the donation.
    */
-  id: string;
+  readonly id: string;
 
   /**
    * ID of the funding action to which the donation is made.
    */
-  fundingActionId: string;
+  readonly fundingActionId: string;
 
   /**
    * Amount donated.
    */
-  amount: number;
+  readonly amount: number;
 
   /**
    * ID of the user who made the donation.
    */
-  donorId: string;
+  readonly donorId: string;
 
   /**
    * Date when the donation was created.
    */
-  createdAt: string;
+  readonly createdAt: string;
 
   constructor(donation: Donation) {
     this.id = donation.id.toString();

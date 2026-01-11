@@ -5,7 +5,7 @@ import {
 } from '@app/shared/domain/aggregates/community-proposal.aggregate';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { CommunityProposalsPort } from '../../../domain/ports/community-proposals.port';
+import { CommunityProposalsPort } from '../../../application/ports/community-proposals.port';
 import { CommunityProposalNotFoundError } from '../../../domain/repositories/community-proposal.repository';
 import { CommunityProposalsController } from './community-proposals.controller';
 
@@ -81,13 +81,13 @@ describe('CommunityProposalsController', () => {
 
   describe('approveProposal', () => {
     it('should approve proposal successfully', async () => {
-      const proposalId = UniqueEntityID.create();
+      const proposalId = UniqueEntityID.create().toString();
 
       mockCommunityProposalsPort.approve = jest
         .fn()
         .mockResolvedValue(right(proposal1.value));
 
-      await controller.approveProposal(proposalId.toString());
+      await controller.approveProposal(proposalId);
 
       expect(mockCommunityProposalsPort.approve).toHaveBeenCalledWith(
         proposalId,
@@ -95,15 +95,15 @@ describe('CommunityProposalsController', () => {
     });
 
     it('should throw NotFoundException if proposal not found during approval', async () => {
-      const proposalId = UniqueEntityID.create();
+      const proposalId = UniqueEntityID.create().toString();
 
       mockCommunityProposalsPort.approve.mockResolvedValue(
-        left(new CommunityProposalNotFoundError(proposalId.toString())),
+        left(new CommunityProposalNotFoundError(proposalId)),
       );
 
-      await expect(
-        controller.approveProposal(proposalId.toString()),
-      ).rejects.toThrow(NotFoundException);
+      await expect(controller.approveProposal(proposalId)).rejects.toThrow(
+        NotFoundException,
+      );
 
       expect(mockCommunityProposalsPort.approve).toHaveBeenCalledWith(
         proposalId,
@@ -111,15 +111,15 @@ describe('CommunityProposalsController', () => {
     });
 
     it('should throw BadRequestException for other approval errors', async () => {
-      const proposalId = UniqueEntityID.create();
+      const proposalId = UniqueEntityID.create().toString();
 
       mockCommunityProposalsPort.approve.mockResolvedValue(
         left(new InvalidProposalStateError()),
       );
 
-      await expect(
-        controller.approveProposal(proposalId.toString()),
-      ).rejects.toThrow(BadRequestException);
+      await expect(controller.approveProposal(proposalId)).rejects.toThrow(
+        BadRequestException,
+      );
 
       expect(mockCommunityProposalsPort.approve).toHaveBeenCalledWith(
         proposalId,
@@ -129,13 +129,13 @@ describe('CommunityProposalsController', () => {
 
   describe('rejectProposal', () => {
     it('should reject proposal successfully', async () => {
-      const proposalId = UniqueEntityID.create();
+      const proposalId = UniqueEntityID.create().toString();
 
       mockCommunityProposalsPort.reject = jest
         .fn()
         .mockResolvedValue(right(proposal2.value));
 
-      await controller.rejectProposal(proposalId.toString());
+      await controller.rejectProposal(proposalId);
 
       expect(mockCommunityProposalsPort.reject).toHaveBeenCalledWith(
         proposalId,
@@ -143,17 +143,17 @@ describe('CommunityProposalsController', () => {
     });
 
     it('should throw NotFoundException if proposal not found during rejection', async () => {
-      const proposalId = UniqueEntityID.create();
+      const proposalId = UniqueEntityID.create().toString();
 
       mockCommunityProposalsPort.reject = jest
         .fn()
         .mockResolvedValue(
-          left(new CommunityProposalNotFoundError(proposalId.toString())),
+          left(new CommunityProposalNotFoundError(proposalId)),
         );
 
-      await expect(
-        controller.rejectProposal(proposalId.toString()),
-      ).rejects.toThrow(NotFoundException);
+      await expect(controller.rejectProposal(proposalId)).rejects.toThrow(
+        NotFoundException,
+      );
 
       expect(mockCommunityProposalsPort.reject).toHaveBeenCalledWith(
         proposalId,
@@ -161,15 +161,15 @@ describe('CommunityProposalsController', () => {
     });
 
     it('should throw BadRequestException for other rejection errors', async () => {
-      const proposalId = UniqueEntityID.create();
+      const proposalId = UniqueEntityID.create().toString();
 
       mockCommunityProposalsPort.reject.mockResolvedValue(
         left(new InvalidProposalStateError()),
       );
 
-      await expect(
-        controller.rejectProposal(proposalId.toString()),
-      ).rejects.toThrow(BadRequestException);
+      await expect(controller.rejectProposal(proposalId)).rejects.toThrow(
+        BadRequestException,
+      );
 
       expect(mockCommunityProposalsPort.reject).toHaveBeenCalledWith(
         proposalId,

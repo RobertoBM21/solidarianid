@@ -3,8 +3,9 @@ import { UserAlreadyExistsError } from '@app/shared/domain/aggregates/abstract-u
 import { Injectable } from '@nestjs/common';
 import { User, UserCreationError } from '../domain/aggregates/user.aggregate';
 import { CountryCheckerPort } from '../domain/ports/country-checker.port';
-import { CreateUserData, UserPort } from '../domain/ports/user.port';
 import { UserRepository } from '../domain/repositories/user.repository';
+import { CreateUserDto } from './dtos/create-user.dto';
+import { UserPort } from './ports/user.port';
 
 @Injectable()
 export class UserService implements UserPort {
@@ -15,7 +16,7 @@ export class UserService implements UserPort {
   ) {}
 
   async createUser(
-    data: CreateUserData,
+    data: CreateUserDto,
   ): Promise<
     Either<UserCreationError | UserAlreadyExistsError, { id: string }>
   > {
@@ -25,9 +26,7 @@ export class UserService implements UserPort {
     }
 
     const userOrError = await User.create(
-      {
-        ...data,
-      },
+      data,
       this.countryChecker,
       this.passwordHasher,
     );

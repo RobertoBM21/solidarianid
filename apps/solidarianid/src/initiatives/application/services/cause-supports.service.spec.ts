@@ -166,8 +166,10 @@ describe('CauseSupportsService', () => {
 
       const result = await service.registerSupportForAnonymous({
         causeId,
-        anonymousName: 'Anon',
-        anonymousEmail: 'anon@email.com',
+        data: {
+          name: 'Anon',
+          email: 'anon@email.com',
+        },
       });
 
       expect(result.isRight()).toBe(true);
@@ -187,8 +189,10 @@ describe('CauseSupportsService', () => {
 
       const result = await service.registerSupportForAnonymous({
         causeId,
-        anonymousName: 'Anon',
-        anonymousEmail: 'anon@email.com',
+        data: {
+          name: 'Anon',
+          email: 'anon@email.com',
+        },
       });
 
       expect(result.isLeft()).toBe(true);
@@ -212,8 +216,10 @@ describe('CauseSupportsService', () => {
 
       const result = await service.registerSupportForAnonymous({
         causeId,
-        anonymousName: 'Anon',
-        anonymousEmail: 'anon@email.com',
+        data: {
+          name: 'Anon',
+          email: 'anon@email.com',
+        },
       });
 
       expect(result.isLeft()).toBe(true);
@@ -235,10 +241,7 @@ describe('CauseSupportsService', () => {
         right(undefined),
       );
 
-      const result = await service.cancelSupport({
-        causeId,
-        userId,
-      });
+      const result = await service.cancelSupport(causeId, userId);
 
       expect(result.isRight()).toBe(true);
       expect(
@@ -260,10 +263,7 @@ describe('CauseSupportsService', () => {
         left(new CauseSupportNotFoundError()),
       );
 
-      const result = await service.cancelSupport({
-        causeId,
-        userId,
-      });
+      const result = await service.cancelSupport(causeId, userId);
 
       expect(result.isLeft()).toBe(true);
     });

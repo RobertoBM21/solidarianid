@@ -1,7 +1,7 @@
 import { left, right } from '@app/shared/domain';
 import { Test } from '@nestjs/testing';
 import { v4 as uuidv4 } from 'uuid';
-import { UserPort } from '../../../domain/ports/user.port';
+import { UserPort } from '../../../application/ports/user.port';
 import { UsersController } from './users.controller';
 
 describe('usersController', () => {

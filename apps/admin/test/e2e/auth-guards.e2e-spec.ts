@@ -4,7 +4,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { join } from 'path';
 import request from 'supertest';
 import { AdminModule } from '../../src/admin.module';
-import { AuthPort } from '../../src/authentication/domain/ports/auth.port';
+import { AuthPort } from '../../src/authentication/application/ports/auth.port';
 import { setupMvcApp } from '../../src/presentation/setup-mvc';
 
 describe('Auth Guards (e2e)', () => {

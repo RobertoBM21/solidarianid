@@ -1,24 +1,16 @@
 import { Either } from '@app/shared/domain';
-import { CommunityCreationError } from '../community.aggregate';
-
-export interface CommunityListOut {
-  readonly id: string;
-  readonly name: string;
-  readonly description: string;
-  readonly createdAt: string;
-}
+import { CommunityCreationError } from '../../domain/community.aggregate';
+import { CommunityOutDto } from '../dtos/community-out.dto';
+import { ProposeCommunityDto } from '../dtos/propose-community.dto';
 
 export abstract class CommunitiesPort {
   abstract listCommunities(
     search?: string,
     sort?: { field?: 'name' | 'createdAt'; order?: 'ASC' | 'DESC' },
-  ): Promise<CommunityListOut[]>;
+  ): Promise<CommunityOutDto[]>;
 
   abstract proposeCommunity(
-    data: {
-      name: string;
-      description: string;
-    },
+    data: ProposeCommunityDto,
     requesterId: string,
   ): Promise<Either<CommunityCreationError, { proposalId: string }>>;
 }

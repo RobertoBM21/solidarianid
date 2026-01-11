@@ -17,9 +17,8 @@ import {
 import {
   ActionsPort,
   CreateActionError,
-  CreateActionRequest,
-  CreateFundingActionData,
-  CreateVolunteeringActionData,
+  CreateFundingActionRequest,
+  CreateVolunteeringActionRequest,
   FundingActionOut,
   VolunteeringActionOut,
 } from '../ports/actions.port';
@@ -35,7 +34,7 @@ export class ActionsService extends ActionsPort {
   }
 
   async createFundingAction(
-    request: CreateActionRequest<CreateFundingActionData>,
+    request: CreateFundingActionRequest,
   ): Promise<Either<CreateActionError, FundingActionOut>> {
     const { causeId, requesterId, data } = request;
     const causeOrError = await this.ensureCanCreateAction(causeId, requesterId);
@@ -59,7 +58,7 @@ export class ActionsService extends ActionsPort {
   }
 
   async createVolunteeringAction(
-    request: CreateActionRequest<CreateVolunteeringActionData>,
+    request: CreateVolunteeringActionRequest,
   ): Promise<Either<CreateActionError, VolunteeringActionOut>> {
     const { causeId, requesterId, data } = request;
     const causeOrError = await this.ensureCanCreateAction(causeId, requesterId);

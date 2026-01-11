@@ -6,6 +6,7 @@ import {
 } from '../../domain/aggregates/cause.aggregate';
 import { CauseNotFoundError } from '../../domain/repositories/cause.repository';
 import { CauseCreatedDto } from '../dtos/cause-created.dto';
+import { CreateCauseDto } from '../dtos/create-cause.dto';
 import { CauseListItemDto } from '../dtos/cause-list-item.dto';
 import { CauseDto } from '../dtos/cause.dto';
 
@@ -15,17 +16,10 @@ export type CloseCauseError =
   | CauseAlreadyClosedError
   | Error;
 
-export interface CreateCauseData {
-  title: string;
-  description: string;
-  duration: string;
-  ods: number;
-}
-
 export abstract class CausesPort {
   abstract createCause(
     communityId: string,
-    data: CreateCauseData,
+    data: CreateCauseDto,
     userId: string,
   ): Promise<Either<CreateCauseError, CauseCreatedDto>>;
 

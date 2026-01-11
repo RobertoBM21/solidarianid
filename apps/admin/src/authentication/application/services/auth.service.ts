@@ -8,13 +8,10 @@ import {
   AdminUser,
   AdminUserCreationError,
 } from '../../domain/aggregates/admin-user.aggregate';
-import {
-  AuthPort,
-  AuthResult,
-  LoginData,
-  RegisterData,
-} from '../../domain/ports/auth.port';
 import { AdminUserRepository } from '../../domain/repositories/admin-user.repository';
+import { LoginDto } from '../dtos/login.dto';
+import { RegisterDto } from '../dtos/register.dto';
+import { AuthPort } from '../ports/auth.port';
 
 @Injectable()
 export class AuthService implements AuthPort {
@@ -24,8 +21,8 @@ export class AuthService implements AuthPort {
   ) {}
 
   async login(
-    data: LoginData,
-  ): Promise<Either<InvalidCredentialsError, AuthResult>> {
+    data: LoginDto,
+  ): Promise<Either<InvalidCredentialsError, { id: string }>> {
     const userOrError = await this.adminUserRepository.findByEmail(data.email);
 
     if (userOrError.isLeft()) {
@@ -46,9 +43,9 @@ export class AuthService implements AuthPort {
   }
 
   async register(
-    data: RegisterData,
+    data: RegisterDto,
   ): Promise<
-    Either<AdminUserCreationError | UserAlreadyExistsError, AuthResult>
+    Either<AdminUserCreationError | UserAlreadyExistsError, { id: string }>
   > {
     const userOrError = await this.adminUserRepository.findByEmail(data.email);
 

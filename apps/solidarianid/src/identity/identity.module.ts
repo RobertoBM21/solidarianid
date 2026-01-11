@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { GetUserExistsHandler } from './application/handlers/get-user-exists.handler';
 import { UserService } from './application/user.service';
 import { CountryCheckerPort } from './domain/ports/country-checker.port';
-import { UserPort } from './domain/ports/user.port';
+import { UserPort } from './application/ports/user.port';
 import { UserRepository } from './domain/repositories/user.repository';
 import { CountryCheckerAdapter } from './infrastructure/adapters/country-checker.adapter';
 import { AuthMiddleware } from './infrastructure/middlewares/auth.middleware';

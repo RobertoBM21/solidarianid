@@ -75,8 +75,10 @@ describe('CauseSupportsController', () => {
         mockCauseSupportsPort.registerSupportForAnonymous,
       ).toHaveBeenCalledWith({
         causeId,
-        email: 'anon@test.com',
-        name: 'Anon',
+        data: {
+          email: 'anon@test.com',
+          name: 'Anon',
+        },
       });
     });
 
@@ -100,10 +102,10 @@ describe('CauseSupportsController', () => {
 
       await controller.cancelSupport(causeId, userId);
 
-      expect(mockCauseSupportsPort.cancelSupport).toHaveBeenCalledWith({
+      expect(mockCauseSupportsPort.cancelSupport).toHaveBeenCalledWith(
         causeId,
         userId,
-      });
+      );
     });
 
     it('should map cause not found to 404', async () => {

@@ -5,9 +5,10 @@ import {
   CommunityCreationError,
   CommunityNameAlreadyExistsError,
 } from '../../domain/community.aggregate';
-import { CommunitiesPort } from '../../domain/ports/community.port';
 import { CommunityRepository } from '../../domain/repositories/community.repository';
 import { CommunityOutDto } from '../dtos/community-out.dto';
+import { ProposeCommunityDto } from '../dtos/propose-community.dto';
+import { CommunitiesPort } from '../ports/communities.port';
 
 @Injectable()
 export class CommunitiesService implements CommunitiesPort {
@@ -25,10 +26,7 @@ export class CommunitiesService implements CommunitiesPort {
   }
 
   async proposeCommunity(
-    data: {
-      name: string;
-      description: string;
-    },
+    data: ProposeCommunityDto,
     requesterId: string,
   ): Promise<
     Either<

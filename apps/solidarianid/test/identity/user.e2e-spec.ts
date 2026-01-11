@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { DataSource } from 'typeorm';
 import { AppModule } from '../../src/app.module';
-import { CreateUserData } from '../../src/identity/domain/ports/user.port';
+import { CreateUserDto } from '../../src/identity/application/dtos/create-user.dto';
 import { clearDatabase } from '../db-test-utils';
 
 describe('Users controller (e2e)', () => {
@@ -31,8 +31,8 @@ describe('Users controller (e2e)', () => {
 
   // Helper methods
   const buildUserData = (
-    overrides: Partial<CreateUserData> = {},
-  ): CreateUserData => {
+    overrides: Partial<CreateUserDto> = {},
+  ): CreateUserDto => {
     return {
       name: overrides.name ?? 'User name',
       email: overrides.email ?? `user_${crypto.randomUUID()}@example.com`,
@@ -43,7 +43,7 @@ describe('Users controller (e2e)', () => {
     };
   };
 
-  const createUserAndExpectSuccess = async (userData: CreateUserData) => {
+  const createUserAndExpectSuccess = async (userData: CreateUserDto) => {
     const res = await request(app.getHttpServer())
       .post('/users')
       .send(userData)
@@ -56,7 +56,7 @@ describe('Users controller (e2e)', () => {
     return res;
   };
 
-  const createUserAndExpectBadRequest = async (userData: CreateUserData) => {
+  const createUserAndExpectBadRequest = async (userData: CreateUserDto) => {
     const res = await request(app.getHttpServer())
       .post('/users')
       .send(userData)

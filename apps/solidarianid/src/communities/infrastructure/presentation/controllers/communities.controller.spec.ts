@@ -4,7 +4,7 @@ import { BadRequestException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { v4 } from 'uuid';
 import { CommunityOutDto } from '../../../application/dtos/community-out.dto';
-import { CommunitiesPort } from '../../../domain/ports/community.port';
+import { CommunitiesPort } from '../../../application/ports/communities.port';
 import { CommunitiesController } from './communities.controller';
 
 describe('CommunitiesController', () => {

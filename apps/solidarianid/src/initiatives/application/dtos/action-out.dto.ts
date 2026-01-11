@@ -4,45 +4,113 @@ import {
   VolunteeringAction,
 } from '../../domain/aggregates/action.aggregate';
 
-abstract class BaseActionOutDto {
+export class FundingActionOutDto {
+  /**
+   * The unique identifier of the action.
+   */
   readonly id: string;
+  /**
+   * The unique identifier of the cause.
+   */
   readonly causeId: string;
+  /**
+   * The action type.
+   */
+  readonly type: 'funding';
+  /**
+   * The title of the action.
+   */
   readonly title: string;
+  /**
+   * The description of the action.
+   */
   readonly description: string;
+  /**
+   * The objectives of the action.
+   */
   readonly objectives: string[];
+  /**
+   * Whether the action is closed.
+   */
   readonly closed: boolean;
+  /**
+   * The creation date in ISO 8601 format.
+   */
   readonly createdAt: string;
+  /**
+   * The target amount for the funding action.
+   */
+  readonly targetAmount: number;
+  /**
+   * The current amount collected for the funding action.
+   */
+  readonly currentAmount: number;
 
-  constructor(action: Action) {
+  constructor(action: FundingAction) {
     this.id = action.id.toString();
     this.causeId = action.causeId.toString();
+    this.type = 'funding';
     this.title = action.title;
     this.description = action.description;
     this.objectives = [...action.objectives];
     this.closed = action.closed;
     this.createdAt = action.createdAt.toISOString();
-  }
-}
-
-export class FundingActionOutDto extends BaseActionOutDto {
-  type = 'funding' as const;
-  readonly targetAmount: number;
-  readonly currentAmount: number;
-
-  constructor(action: FundingAction) {
-    super(action);
     this.targetAmount = action.targetAmountValue;
     this.currentAmount = action.currentAmountValue;
   }
 }
 
-export class VolunteeringActionOutDto extends BaseActionOutDto {
-  type = 'volunteering' as const;
+export class VolunteeringActionOutDto {
+  /**
+   * The unique identifier of the action.
+   */
+  readonly id: string;
+  /**
+   * The unique identifier of the cause.
+   */
+  readonly causeId: string;
+  /**
+   * The action type.
+   */
+  readonly type: 'volunteering';
+  /**
+   * The title of the action.
+   */
+  readonly title: string;
+  /**
+   * The description of the action.
+   */
+  readonly description: string;
+  /**
+   * The objectives of the action.
+   */
+  readonly objectives: string[];
+  /**
+   * Whether the action is closed.
+   */
+  readonly closed: boolean;
+  /**
+   * The creation date in ISO 8601 format.
+   */
+  readonly createdAt: string;
+  /**
+   * The start date in ISO 8601 format.
+   */
   readonly start: string;
+  /**
+   * The end date in ISO 8601 format.
+   */
   readonly end: string;
 
   constructor(action: VolunteeringAction) {
-    super(action);
+    this.id = action.id.toString();
+    this.causeId = action.causeId.toString();
+    this.type = 'volunteering';
+    this.title = action.title;
+    this.description = action.description;
+    this.objectives = [...action.objectives];
+    this.closed = action.closed;
+    this.createdAt = action.createdAt.toISOString();
     this.start = action.start.toISOString();
     this.end = action.end.toISOString();
   }

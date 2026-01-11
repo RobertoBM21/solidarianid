@@ -20,6 +20,8 @@ import {
 import { UserIsNotAdminError } from '../../../../communities/domain/community.aggregate';
 import { AuthId } from '../../../../identity/infrastructure/decorators/auth-id.decorator';
 import { AuthGuard } from '../../../../identity/infrastructure/guards/auth.guard';
+import { CreateFundingActionDto } from '../../../application/dtos/create-funding-action.dto';
+import { CreateVolunteeringActionDto } from '../../../application/dtos/create-volunteering-action.dto';
 import {
   ActionsPort,
   CreateActionError,
@@ -32,8 +34,6 @@ import {
   FundingActionApiDto,
   VolunteeringActionApiDto,
 } from '../dtos/action.api-dto';
-import { CreateFundingActionApiDto } from '../dtos/create-funding-action.api-dto';
-import { CreateVolunteeringActionApiDto } from '../dtos/create-volunteering-action.api-dto';
 
 @Controller('causes/:causeId/actions')
 @ApiTags('actions')
@@ -45,7 +45,7 @@ export class ActionsController {
   ) {}
 
   @Post('funding')
-  @ApiBody({ type: CreateFundingActionApiDto })
+  @ApiBody({ type: CreateFundingActionDto })
   @ApiCreatedResponse({
     description: 'Action created successfully',
     type: FundingActionApiDto,
@@ -53,7 +53,7 @@ export class ActionsController {
   @ApiSecurity('userId')
   async createFunding(
     @Param('causeId', ParseUUIDPipe) causeId: string,
-    @Body() dto: CreateFundingActionApiDto,
+    @Body() dto: CreateFundingActionDto,
     @AuthId() userId: string,
   ): Promise<FundingActionOut> {
     return this.mapResult(
@@ -66,7 +66,7 @@ export class ActionsController {
   }
 
   @Post('volunteering')
-  @ApiBody({ type: CreateVolunteeringActionApiDto })
+  @ApiBody({ type: CreateVolunteeringActionDto })
   @ApiCreatedResponse({
     description: 'Action created successfully',
     type: VolunteeringActionApiDto,
@@ -74,7 +74,7 @@ export class ActionsController {
   @ApiSecurity('userId')
   async createVolunteering(
     @Param('causeId', ParseUUIDPipe) causeId: string,
-    @Body() dto: CreateVolunteeringActionApiDto,
+    @Body() dto: CreateVolunteeringActionDto,
     @AuthId() userId: string,
   ): Promise<VolunteeringActionOut> {
     return this.mapResult(

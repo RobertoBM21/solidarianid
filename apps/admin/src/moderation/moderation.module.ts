@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CommunityProposalAcceptedHandler } from './application/handlers/community-proposal-accepted.handler';
 import { CommunityProposalsService } from './application/services/community-proposals.service';
-import { CommunityProposalsPort } from './domain/ports/community-proposals.port';
+import { CommunityProposalsPort } from './application/ports/community-proposals.port';
 import { CommunityProposalRepository } from './domain/repositories/community-proposal.repository';
 import { CommunityProposalDbEntity } from './infrastructure/persistence/entities/community-proposal.db-entity';
 import { CommunityProposalRepositoryImpl } from './infrastructure/persistence/repositories/community-proposal.repository.impl';

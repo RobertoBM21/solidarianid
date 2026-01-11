@@ -1,7 +1,7 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthService } from './application/services/auth.service';
-import { AuthPort } from './domain/ports/auth.port';
+import { AuthPort } from './application/ports/auth.port';
 import { AdminUserRepository } from './domain/repositories/admin-user.repository';
 import { AdminUserRepositoryImpl } from './infrastructure/persistence/admin-user.repository.impl';
 import { AdminUserDbEntity } from './infrastructure/persistence/entities/admin-user.db-entity';

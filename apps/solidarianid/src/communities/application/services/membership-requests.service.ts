@@ -18,7 +18,7 @@ import {
   MembershipRequestNotPendingError,
   UserAlreadyMemberError,
 } from '../../domain/membership-request.aggregate';
-import { MembershipRequestsPort } from '../../domain/ports/membership-requests.port';
+import { MembershipRequestsPort } from '../ports/membership-requests.port';
 import { CommunityMemberRepository } from '../../domain/repositories/community-member.repository';
 import {
   CommunityNotFoundError,

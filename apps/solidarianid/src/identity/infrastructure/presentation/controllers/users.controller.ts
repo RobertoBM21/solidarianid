@@ -1,8 +1,8 @@
 import { BadRequestException, Body, Controller, Post } from '@nestjs/common';
 import { ApiBody, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
-import { UserPort } from '../../../domain/ports/user.port';
+import { CreateUserDto } from '../../../application/dtos/create-user.dto';
+import { UserPort } from '../../../application/ports/user.port';
 import { CreateUserResponseDto } from '../dtos/create-user-response.dto';
-import { CreateUserDto } from '../dtos/create-user.dto';
 
 @Controller('users')
 @ApiTags('users')

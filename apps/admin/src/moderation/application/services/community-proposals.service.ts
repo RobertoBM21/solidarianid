@@ -10,11 +10,11 @@ import {
   InvalidProposalStateError,
 } from '@app/shared/domain/aggregates/community-proposal.aggregate';
 import { Injectable, Logger } from '@nestjs/common';
-import { CommunityProposalsPort } from '../../domain/ports/community-proposals.port';
 import {
   CommunityProposalNotFoundError,
   CommunityProposalRepository,
 } from '../../domain/repositories/community-proposal.repository';
+import { CommunityProposalsPort } from '../ports/community-proposals.port';
 
 @Injectable()
 export class CommunityProposalsService implements CommunityProposalsPort {
@@ -30,25 +30,31 @@ export class CommunityProposalsService implements CommunityProposalsPort {
   }
 
   async approve(
-    proposalId: UniqueEntityID,
+    proposalId: string,
   ): Promise<
     Either<
       InvalidProposalStateError | CommunityProposalNotFoundError,
       CommunityProposal
     >
   > {
-    return this.setProposalAcceptedStatus(proposalId, true);
+    return this.setProposalAcceptedStatus(
+      UniqueEntityID.create(proposalId),
+      true,
+    );
   }
 
   async reject(
-    proposalId: UniqueEntityID,
+    proposalId: string,
   ): Promise<
     Either<
       InvalidProposalStateError | CommunityProposalNotFoundError,
       CommunityProposal
     >
   > {
-    return this.setProposalAcceptedStatus(proposalId, false);
+    return this.setProposalAcceptedStatus(
+      UniqueEntityID.create(proposalId),
+      false,
+    );
   }
 
   private async setProposalAcceptedStatus(

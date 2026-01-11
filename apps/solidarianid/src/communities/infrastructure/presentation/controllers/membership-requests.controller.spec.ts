@@ -13,7 +13,7 @@ import {
   MembershipRequestNotPendingError,
   UserAlreadyMemberError,
 } from '../../../domain/membership-request.aggregate';
-import { MembershipRequestsPort } from '../../../domain/ports/membership-requests.port';
+import { MembershipRequestsPort } from '../../../application/ports/membership-requests.port';
 import { CommunityNotFoundError } from '../../../domain/repositories/community.repository';
 import { MembershipRequestNotFoundError } from '../../../domain/repositories/membership-request.repository';
 import { MembershipRequestDto } from '../dtos/membership-request.dto';

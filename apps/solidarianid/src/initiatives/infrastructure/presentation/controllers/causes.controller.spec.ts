@@ -5,7 +5,7 @@ import { v4 } from 'uuid';
 import { CommunityNotFoundError } from '../../../../communities/domain/repositories/community.repository';
 import { CauseListItemDto } from '../../../application/dtos/cause-list-item.dto';
 import { CausesPort } from '../../../application/ports/causes.port';
-import { CreateCauseApiDto } from '../dtos/create-cause.api-dto';
+import { CreateCauseDto } from '../../../application/dtos/create-cause.dto';
 import { CausesController } from './causes.controller';
 
 describe('CausesController', () => {
@@ -41,7 +41,7 @@ describe('CausesController', () => {
 
   describe('create', () => {
     it('should return created cause when service succeeds', async () => {
-      const dto: CreateCauseApiDto = {
+      const dto: CreateCauseDto = {
         title: 't',
         description: 'd',
         duration: '1m',
@@ -66,7 +66,7 @@ describe('CausesController', () => {
         left(new CommunityNotFoundError(communityId)),
       );
 
-      const dto: CreateCauseApiDto = {
+      const dto: CreateCauseDto = {
         title: 't',
         description: 'd',
         duration: '1m',
@@ -87,7 +87,7 @@ describe('CausesController', () => {
     it('should throw 400 on other errors', async () => {
       mockCausesPort.createCause.mockResolvedValue(left(new Error('boom')));
 
-      const dto: CreateCauseApiDto = {
+      const dto: CreateCauseDto = {
         title: 't',
         description: 'd',
         duration: '1m',

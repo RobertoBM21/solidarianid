@@ -21,6 +21,8 @@ import {
   Supporter,
   UserSupporter,
 } from '../../domain/value-objects/supporter.vo';
+import { RegisterAnonymousSupportRequestDto } from '../dtos/register-anonymous-support-request.dto';
+import { RegisterUserSupportDto } from '../dtos/register-user-support.dto';
 import {
   AlreadySupportingError,
   CauseSupportsPort,
@@ -40,10 +42,9 @@ export class CauseSupportsService extends CauseSupportsPort {
     super();
   }
 
-  async registerSupportForUser(options: {
-    causeId: string;
-    userId: string;
-  }): Promise<Either<RegisterUserSupportError, void>> {
+  async registerSupportForUser(
+    options: RegisterUserSupportDto,
+  ): Promise<Either<RegisterUserSupportError, void>> {
     const userExists = await this.queryBus.execute(
       new GetUserExistsQuery(UniqueEntityID.create(options.userId)),
     );
@@ -56,14 +57,12 @@ export class CauseSupportsService extends CauseSupportsPort {
     return this.registerSupport(options.causeId, supporter);
   }
 
-  async registerSupportForAnonymous(options: {
-    causeId: string;
-    name: string;
-    email: string;
-  }): Promise<Either<RegisterAnonymousSupportError, void>> {
+  async registerSupportForAnonymous(
+    options: RegisterAnonymousSupportRequestDto,
+  ): Promise<Either<RegisterAnonymousSupportError, void>> {
     const anonIdResult = await this.anonymousSupporters.getOrCreate(
-      options.name,
-      options.email,
+      options.data.name,
+      options.data.email,
     );
     if (anonIdResult.isLeft()) {
       return left(anonIdResult.value);
@@ -103,13 +102,13 @@ export class CauseSupportsService extends CauseSupportsPort {
     return right(undefined);
   }
 
-  async cancelSupport(options: {
-    causeId: string;
-    userId: string;
-  }): Promise<Either<CauseSupportNotFoundError, void>> {
+  async cancelSupport(
+    causeId: string,
+    userId: string,
+  ): Promise<Either<CauseSupportNotFoundError, void>> {
     const removal = await this.causeSupportRepository.removeByUserAndCause(
-      UniqueEntityID.create(options.userId),
-      UniqueEntityID.create(options.causeId),
+      UniqueEntityID.create(userId),
+      UniqueEntityID.create(causeId),
     );
     if (removal.isLeft()) {
       return left(removal.value);

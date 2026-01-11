@@ -23,9 +23,9 @@ import { CauseDto } from '../dtos/cause.dto';
 import {
   CausesPort,
   CloseCauseError,
-  CreateCauseData,
   CreateCauseError,
 } from '../ports/causes.port';
+import { CreateCauseDto } from '../dtos/create-cause.dto';
 import { IsCauseSupportedByUserQuery } from '../queries/is-cause-supported-by-user.query';
 
 @Injectable()
@@ -41,7 +41,7 @@ export class CausesService extends CausesPort {
 
   async createCause(
     communityId: string,
-    data: CreateCauseData,
+    data: CreateCauseDto,
     userId: string,
   ): Promise<Either<CreateCauseError, { causeId: string }>> {
     const isAdmin = await this.queryBus.execute(
@@ -53,7 +53,13 @@ export class CausesService extends CausesPort {
     if (!isAdmin) {
       return left(new UserIsNotAdminError(communityId));
     }
-    const causeOrError = Cause.create({ ...data, communityId });
+    const causeOrError = Cause.create({
+      title: data.title,
+      description: data.description,
+      duration: data.duration,
+      ods: data.ods,
+      communityId,
+    });
     if (causeOrError.isLeft()) {
       return left(causeOrError.value);
     }

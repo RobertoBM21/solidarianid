@@ -1,25 +1,15 @@
 import { Either } from '@app/shared/domain';
-import { UserIsNotAdminError } from '../community.aggregate';
-import {
-  MembershipRequestStatus,
-  MembershipRequestVerdict,
-} from '../membership-request-status.enum';
+import { UserIsNotAdminError } from '../../domain/community.aggregate';
+import { MembershipRequestVerdict } from '../../domain/membership-request-status.enum';
 import {
   MembershipRequestAlreadyExistsError,
   MembershipRequestCreationError,
   MembershipRequestNotPendingError,
   UserAlreadyMemberError,
-} from '../membership-request.aggregate';
-import { CommunityNotFoundError } from '../repositories/community.repository';
-import { MembershipRequestNotFoundError } from '../repositories/membership-request.repository';
-
-export interface MembershipRequestOut {
-  readonly id: string;
-  readonly userId: string;
-  readonly communityId: string;
-  readonly status: MembershipRequestStatus;
-  readonly createdAt: string;
-}
+} from '../../domain/membership-request.aggregate';
+import { CommunityNotFoundError } from '../../domain/repositories/community.repository';
+import { MembershipRequestNotFoundError } from '../../domain/repositories/membership-request.repository';
+import { MembershipRequestOutDto } from '../dtos/membership-out.dto';
 
 export abstract class MembershipRequestsPort {
   abstract requestMembership(
@@ -31,17 +21,20 @@ export abstract class MembershipRequestsPort {
       | MembershipRequestAlreadyExistsError
       | MembershipRequestCreationError
       | UserAlreadyMemberError,
-      MembershipRequestOut
+      MembershipRequestOutDto
     >
   >;
 
-  abstract listUserRequests(userId: string): Promise<MembershipRequestOut[]>;
+  abstract listUserRequests(userId: string): Promise<MembershipRequestOutDto[]>;
 
   abstract listPendingRequests(
     adminId: string,
     communityId: string,
   ): Promise<
-    Either<CommunityNotFoundError | UserIsNotAdminError, MembershipRequestOut[]>
+    Either<
+      CommunityNotFoundError | UserIsNotAdminError,
+      MembershipRequestOutDto[]
+    >
   >;
 
   abstract reviewRequest(
@@ -54,7 +47,7 @@ export abstract class MembershipRequestsPort {
       | CommunityNotFoundError
       | UserIsNotAdminError
       | MembershipRequestNotPendingError,
-      MembershipRequestOut
+      MembershipRequestOutDto
     >
   >;
 }

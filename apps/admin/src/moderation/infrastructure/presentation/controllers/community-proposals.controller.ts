@@ -1,4 +1,3 @@
-import { UniqueEntityID } from '@app/shared/domain';
 import {
   BadRequestException,
   Controller,
@@ -11,7 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { LoggedInGuard } from '../../../../authentication/infrastructure/presentation/guards/logged-in.guard';
-import { CommunityProposalsPort } from '../../../domain/ports/community-proposals.port';
+import { CommunityProposalsPort } from '../../../application/ports/community-proposals.port';
 import { CommunityProposalNotFoundError } from '../../../domain/repositories/community-proposal.repository';
 
 @Controller()
@@ -31,8 +30,7 @@ export class CommunityProposalsController {
 
   @Post('comunidades/validaciones/:id/aprobar')
   async approveProposal(@Param('id', ParseUUIDPipe) id: string) {
-    const idObj = UniqueEntityID.create(id);
-    const result = await this.service.approve(idObj);
+    const result = await this.service.approve(id);
     if (result.isLeft()) {
       const error = result.value;
       if (error instanceof CommunityProposalNotFoundError) {
@@ -44,8 +42,7 @@ export class CommunityProposalsController {
 
   @Post('comunidades/validaciones/:id/rechazar')
   async rejectProposal(@Param('id', ParseUUIDPipe) id: string) {
-    const idObj = UniqueEntityID.create(id);
-    const result = await this.service.reject(idObj);
+    const result = await this.service.reject(id);
     if (result.isLeft()) {
       const error = result.value;
       if (error instanceof CommunityProposalNotFoundError) {

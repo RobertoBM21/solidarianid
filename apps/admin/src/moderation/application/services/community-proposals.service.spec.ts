@@ -96,7 +96,7 @@ describe('CommunityProposalsService', () => {
         right(proposal),
       );
 
-      const result = await service.approve(proposalId);
+      const result = await service.approve(proposalId.toString());
 
       expect(result.isRight()).toBe(true);
       expect(mockCommunityProposalRepository.findById).toHaveBeenCalledWith(
@@ -116,7 +116,7 @@ describe('CommunityProposalsService', () => {
         left(new CommunityProposalNotFoundError(proposalId.toString())),
       );
 
-      const result = await service.approve(proposalId);
+      const result = await service.approve(proposalId.toString());
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {
@@ -137,7 +137,7 @@ describe('CommunityProposalsService', () => {
         right(proposal),
       );
 
-      const result = await service.reject(proposalId);
+      const result = await service.reject(proposalId.toString());
 
       expect(result.isRight()).toBe(true);
       expect(mockCommunityProposalRepository.findById).toHaveBeenCalledWith(
@@ -157,7 +157,7 @@ describe('CommunityProposalsService', () => {
         left(new CommunityProposalNotFoundError(proposalId.toString())),
       );
 
-      const result = await service.reject(proposalId);
+      const result = await service.reject(proposalId.toString());
 
       expect(result.isLeft()).toBe(true);
       if (result.isLeft()) {

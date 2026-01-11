@@ -11,9 +11,9 @@ import {
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AdminSession } from '../../../../presentation/session-data';
-import { AuthPort } from '../../../domain/ports/auth.port';
-import { LoginDto } from '../dtos/login.dto';
-import { RegisterDto } from '../dtos/register.dto';
+import { LoginDto } from '../../../application/dtos/login.dto';
+import { RegisterDto } from '../../../application/dtos/register.dto';
+import { AuthPort } from '../../../application/ports/auth.port';
 import { LoggedInGuard } from '../guards/logged-in.guard';
 import { LoggedOutGuard } from '../guards/logged-out.guard';
 
