@@ -16,6 +16,7 @@ export default [
       '**/jest-*.config.js',
       'dist/**',
       'coverage/**',
+      'reports/**',
       '**/admin/public/*.js',
     ],
   },

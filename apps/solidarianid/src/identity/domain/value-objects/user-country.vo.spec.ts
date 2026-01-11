@@ -18,6 +18,9 @@ describe('User country value object', () => {
     expect(result.isLeft()).toBe(true);
     if (result.isLeft()) {
       expect(result.value).toBeInstanceOf(InvalidUserCountryError);
+      expect(result.value.message).toBe(
+        'User country must be a valid 2-letter alpha code.',
+      );
     }
     expect(mockCountryChecker.isValidCountryCode).not.toHaveBeenCalled();
   });
@@ -31,6 +34,9 @@ describe('User country value object', () => {
     expect(result.isLeft()).toBe(true);
     if (result.isLeft()) {
       expect(result.value).toBeInstanceOf(InvalidUserCountryError);
+      expect(result.value.message).toBe(
+        'User country must be a valid 2-letter alpha code.',
+      );
     }
     expect(mockCountryChecker.isValidCountryCode).toHaveBeenCalledWith('xx');
   });

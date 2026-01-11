@@ -9,6 +9,7 @@ describe('UserPhone Value Object', () => {
     expect(result.isLeft()).toBe(true);
     if (result.isLeft()) {
       expect(result.value).toBeInstanceOf(InvalidUserPhoneError);
+      expect(result.value.message).toBe('User phone cannot be empty.');
     }
   });
 
@@ -18,6 +19,7 @@ describe('UserPhone Value Object', () => {
     expect(result.isLeft()).toBe(true);
     if (result.isLeft()) {
       expect(result.value).toBeInstanceOf(InvalidUserPhoneError);
+      expect(result.value.message).toBe('Invalid user phone format.');
     }
   });
 

@@ -17,6 +17,7 @@ describe('UserEmail Value Object', () => {
     expect(result.isLeft()).toBe(true);
     if (result.isLeft()) {
       expect(result.value).toBeInstanceOf(InvalidUserEmailError);
+      expect(result.value.message).toBe('User email cannot be empty.');
     }
   });
 
@@ -26,6 +27,7 @@ describe('UserEmail Value Object', () => {
     expect(result.isLeft()).toBe(true);
     if (result.isLeft()) {
       expect(result.value).toBeInstanceOf(InvalidUserEmailError);
+      expect(result.value.message).toBe('Invalid user email format.');
     }
   });
 

@@ -7,7 +7,7 @@ import {
 } from '@app/shared/domain';
 
 export class InvalidUserPasswordError implements DomainError {
-  message = 'Invalid user password';
+  constructor(public readonly message: string) {}
 }
 
 export class UserPassword extends ValueObject<string> {
@@ -23,7 +23,9 @@ export class UserPassword extends ValueObject<string> {
     passwordHash: string,
   ): Either<InvalidUserPasswordError, UserPassword> {
     if (!passwordHash) {
-      return left(new InvalidUserPasswordError());
+      return left(
+        new InvalidUserPasswordError('User password hash cannot be empty.'),
+      );
     }
 
     return right(new UserPassword(passwordHash));

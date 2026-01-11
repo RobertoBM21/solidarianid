@@ -29,7 +29,9 @@ export class UserService implements UserPort {
     }
 
     if (!data.password) {
-      return left(new InvalidUserPasswordError());
+      return left(
+        new InvalidUserPasswordError('User password cannot be empty.'),
+      );
     }
 
     const saltRounds = 10;

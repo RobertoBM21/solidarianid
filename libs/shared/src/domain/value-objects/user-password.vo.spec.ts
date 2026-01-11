@@ -9,6 +9,7 @@ describe('UserPassword Value Object', () => {
     expect(result.isLeft()).toBe(true);
     if (result.isLeft()) {
       expect(result.value).toBeInstanceOf(InvalidUserPasswordError);
+      expect(result.value.message).toBe('User password hash cannot be empty.');
     }
   });
 
