@@ -103,7 +103,6 @@ describe('DonationsService', () => {
       expect(donationRepository.save).toHaveBeenCalled();
       expect(domainEvents.dispatch).toHaveBeenCalled();
       expect(res.value).toBeInstanceOf(DonationDto);
-      // basic sanity of returned DTO
       expect((res.value as DonationDto).donorId).toEqual(paymentData.donorId);
     });
 
