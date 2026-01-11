@@ -29,6 +29,7 @@
     "test:e2e:solidarianid": "cross-env NODE_ENV=test jest --config ./apps/solidarianid/test/jest-e2e.config.js --runInBand",
     "test:mvc:admin": "cross-env NODE_ENV=test jest --config ./apps/admin/test/jest-mvc.config.js",
     "cy:open": "cypress open",
+    "test:cypress": "cypress run",
     "test:mutation": "stryker run"
   },
   "dependencies": {

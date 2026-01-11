@@ -1,5 +1,5 @@
 # STAGE 1: Build
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 
 WORKDIR /app
 
@@ -15,7 +15,7 @@ ARG APP
 RUN npm run build ${APP}
 
 # STAGE 2: Production
-FROM node:20-alpine AS production
+FROM node:24-alpine AS production
 
 ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
