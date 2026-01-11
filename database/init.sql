@@ -73,7 +73,7 @@ CREATE TABLE "cause_supports" (
     "cause_id" UUID NOT NULL REFERENCES "causes"("id"),
     "user_id" UUID REFERENCES "users"("id"),
     "anonymous_user_id" UUID REFERENCES "anonymous_users"("id"),
-    "date" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CHECK (("user_id" IS NOT NULL AND "anonymous_user_id" IS NULL) OR ("user_id" IS NULL AND "anonymous_user_id" IS NOT NULL))
 );
 
@@ -103,11 +103,12 @@ CREATE TABLE "actions" (
     )
 );
 
-CREATE TABLE "action_supports" (
+CREATE TABLE "volunteer_logs" (
     "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     "action_id" UUID NOT NULL REFERENCES "actions"("id"),
     "user_id" UUID NOT NULL REFERENCES "users"("id"),
-    "date" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    "start" TIMESTAMPTZ NOT NULL,
+    "end" TIMESTAMPTZ NOT NULL
 );
 
 CREATE TABLE "donations" (
@@ -115,7 +116,7 @@ CREATE TABLE "donations" (
     "action_id" UUID NOT NULL REFERENCES "actions"("id"),
     "user_id" UUID NOT NULL REFERENCES "users"("id"),
     "amount" NUMERIC(10, 2) NOT NULL,
-    "date" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 1. Admin Users
@@ -190,12 +191,12 @@ INSERT INTO "actions" ("id", "cause_id", "type", "title", "description", "object
 ('a0000000-0000-4000-8000-000000000005', '80000000-0000-4000-8000-000000000003', 'volunteering', 'Mentorship Program', 'Mentoring students', ARRAY['Mentors needed: 10'], NULL, 0, NOW() + INTERVAL '30 days', NOW() + INTERVAL '180 days'), -- Volunteering Action for Coding Bootcamp
 ('a0000000-0000-4000-8000-000000000006', '80000000-0000-4000-8000-000000000004', 'volunteering', 'Cleanup Weekend', 'Gathering to clean the beach', ARRAY['Volunteers needed: 100'], NULL, 0, NOW() + INTERVAL '14 days', NOW() + INTERVAL '16 days'); -- Volunteering Action for Beach Cleanup
 
--- 11. Action Supports (Volunteering)
-INSERT INTO "action_supports" ("id", "action_id", "user_id") VALUES
-('b0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000002', '20000000-0000-4000-8000-000000000003'), -- Carlos volunteers for Planting Day
-('b0000000-0000-4000-8000-000000000002', 'a0000000-0000-4000-8000-000000000006', '20000000-0000-4000-8000-000000000008'), -- Sofia volunteers for Cleanup Weekend
-('b0000000-0000-4000-8000-000000000003', 'a0000000-0000-4000-8000-000000000005', '20000000-0000-4000-8000-000000000009'), -- Miguel volunteers for Mentorship Program
-('b0000000-0000-4000-8000-000000000004', 'a0000000-0000-4000-8000-000000000006', '20000000-0000-4000-8000-000000000001'); -- Juan volunteers for Cleanup Weekend
+-- 11. Volunteer Logs (Volunteering)
+INSERT INTO "volunteer_logs" ("id", "action_id", "user_id", "start", "end") VALUES
+('b0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000002', '20000000-0000-4000-8000-000000000003', NOW() + INTERVAL '7 days 1 hour', NOW() + INTERVAL '7 days 5 hours'), -- Carlos volunteers for Planting Day
+('b0000000-0000-4000-8000-000000000002', 'a0000000-0000-4000-8000-000000000006', '20000000-0000-4000-8000-000000000008', NOW() + INTERVAL '14 days 2 hours', NOW() + INTERVAL '14 days 6 hours'), -- Sofia volunteers for Cleanup Weekend
+('b0000000-0000-4000-8000-000000000003', 'a0000000-0000-4000-8000-000000000005', '20000000-0000-4000-8000-000000000009', NOW() + INTERVAL '40 days 3 hours', NOW() + INTERVAL '40 days 7 hours'), -- Miguel volunteers for Mentorship Program
+('b0000000-0000-4000-8000-000000000004', 'a0000000-0000-4000-8000-000000000006', '20000000-0000-4000-8000-000000000001', NOW() + INTERVAL '15 days 1 hour', NOW() + INTERVAL '15 days 4 hours'); -- Juan volunteers for Cleanup Weekend
 
 -- 12. Donations
 INSERT INTO "donations" ("id", "action_id", "user_id", "amount") VALUES

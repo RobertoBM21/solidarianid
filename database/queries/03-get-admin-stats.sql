@@ -25,9 +25,9 @@ WITH supports_cte AS (
     -- Pre-calculamos los apoyos por comunidad
     SELECT 
         cau.community_id, 
-        COUNT(asup.id) as total_supports
-    FROM action_supports asup
-    JOIN actions a ON asup.action_id = a.id
+        COUNT(vl.id) as total_supports
+    FROM volunteer_logs vl
+    JOIN actions a ON vl.action_id = a.id
     JOIN causes cau ON a.cause_id = cau.id
     GROUP BY cau.community_id
 )
