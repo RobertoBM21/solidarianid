@@ -1,12 +1,7 @@
-import { Either, left, right } from '@app/shared/domain';
-import { InvalidUserPasswordError } from '@app/shared/domain/value-objects/user-password.vo';
+import { Either, left, PasswordHasherPort, right } from '@app/shared/domain';
+import { UserAlreadyExistsError } from '@app/shared/domain/aggregates/abstract-user.aggregate';
 import { Injectable } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
-import {
-  User,
-  UserAlreadyExistsError,
-  UserCreationError,
-} from '../domain/aggregates/user.aggregate';
+import { User, UserCreationError } from '../domain/aggregates/user.aggregate';
 import { CountryCheckerPort } from '../domain/ports/country-checker.port';
 import { CreateUserData, UserPort } from '../domain/ports/user.port';
 import { UserRepository } from '../domain/repositories/user.repository';
@@ -15,6 +10,7 @@ import { UserRepository } from '../domain/repositories/user.repository';
 export class UserService implements UserPort {
   constructor(
     private readonly countryChecker: CountryCheckerPort,
+    private readonly passwordHasher: PasswordHasherPort,
     private readonly userRepository: UserRepository,
   ) {}
 
@@ -28,21 +24,12 @@ export class UserService implements UserPort {
       return left(new UserAlreadyExistsError());
     }
 
-    if (!data.password) {
-      return left(
-        new InvalidUserPasswordError('User password cannot be empty.'),
-      );
-    }
-
-    const saltRounds = 10;
-    const hash = await bcrypt.hash(data.password, saltRounds);
-
-    const userOrError = User.create(
+    const userOrError = await User.create(
       {
         ...data,
-        passwordHash: hash,
       },
       this.countryChecker,
+      this.passwordHasher,
     );
 
     if (userOrError.isLeft()) {

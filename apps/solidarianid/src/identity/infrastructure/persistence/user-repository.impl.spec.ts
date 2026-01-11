@@ -52,12 +52,12 @@ describe('UserRepositoryImpl', () => {
 
   // 1. S1-S2-S3-S4-S5-S6-S7-S8-S9-FIN
   it('should save a user into the database', async () => {
-    const userOrError = User.create(
+    const userOrError = User.createWithHashed(
       {
         name: DEFAULT_NAME,
         email: DEFAULT_EMAIL,
         phone: DEFAULT_PHONE,
-        passwordHash: DEFAULT_PASSWORD_HASH,
+        hashedPassword: DEFAULT_PASSWORD_HASH,
         city: DEFAULT_CITY,
         country: DEFAULT_COUNTRY,
       },

@@ -1,7 +1,6 @@
 import { UniqueEntityID } from '@app/shared/domain';
 import { InvalidUserEmailError } from '@app/shared/domain/value-objects/user-email.vo';
 import { InvalidUserNameError } from '@app/shared/domain/value-objects/user-name.vo';
-import { InvalidUserPasswordError } from '@app/shared/domain/value-objects/user-password.vo';
 import { InvalidUserPhoneError } from '@app/shared/domain/value-objects/user-phone.vo';
 import { InvalidUserCityError } from '../value-objects/user-city.vo';
 import { InvalidUserCountryError } from '../value-objects/user-country.vo';
@@ -23,12 +22,12 @@ describe('User Aggregate', () => {
 
   // 1. S1-C1-S2-FIN
   it('should fail to create a user with invalid name', () => {
-    const userOrError = User.create(
+    const userOrError = User.createWithHashed(
       {
         name: '',
         email: DEFAULT_EMAIL,
         phone: DEFAULT_PHONE,
-        passwordHash: DEFAULT_PASSWORD_HASH,
+        hashedPassword: DEFAULT_PASSWORD_HASH,
         city: DEFAULT_CITY,
         country: DEFAULT_COUNTRY,
       },
@@ -43,12 +42,12 @@ describe('User Aggregate', () => {
 
   // 2. S1-C1-S3-C2-S4-FIN
   it('should fail to create a user with invalid email', () => {
-    const userOrError = User.create(
+    const userOrError = User.createWithHashed(
       {
         name: DEFAULT_NAME,
         email: '',
         phone: DEFAULT_PHONE,
-        passwordHash: DEFAULT_PASSWORD_HASH,
+        hashedPassword: DEFAULT_PASSWORD_HASH,
         city: DEFAULT_CITY,
         country: DEFAULT_COUNTRY,
       },
@@ -63,12 +62,12 @@ describe('User Aggregate', () => {
 
   // 3. S1-C1-S3-C2-S5-C3-S6-FIN
   it('should fail to create a user with invalid phone', () => {
-    const userOrError = User.create(
+    const userOrError = User.createWithHashed(
       {
         name: DEFAULT_NAME,
         email: DEFAULT_EMAIL,
         phone: '',
-        passwordHash: DEFAULT_PASSWORD_HASH,
+        hashedPassword: DEFAULT_PASSWORD_HASH,
         city: DEFAULT_CITY,
         country: DEFAULT_COUNTRY,
       },
@@ -81,34 +80,14 @@ describe('User Aggregate', () => {
     expect(userOrError.value).toBeInstanceOf(InvalidUserPhoneError);
   });
 
-  // 4. S1-C1-S3-C2-S5-C3-S7-C4-S8-FIN
-  it('should fail to create a user with invalid password hash', () => {
-    const userOrError = User.create(
-      {
-        name: DEFAULT_NAME,
-        email: DEFAULT_EMAIL,
-        phone: DEFAULT_PHONE,
-        passwordHash: '',
-        city: DEFAULT_CITY,
-        country: DEFAULT_COUNTRY,
-      },
-      mockCountryChecker,
-    );
-
-    expect(userOrError.isLeft()).toBe(true);
-    if (userOrError.isRight()) return;
-
-    expect(userOrError.value).toBeInstanceOf(InvalidUserPasswordError);
-  });
-
   // 5. S1-C1-S3-C2-S5-C3-S7-C4-S9-C5-S10-FIN
   it('should fail to create a user with invalid city', () => {
-    const userOrError = User.create(
+    const userOrError = User.createWithHashed(
       {
         name: DEFAULT_NAME,
         email: DEFAULT_EMAIL,
         phone: DEFAULT_PHONE,
-        passwordHash: DEFAULT_PASSWORD_HASH,
+        hashedPassword: DEFAULT_PASSWORD_HASH,
         city: '',
         country: DEFAULT_COUNTRY,
       },
@@ -123,12 +102,12 @@ describe('User Aggregate', () => {
 
   // 6. S1-C1-S3-C2-S5-C3-S7-C4-S9-C5-S11-C6-S12-FIN
   it('should fail to create a user with invalid country', () => {
-    const userOrError = User.create(
+    const userOrError = User.createWithHashed(
       {
         name: DEFAULT_NAME,
         email: DEFAULT_EMAIL,
         phone: DEFAULT_PHONE,
-        passwordHash: DEFAULT_PASSWORD_HASH,
+        hashedPassword: DEFAULT_PASSWORD_HASH,
         city: DEFAULT_CITY,
         country: '',
       },
@@ -144,12 +123,12 @@ describe('User Aggregate', () => {
   // 7. S1-C1-S3-C2-S5-C3-S7-C4-S9-C5-S11-C6-S13-C7-S14-S16-FIN
   it('should create a user with a specific ID', () => {
     const id = UniqueEntityID.create();
-    const userOrError = User.create(
+    const userOrError = User.createWithHashed(
       {
         name: DEFAULT_NAME,
         email: DEFAULT_EMAIL,
         phone: DEFAULT_PHONE,
-        passwordHash: DEFAULT_PASSWORD_HASH,
+        hashedPassword: DEFAULT_PASSWORD_HASH,
         city: DEFAULT_CITY,
         country: DEFAULT_COUNTRY,
       },
@@ -165,12 +144,12 @@ describe('User Aggregate', () => {
 
   // 8. S1-C1-S3-C2-S5-C3-S7-C4-S9-C5-S11-C6-S13-C7-S15-S16-FIN
   it('should create a valid user', () => {
-    const userOrError = User.create(
+    const userOrError = User.createWithHashed(
       {
         name: DEFAULT_NAME,
         email: DEFAULT_EMAIL,
         phone: DEFAULT_PHONE,
-        passwordHash: DEFAULT_PASSWORD_HASH,
+        hashedPassword: DEFAULT_PASSWORD_HASH,
         city: DEFAULT_CITY,
         country: DEFAULT_COUNTRY,
       },

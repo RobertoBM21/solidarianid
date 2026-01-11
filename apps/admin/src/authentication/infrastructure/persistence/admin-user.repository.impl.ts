@@ -62,12 +62,12 @@ export class AdminUserRepositoryImpl extends AdminUserRepository {
   }
 
   private mapAdminUserToDomain(dbEntity: AdminUserDbEntity): AdminUser {
-    const adminUserOrError = AdminUser.create(
+    const adminUserOrError = AdminUser.createWithHashed(
       {
         name: dbEntity.name,
         email: dbEntity.email,
         phone: dbEntity.phone,
-        passwordHash: dbEntity.passwordHash,
+        hashedPassword: dbEntity.passwordHash,
       },
       UniqueEntityID.create(dbEntity.id),
     );

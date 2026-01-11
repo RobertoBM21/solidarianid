@@ -6,6 +6,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import 'reflect-metadata';
 import { Subscription } from 'rxjs';
 import { DomainEventsPort } from '../domain/ports/domain-events.port';
+import { PasswordHasherPort } from '../domain/ports/password-hasher.port';
+import { PasswordHasherAdapter } from './adapters/password-hasher.adapter';
 import { RabbitmqClientAdapter } from './adapters/rabbitmq-client.adapter';
 import databaseConfig from './config/database.config';
 import { RABBITMQ_CLIENT, rabbitmqConfig } from './config/rabbitmq.config';
@@ -34,8 +36,13 @@ import { RABBITMQ_CLIENT, rabbitmqConfig } from './config/rabbitmq.config';
       provide: DomainEventsPort,
       useClass: RabbitmqClientAdapter,
     },
+    PasswordHasherAdapter,
+    {
+      provide: PasswordHasherPort,
+      useExisting: PasswordHasherAdapter,
+    },
   ],
-  exports: [ConfigModule, TypeOrmModule, DomainEventsPort],
+  exports: [ConfigModule, TypeOrmModule, DomainEventsPort, PasswordHasherPort],
 })
 export class CommonInfrastructureModule
   implements OnModuleInit, OnModuleDestroy

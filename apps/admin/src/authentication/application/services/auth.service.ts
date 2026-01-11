@@ -1,11 +1,12 @@
-import { Either, left, right } from '@app/shared/domain';
+import { Either, left, PasswordHasherPort, right } from '@app/shared/domain';
+import {
+  InvalidCredentialsError,
+  UserAlreadyExistsError,
+} from '@app/shared/domain/aggregates/abstract-user.aggregate';
 import { Injectable } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
 import {
   AdminUser,
   AdminUserCreationError,
-  InvalidCredentialsError,
-  UserAlreadyExistsError,
 } from '../../domain/aggregates/admin-user.aggregate';
 import {
   AuthPort,
@@ -17,7 +18,10 @@ import { AdminUserRepository } from '../../domain/repositories/admin-user.reposi
 
 @Injectable()
 export class AuthService implements AuthPort {
-  constructor(private readonly adminUserRepository: AdminUserRepository) {}
+  constructor(
+    private readonly adminUserRepository: AdminUserRepository,
+    private readonly passwordHasher: PasswordHasherPort,
+  ) {}
 
   async login(
     data: LoginData,
@@ -30,7 +34,7 @@ export class AuthService implements AuthPort {
 
     const user = userOrError.value;
 
-    const isPasswordValid = await bcrypt.compare(
+    const isPasswordValid = await this.passwordHasher.comparePassword(
       data.password,
       user.passwordHash,
     );
@@ -52,14 +56,15 @@ export class AuthService implements AuthPort {
       return left(new UserAlreadyExistsError());
     }
 
-    const hashedPassword = await bcrypt.hash(data.password, 10);
-
-    const adminUserOrError = AdminUser.create({
-      email: data.email,
-      name: data.name,
-      passwordHash: hashedPassword,
-      phone: data.phone,
-    });
+    const adminUserOrError = await AdminUser.create(
+      {
+        email: data.email,
+        name: data.name,
+        password: data.password,
+        phone: data.phone,
+      },
+      this.passwordHasher,
+    );
 
     if (adminUserOrError.isLeft()) {
       return left(adminUserOrError.value);

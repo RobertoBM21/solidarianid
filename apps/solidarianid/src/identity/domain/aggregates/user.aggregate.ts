@@ -1,27 +1,15 @@
 import {
-  AggregateRoot,
-  DomainError,
   Either,
   left,
+  PasswordHasherPort,
   right,
   UniqueEntityID,
 } from '@app/shared/domain';
 import {
-  InvalidUserEmailError,
-  UserEmail,
-} from '@app/shared/domain/value-objects/user-email.vo';
-import {
-  InvalidUserNameError,
-  UserName,
-} from '@app/shared/domain/value-objects/user-name.vo';
-import {
-  InvalidUserPasswordError,
-  UserPassword,
-} from '@app/shared/domain/value-objects/user-password.vo';
-import {
-  InvalidUserPhoneError,
-  UserPhone,
-} from '@app/shared/domain/value-objects/user-phone.vo';
+  AbstractUser,
+  AbstractUserCreationError,
+  AbstractUserProps,
+} from '@app/shared/domain/aggregates/abstract-user.aggregate';
 import { CountryCheckerPort } from '../ports/country-checker.port';
 import { InvalidUserCityError, UserCity } from '../value-objects/user-city.vo';
 import {
@@ -29,44 +17,17 @@ import {
   UserCountry,
 } from '../value-objects/user-country.vo';
 
-export interface UserProps {
-  name: UserName;
-  email: UserEmail;
-  phone: UserPhone;
-  passwordHash: UserPassword;
+export interface UserProps extends AbstractUserProps {
   city: UserCity;
   country: UserCountry;
 }
 
-export class UserAlreadyExistsError implements DomainError {
-  message = 'User with the given email already exists.';
-}
-
 export type UserCreationError =
-  | InvalidUserNameError
-  | InvalidUserEmailError
-  | InvalidUserPhoneError
-  | InvalidUserPasswordError
+  | AbstractUserCreationError
   | InvalidUserCityError
   | InvalidUserCountryError;
 
-export class User extends AggregateRoot<UserProps> {
-  get name(): string {
-    return this.props.name.value;
-  }
-
-  get email(): string {
-    return this.props.email.value;
-  }
-
-  get phone(): string {
-    return this.props.phone.value;
-  }
-
-  get passwordHash(): string {
-    return this.props.passwordHash.value;
-  }
-
+export class User extends AbstractUser<UserProps> {
   get city(): string {
     return this.props.city.value;
   }
@@ -75,36 +36,22 @@ export class User extends AggregateRoot<UserProps> {
     return this.props.country.value;
   }
 
-  static create(
+  static async create(
     data: {
       name: string;
       email: string;
       phone: string;
-      passwordHash: string;
+      password: string;
       city: string;
       country: string;
     },
     countryChecker: CountryCheckerPort,
+    passwordHasher: PasswordHasherPort,
     id?: string,
-  ): Either<UserCreationError, User> {
-    const nameOrError = UserName.create(data.name);
-    if (nameOrError.isLeft()) {
-      return left(nameOrError.value);
-    }
-
-    const emailOrError = UserEmail.create(data.email);
-    if (emailOrError.isLeft()) {
-      return left(emailOrError.value);
-    }
-
-    const phoneOrError = UserPhone.create(data.phone);
-    if (phoneOrError.isLeft()) {
-      return left(phoneOrError.value);
-    }
-
-    const passwordOrError = UserPassword.create(data.passwordHash);
-    if (passwordOrError.isLeft()) {
-      return left(passwordOrError.value);
+  ): Promise<Either<UserCreationError, User>> {
+    const propsOrError = await this.prepare(data, passwordHasher);
+    if (propsOrError.isLeft()) {
+      return left(propsOrError.value);
     }
 
     const cityOrError = UserCity.create(data.city);
@@ -118,10 +65,46 @@ export class User extends AggregateRoot<UserProps> {
     }
 
     const props = {
-      name: nameOrError.value,
-      email: emailOrError.value,
-      phone: phoneOrError.value,
-      passwordHash: passwordOrError.value,
+      ...propsOrError.value,
+      city: cityOrError.value,
+      country: countryOrError.value,
+    };
+    const idObj = id ? UniqueEntityID.create(id) : undefined;
+    return right(new User(props, idObj));
+  }
+
+  static createWithHashed(
+    data: {
+      name: string;
+      email: string;
+      phone: string;
+      city: string;
+      country: string;
+      hashedPassword: string;
+    },
+    countryChecker: CountryCheckerPort,
+    id?: string,
+  ): Either<UserCreationError, User> {
+    const propsOrError = this.prepareWithHashed({
+      ...data,
+      hashedPassword: data.hashedPassword,
+    });
+    if (propsOrError.isLeft()) {
+      return left(propsOrError.value);
+    }
+
+    const cityOrError = UserCity.create(data.city);
+    if (cityOrError.isLeft()) {
+      return left(cityOrError.value);
+    }
+
+    const countryOrError = UserCountry.create(data.country, countryChecker);
+    if (countryOrError.isLeft()) {
+      return left(countryOrError.value);
+    }
+
+    const props = {
+      ...propsOrError.value,
       city: cityOrError.value,
       country: countryOrError.value,
     };

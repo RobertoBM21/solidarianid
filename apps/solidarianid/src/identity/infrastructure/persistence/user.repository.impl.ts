@@ -56,12 +56,12 @@ export class UserRepositoryImpl extends UserRepository {
   }
 
   private mapUserToDomain(entity: UserDbEntity): User {
-    const obj = User.create(
+    const obj = User.createWithHashed(
       {
         name: entity.name,
         email: entity.email,
         phone: entity.phone,
-        passwordHash: entity.passwordHash,
+        hashedPassword: entity.passwordHash,
         city: entity.city,
         country: entity.country,
       },

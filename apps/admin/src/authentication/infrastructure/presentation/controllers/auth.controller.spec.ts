@@ -1,8 +1,8 @@
 import { left, right } from '@app/shared/domain';
+import { InvalidCredentialsError } from '@app/shared/domain/aggregates/abstract-user.aggregate';
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Request, Response } from 'express';
-import { InvalidCredentialsError } from '../../../domain/aggregates/admin-user.aggregate';
 import { AuthPort } from '../../../domain/ports/auth.port';
 import { LoginDto } from '../dtos/login.dto';
 import { RegisterDto } from '../dtos/register.dto';

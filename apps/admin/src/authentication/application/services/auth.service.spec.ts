@@ -1,12 +1,12 @@
-import { left, right } from '@app/shared/domain';
+import { left, PasswordHasherPort, right } from '@app/shared/domain';
+import {
+  InvalidCredentialsError,
+  UserAlreadyExistsError,
+} from '@app/shared/domain/aggregates/abstract-user.aggregate';
 import { InvalidUserEmailError } from '@app/shared/domain/value-objects/user-email.vo';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as bcrypt from 'bcrypt';
-import {
-  AdminUser,
-  InvalidCredentialsError,
-  UserAlreadyExistsError,
-} from '../../domain/aggregates/admin-user.aggregate';
+import { AdminUser } from '../../domain/aggregates/admin-user.aggregate';
 import {
   AdminUserNotFoundError,
   AdminUserRepository,
@@ -21,22 +21,32 @@ describe('AuthService', () => {
     save: jest.fn(),
   };
 
-  const validAdminUserOrError = AdminUser.create({
-    name: 'Admin User',
-    email: 'admin@example.com',
-    phone: '12345678',
-    passwordHash: bcrypt.hashSync('password123', 10),
-  });
+  let validAdminUser: AdminUser;
 
-  const validAdminUser = validAdminUserOrError.value as AdminUser;
+  const mockPasswordHasher: PasswordHasherPort = {
+    hashPassword: (pass) => Promise.resolve(bcrypt.hashSync(pass, 10)),
+    comparePassword: (plain, hash) => bcrypt.compare(plain, hash),
+  };
 
   beforeEach(async () => {
+    const validAdminUserOrError = AdminUser.createWithHashed({
+      name: 'Admin User',
+      email: 'admin@example.com',
+      phone: '12345678',
+      hashedPassword: bcrypt.hashSync('password123', 10),
+    });
+    validAdminUser = validAdminUserOrError.value as AdminUser;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
         {
           provide: AdminUserRepository,
           useValue: mockAdminUserRepository,
+        },
+        {
+          provide: PasswordHasherPort,
+          useValue: mockPasswordHasher,
         },
       ],
     }).compile();

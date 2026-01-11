@@ -1,9 +1,9 @@
 import { Either } from '@app/shared/domain';
 import {
-  AdminUserCreationError,
   InvalidCredentialsError,
   UserAlreadyExistsError,
-} from '../aggregates/admin-user.aggregate';
+} from '@app/shared/domain/aggregates/abstract-user.aggregate';
+import { AdminUserCreationError } from '../aggregates/admin-user.aggregate';
 
 export interface LoginData {
   email: string;

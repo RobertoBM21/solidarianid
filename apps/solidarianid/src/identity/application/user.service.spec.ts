@@ -1,11 +1,9 @@
-import { left, right } from '@app/shared/domain';
+import { left, PasswordHasherPort, right } from '@app/shared/domain';
+import { UserAlreadyExistsError } from '@app/shared/domain/aggregates/abstract-user.aggregate';
 import { InvalidUserEmailError } from '@app/shared/domain/value-objects/user-email.vo';
 import { InvalidUserPasswordError } from '@app/shared/domain/value-objects/user-password.vo';
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-  User,
-  UserAlreadyExistsError,
-} from '../domain/aggregates/user.aggregate';
+import { User } from '../domain/aggregates/user.aggregate';
 import { CountryCheckerPort } from '../domain/ports/country-checker.port';
 import {
   UserNotFoundError,
@@ -26,28 +24,38 @@ describe('UserService', () => {
     isValidCountryCode: () => true,
   };
 
+  const mockPasswordHasher: PasswordHasherPort = {
+    hashPassword: (password: string) => Promise.resolve(password),
+    comparePassword: () => Promise.resolve(true),
+  };
+
   const mockUsers: User[] = [];
-  const user1 = User.create(
-    {
-      name: 'User 1',
-      email: 'email1@example.com',
-      phone: '12345678',
-      passwordHash: 'password1',
-      city: 'city 1',
-      country: 'es',
-    },
-    mockCountryChecker,
-  );
-  if (user1.isRight()) {
-    mockUsers.push(user1.value);
-  }
 
   beforeEach(async () => {
+    const user1 = User.createWithHashed(
+      {
+        name: 'User 1',
+        email: 'email1@example.com',
+        phone: '12345678',
+        hashedPassword: 'password1',
+        city: 'city 1',
+        country: 'es',
+      },
+      mockCountryChecker,
+    );
+    if (user1.isRight()) {
+      mockUsers.push(user1.value);
+    }
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         {
           provide: CountryCheckerPort,
           useValue: mockCountryChecker,
+        },
+        {
+          provide: PasswordHasherPort,
+          useValue: mockPasswordHasher,
         },
         UserService,
         {

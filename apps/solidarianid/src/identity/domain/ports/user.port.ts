@@ -1,8 +1,6 @@
 import { Either } from '@app/shared/domain';
-import {
-  UserAlreadyExistsError,
-  UserCreationError,
-} from '../aggregates/user.aggregate';
+import { UserAlreadyExistsError } from '@app/shared/domain/aggregates/abstract-user.aggregate';
+import { UserCreationError } from '../aggregates/user.aggregate';
 
 export interface CreateUserData {
   name: string;

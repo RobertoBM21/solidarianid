@@ -5,12 +5,15 @@ import {
   right,
   ValueObject,
 } from '@app/shared/domain';
+import { PasswordHasherPort } from '../ports/password-hasher.port';
 
 export class InvalidUserPasswordError implements DomainError {
-  constructor(public readonly message: string) {}
+  message = 'Passwords must be at least 8 characters long.';
 }
 
 export class UserPassword extends ValueObject<string> {
+  private static readonly MIN_PASSWORD_LENGTH = 8;
+
   private constructor(value: string) {
     super(value);
   }
@@ -19,15 +22,19 @@ export class UserPassword extends ValueObject<string> {
     return this.props;
   }
 
-  static create(
-    passwordHash: string,
-  ): Either<InvalidUserPasswordError, UserPassword> {
-    if (!passwordHash) {
-      return left(
-        new InvalidUserPasswordError('User password hash cannot be empty.'),
-      );
+  static async create(
+    rawPassword: string,
+    hasher: PasswordHasherPort,
+  ): Promise<Either<InvalidUserPasswordError, UserPassword>> {
+    if (rawPassword.length < this.MIN_PASSWORD_LENGTH) {
+      return left(new InvalidUserPasswordError());
     }
 
-    return right(new UserPassword(passwordHash));
+    const hashedPassword = await hasher.hashPassword(rawPassword);
+    return right(new UserPassword(hashedPassword));
+  }
+
+  static fromHashed(hashedPassword: string): UserPassword {
+    return new UserPassword(hashedPassword);
   }
 }

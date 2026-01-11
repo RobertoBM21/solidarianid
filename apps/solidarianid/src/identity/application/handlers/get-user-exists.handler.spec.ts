@@ -36,12 +36,12 @@ describe('GetUserExistsHandler', () => {
 
   it('should return true when user exists', async () => {
     const userId = UniqueEntityID.create();
-    const user = User.create(
+    const user = User.createWithHashed(
       {
         name: 'Ana',
         email: 'ana@test.com',
         phone: '+34000000000',
-        passwordHash: 'hash',
+        hashedPassword: 'hash',
         city: 'Madrid',
         country: 'es',
       },
