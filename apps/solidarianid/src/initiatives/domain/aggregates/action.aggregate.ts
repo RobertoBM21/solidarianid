@@ -11,11 +11,17 @@ import {
   InvalidDateError,
 } from '@app/shared/domain/value-objects/creation-date.vo';
 import {
+  InvalidMoneyAmountError,
+  MoneyAmount,
+} from '@app/shared/domain/value-objects/money-amount.vo';
+import {
+  DonationIntention,
+  DonationIntentionCreationError,
+} from '../entities/donation-intention.entity';
+import {
   ActionCurrentAmount,
-  ActionTargetAmount,
   InvalidActionCurrentAmountError,
-  InvalidActionTargetAmountError,
-} from '../value-objects/action-funding.vo';
+} from '../value-objects/action-current-amount.vo';
 import {
   ActionObjectives,
   InvalidActionObjectivesError,
@@ -28,7 +34,10 @@ import {
   Description,
   InvalidDescriptionError,
 } from '../value-objects/description.vo';
-import { InitiativeStatus } from '../value-objects/initiative-status.vo';
+import {
+  InitiativeAlreadyClosedError,
+  InitiativeStatus,
+} from '../value-objects/initiative-status.vo';
 import { InvalidTitleError, Title } from '../value-objects/title.vo';
 
 export class InvalidActionTypeError implements DomainError {
@@ -49,7 +58,7 @@ export interface VolunteeringActionProps extends ActionProps {
 }
 
 export interface FundingActionProps extends ActionProps {
-  targetAmount: ActionTargetAmount;
+  targetAmount: MoneyAmount;
   currentAmount: ActionCurrentAmount;
 }
 
@@ -66,7 +75,7 @@ export type FundingActionCreationError =
   | InvalidTitleError
   | InvalidDescriptionError
   | InvalidActionObjectivesError
-  | InvalidActionTargetAmountError
+  | InvalidMoneyAmountError
   | InvalidActionCurrentAmountError
   | InvalidDateError;
 
@@ -218,6 +227,31 @@ export class FundingAction extends Action<FundingActionProps> {
     return this.props.currentAmount.value;
   }
 
+  requestDonation(
+    amount: number,
+    donorId: string,
+  ): Either<DonationIntentionCreationError, DonationIntention> {
+    if (this.closed) {
+      return left(new InitiativeAlreadyClosedError());
+    }
+    return DonationIntention.create({
+      fundingActionId: this.id,
+      donorId,
+      amount,
+    });
+  }
+
+  incrementTotalDonations(
+    amount: number,
+  ): Either<InvalidMoneyAmountError, void> {
+    const newAmountOrError = this.props.currentAmount.plus(amount);
+    if (newAmountOrError.isLeft()) {
+      return left(newAmountOrError.value);
+    }
+    this.props.currentAmount = newAmountOrError.value;
+    return right(undefined);
+  }
+
   static create(
     data: {
       title: string;
@@ -226,7 +260,7 @@ export class FundingAction extends Action<FundingActionProps> {
       closed?: boolean;
       createdAt?: Date | string;
       causeId: string;
-      targetAmount?: number;
+      targetAmount: number;
       currentAmount?: number;
     },
     id?: string,
@@ -236,7 +270,7 @@ export class FundingAction extends Action<FundingActionProps> {
       return left(commonPropsOrError.value);
     }
 
-    const targetAmountOrError = ActionTargetAmount.create(data.targetAmount);
+    const targetAmountOrError = MoneyAmount.create(data.targetAmount);
     if (targetAmountOrError.isLeft()) {
       return left(targetAmountOrError.value);
     }

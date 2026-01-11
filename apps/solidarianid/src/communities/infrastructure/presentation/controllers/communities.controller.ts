@@ -1,4 +1,3 @@
-import { CommunityProposalAccepted } from '@app/shared/domain/events/community-proposal-accepted.event';
 import {
   BadRequestException,
   Body,
@@ -9,7 +8,6 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { MessagePattern } from '@nestjs/microservices';
 import {
   ApiBody,
   ApiCreatedResponse,
@@ -69,23 +67,5 @@ export class CommunitiesController {
       throw new BadRequestException(result.value.message);
     }
     return result.value;
-  }
-
-  @MessagePattern(CommunityProposalAccepted.name)
-  async handleCommunityProposalAccepted(
-    event: CommunityProposalAccepted,
-  ): Promise<void> {
-    this.logger.debug(
-      `Handling CommunityProposalAccepted event - name='${event.name}' requesterId=${event.requesterId}`,
-    );
-
-    const result = await this.communitiesPort.createCommunity({
-      name: event.name,
-      description: event.description,
-      requesterId: event.requesterId,
-    });
-    if (result.isLeft()) {
-      throw new Error(`Error creating community: ${result.value.message}`);
-    }
   }
 }

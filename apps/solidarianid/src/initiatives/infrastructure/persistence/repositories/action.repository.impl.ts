@@ -1,12 +1,10 @@
-import { Either, left, right, UniqueEntityID } from '@app/shared/domain';
+import { Either, UniqueEntityID } from '@app/shared/domain';
+import { AbstractTypeormRepository } from '@app/shared/infrastructure/persistence/abstract-typeorm.repository';
 import { Injectable } from '@nestjs/common';
-import { ok } from 'assert';
-import { EntityManager } from 'typeorm';
 import {
   Action,
   ActionCreationError,
   FundingAction,
-  InvalidActionTypeError,
   VolunteeringAction,
 } from '../../../domain/aggregates/action.aggregate';
 import {
@@ -14,59 +12,16 @@ import {
   ActionRepository,
 } from '../../../domain/repositories/action.repository';
 import { ActionDbEntity } from '../entities/action.db-entity';
+import { FundingActionDbEntity } from '../entities/funding-action.db-entity';
+import { VolunteeringActionDbEntity } from '../entities/volunteering-action.db-entity';
 
 @Injectable()
-export class ActionRepositoryImpl extends ActionRepository {
-  constructor(private readonly em: EntityManager) {
-    super();
-  }
-
-  async save(action: Action): Promise<void> {
-    const entity = new ActionDbEntity();
-    entity.id = action.id.toString();
-    entity.causeId = action.causeId.toString();
-    entity.type = action.type;
-    entity.title = action.title;
-    entity.description = action.description;
-    entity.objectives = [...action.objectives];
-    entity.closed = action.closed;
-    entity.createdAt = action.createdAt;
-    if (action instanceof VolunteeringAction) {
-      entity.start = action.start;
-      entity.end = action.end;
-      entity.targetAmount = null;
-      entity.currentAmount = 0;
-    } else if (action instanceof FundingAction) {
-      entity.start = null;
-      entity.end = null;
-      entity.targetAmount = action.targetAmountValue;
-      entity.currentAmount = action.currentAmountValue;
-    }
-
-    await this.em.save(ActionDbEntity, entity);
-  }
-
-  async findById(
-    id: UniqueEntityID,
-  ): Promise<Either<ActionNotFoundError, Action>> {
-    const entity = await this.em.findOne(ActionDbEntity, {
-      where: { id: id.toString() },
-    });
-    if (!entity) {
-      return left(new ActionNotFoundError(id.toString()));
-    }
-    return right(this.mapToDomain(entity));
-  }
-
-  async remove(id: UniqueEntityID): Promise<Either<ActionNotFoundError, void>> {
-    const result = await this.em.delete(ActionDbEntity, {
-      id: id.toString(),
-    });
-    if (result.affected === 0) {
-      return left(new ActionNotFoundError(id.toString()));
-    }
-    return right(undefined);
-  }
+export class ActionRepositoryImpl
+  extends AbstractTypeormRepository<Action, ActionNotFoundError, ActionDbEntity>
+  implements ActionRepository
+{
+  protected readonly dbEntityClass = ActionDbEntity;
+  protected readonly notFoundErrorClass = ActionNotFoundError;
 
   async listByCause(causeId: UniqueEntityID): Promise<Action[]> {
     const entities = await this.em.find(ActionDbEntity, {
@@ -76,43 +31,67 @@ export class ActionRepositoryImpl extends ActionRepository {
     return entities.map((entity) => this.mapToDomain(entity));
   }
 
-  private mapToDomain(entity: ActionDbEntity): Action {
+  protected mapFromDomain(item: Action): ActionDbEntity {
+    let entity: ActionDbEntity;
+    if (item instanceof VolunteeringAction) {
+      const volunteeringEntity = new VolunteeringActionDbEntity();
+      volunteeringEntity.start = item.start;
+      volunteeringEntity.end = item.end;
+      entity = volunteeringEntity;
+    } else if (item instanceof FundingAction) {
+      const fundingEntity = new FundingActionDbEntity();
+      fundingEntity.targetAmount = item.targetAmountValue;
+      fundingEntity.currentAmount = item.currentAmountValue;
+      entity = fundingEntity;
+    } else {
+      throw new Error(
+        `Unknown action type for ID ${item.id.toString()}: cannot map to DB entity`,
+      );
+    }
+    entity.id = item.id.toString();
+    entity.causeId = item.causeId.toString();
+    entity.title = item.title;
+    entity.description = item.description;
+    entity.objectives = [...item.objectives];
+    entity.closed = item.closed;
+    entity.createdAt = item.createdAt;
+    return entity;
+  }
+
+  protected mapToDomain(entity: ActionDbEntity): Action {
     let actionOrError: Either<ActionCreationError, Action>;
-    switch (entity.type) {
-      case 'volunteering':
-        ok(entity.start !== null && entity.end !== null);
-        actionOrError = VolunteeringAction.create(
-          {
-            title: entity.title,
-            description: entity.description,
-            objectives: entity.objectives,
-            closed: entity.closed,
-            createdAt: entity.createdAt,
-            causeId: entity.causeId,
-            start: entity.start,
-            end: entity.end,
-          },
-          entity.id,
-        );
-        break;
-      case 'funding':
-        ok(entity.targetAmount !== null);
-        actionOrError = FundingAction.create(
-          {
-            title: entity.title,
-            description: entity.description,
-            objectives: entity.objectives,
-            closed: entity.closed,
-            createdAt: entity.createdAt,
-            causeId: entity.causeId,
-            targetAmount: entity.targetAmount,
-            currentAmount: entity.currentAmount,
-          },
-          entity.id,
-        );
-        break;
-      default:
-        actionOrError = left(new InvalidActionTypeError());
+    if (entity instanceof VolunteeringActionDbEntity) {
+      actionOrError = VolunteeringAction.create(
+        {
+          title: entity.title,
+          description: entity.description,
+          objectives: entity.objectives,
+          closed: entity.closed,
+          createdAt: entity.createdAt,
+          causeId: entity.causeId,
+          start: entity.start,
+          end: entity.end,
+        },
+        entity.id,
+      );
+    } else if (entity instanceof FundingActionDbEntity) {
+      actionOrError = FundingAction.create(
+        {
+          title: entity.title,
+          description: entity.description,
+          objectives: entity.objectives,
+          closed: entity.closed,
+          createdAt: entity.createdAt,
+          causeId: entity.causeId,
+          targetAmount: entity.targetAmount,
+          currentAmount: entity.currentAmount,
+        },
+        entity.id,
+      );
+    } else {
+      throw new Error(
+        `Unknown action entity type for ID ${entity.id}: cannot map to domain`,
+      );
     }
     if (actionOrError.isLeft()) {
       throw new Error(

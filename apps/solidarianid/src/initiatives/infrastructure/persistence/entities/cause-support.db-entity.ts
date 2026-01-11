@@ -30,6 +30,6 @@ export class CauseSupportDbEntity {
   @JoinColumn({ name: 'anonymous_user_id' })
   anonymousUser?: AnonymousUserDbEntity | null;
 
-  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
-  date: Date;
+  @Column({ type: 'timestamptz' })
+  created_at: Date;
 }

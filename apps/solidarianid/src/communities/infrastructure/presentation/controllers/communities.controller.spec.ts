@@ -1,5 +1,4 @@
 import { left, right } from '@app/shared/domain';
-import { CommunityProposalAccepted } from '@app/shared/domain/events/community-proposal-accepted.event';
 import { InvalidCommunityNameError } from '@app/shared/domain/value-objects/community-name.vo';
 import { BadRequestException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
@@ -14,7 +13,6 @@ describe('CommunitiesController', () => {
   const mockCommunitiesService = {
     listCommunities: jest.fn().mockResolvedValue([]),
     proposeCommunity: jest.fn().mockResolvedValue(undefined),
-    createCommunity: jest.fn().mockResolvedValue(undefined),
   };
 
   beforeEach(async () => {
@@ -102,66 +100,6 @@ describe('CommunitiesController', () => {
       expect(mockCommunitiesService.proposeCommunity).toHaveBeenCalledWith(
         dto,
         expect.any(String),
-      );
-    });
-  });
-
-  describe('handleCommunityProposalAccepted', () => {
-    it('should call createCommunity method of CommunitiesService with correct parameters', async () => {
-      const event: CommunityProposalAccepted = {
-        proposalId: v4(),
-        name: 'Accepted Community',
-        description: 'Accepted Description',
-        requesterId: v4(),
-        occurredOn: new Date(),
-      };
-
-      mockCommunitiesService.createCommunity.mockResolvedValue(
-        right({
-          id: v4(),
-          name: event.name,
-          description: event.description,
-          createdAt: new Date().toISOString(),
-        }),
-      );
-
-      await controller.handleCommunityProposalAccepted(event);
-
-      expect(mockCommunitiesService.createCommunity).toHaveBeenCalledTimes(1);
-      expect(mockCommunitiesService.createCommunity).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: event.name,
-          description: event.description,
-          requesterId: event.requesterId,
-        }),
-      );
-    });
-
-    it('should handle errors thrown by CommunitiesService', async () => {
-      const event: CommunityProposalAccepted = {
-        proposalId: v4(),
-        name: '', // Invalid name to trigger error
-        description: 'Accepted Description',
-        requesterId: v4(),
-        occurredOn: new Date(),
-      };
-
-      const errorMessage = 'Error creating community';
-      mockCommunitiesService.createCommunity.mockResolvedValue(
-        left(new InvalidCommunityNameError(errorMessage)),
-      );
-
-      await expect(
-        controller.handleCommunityProposalAccepted(event),
-      ).rejects.toThrow(Error);
-
-      expect(mockCommunitiesService.createCommunity).toHaveBeenCalledTimes(1);
-      expect(mockCommunitiesService.createCommunity).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: event.name,
-          description: event.description,
-          requesterId: event.requesterId,
-        }),
       );
     });
   });

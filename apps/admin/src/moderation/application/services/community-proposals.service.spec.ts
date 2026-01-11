@@ -5,8 +5,6 @@ import {
   UniqueEntityID,
 } from '@app/shared/domain';
 import { CommunityProposal } from '@app/shared/domain/aggregates/community-proposal.aggregate';
-import { CommunityProposalCreated } from '@app/shared/domain/events/community-proposal-created.event';
-import { InvalidCommunityNameError } from '@app/shared/domain/value-objects/community-name.vo';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   CommunityProposalNotFoundError,
@@ -85,48 +83,6 @@ describe('CommunityProposalsService', () => {
       const proposals = await service.listPendingProposals();
       expect(proposals).toEqual(mockProposals);
       expect(mockCommunityProposalRepository.findAllPending).toHaveBeenCalled();
-    });
-  });
-
-  describe('handleNewProposal', () => {
-    it('should handle a new community proposal event', async () => {
-      const event: CommunityProposalCreated = {
-        proposalId: UniqueEntityID.create().toString(),
-        name: 'New Community',
-        description: 'New Description',
-        requesterId: UniqueEntityID.create().toString(),
-        occurredOn: new Date(),
-      };
-
-      const result = await service.handleNewProposal(event);
-
-      expect(result.isRight()).toBe(true);
-      expect(mockCommunityProposalRepository.save).toHaveBeenCalled();
-      const savedProposal: CommunityProposal =
-        mockCommunityProposalRepository.save.mock.calls[0][0];
-      expect(savedProposal).toBeInstanceOf(CommunityProposal);
-      expect(savedProposal.name).toBe(event.name);
-      expect(savedProposal.description).toBe(event.description);
-      expect(savedProposal.requesterId).toBe(event.requesterId);
-      expect(savedProposal.accepted).toBeNull();
-    });
-
-    it('should return an error if proposal creation fails', async () => {
-      const event: CommunityProposalCreated = {
-        proposalId: UniqueEntityID.create().toString(),
-        name: '', // Invalid name to trigger creation error
-        description: 'New Description',
-        requesterId: UniqueEntityID.create().toString(),
-        occurredOn: new Date(),
-      };
-
-      const result = await service.handleNewProposal(event);
-
-      expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        expect(result.value).toBeInstanceOf(InvalidCommunityNameError);
-      }
-      expect(mockCommunityProposalRepository.save).not.toHaveBeenCalled();
     });
   });
 

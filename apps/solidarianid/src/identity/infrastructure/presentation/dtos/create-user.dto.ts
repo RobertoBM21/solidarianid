@@ -41,8 +41,8 @@ export class CreateUserDto {
   readonly city: string;
 
   @ApiProperty({
-    description: 'Country where the user resides',
-    example: 'Spain',
+    description: 'Country where the user resides (ISO 3166-1 alpha-2 code)',
+    example: 'es',
   })
   @IsString()
   readonly country: string;

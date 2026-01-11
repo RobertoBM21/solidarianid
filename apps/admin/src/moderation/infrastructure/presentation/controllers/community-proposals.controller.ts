@@ -1,5 +1,4 @@
 import { UniqueEntityID } from '@app/shared/domain';
-import { CommunityProposalCreated } from '@app/shared/domain/events/community-proposal-created.event';
 import {
   BadRequestException,
   Controller,
@@ -11,7 +10,6 @@ import {
   Render,
   UseGuards,
 } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
 import { LoggedInGuard } from '../../../../authentication/infrastructure/presentation/guards/logged-in.guard';
 import { CommunityProposalsPort } from '../../../domain/ports/community-proposals.port';
 import { CommunityProposalNotFoundError } from '../../../domain/repositories/community-proposal.repository';
@@ -54,18 +52,6 @@ export class CommunityProposalsController {
         throw new NotFoundException('Community proposal not found');
       }
       throw new BadRequestException(error.message);
-    }
-  }
-
-  @MessagePattern(CommunityProposalCreated.name)
-  async handleNewProposal(
-    @Payload() event: CommunityProposalCreated,
-  ): Promise<void> {
-    const result = await this.service.handleNewProposal(event);
-    if (result.isLeft()) {
-      throw new Error(
-        `Error handling new community proposal: ${result.value.message}`,
-      );
     }
   }
 }

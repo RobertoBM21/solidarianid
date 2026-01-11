@@ -28,7 +28,7 @@ export class CauseSupportRepositoryImpl extends CauseSupportRepository {
       supporter instanceof UserSupporter ? supporter.id.toString() : null;
     entity.anonymousUserId =
       supporter instanceof AnonymousSupporter ? supporter.id.toString() : null;
-    entity.date = support.date;
+    entity.created_at = support.date;
 
     await this.em.save(CauseSupportDbEntity, entity);
   }
@@ -111,7 +111,7 @@ export class CauseSupportRepositoryImpl extends CauseSupportRepository {
       {
         causeId: entity.causeId,
         supporter,
-        date: entity.date,
+        date: entity.created_at,
       },
       entity.id,
     );

@@ -1,4 +1,4 @@
-import { CommunityListOut } from 'apps/solidarianid/src/communities/domain/ports/community.port';
+import { CommunityListOut } from '../../../communities/domain/ports/community.port';
 import { Community } from '../../domain/community.aggregate';
 
 export class CommunityOutDto implements CommunityListOut {

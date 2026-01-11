@@ -2,7 +2,7 @@ import { UniqueEntityID } from '@app/shared/domain';
 import { FundingAction, VolunteeringAction } from './action.aggregate';
 
 describe('Action Aggregate', () => {
-  it('Should create a volunteering action', () => {
+  it('should create a volunteering action', () => {
     const result = VolunteeringAction.create({
       title: 'Planting Day',
       description: 'Community gathering to plant trees',
@@ -12,15 +12,14 @@ describe('Action Aggregate', () => {
       causeId: UniqueEntityID.create().toString(),
     });
 
-    expect(result.isRight()).toBe(true);
-    if (result.isRight()) {
-      expect(result.value.type).toBe('volunteering');
-      expect(result.value.start).toBeInstanceOf(Date);
-      expect(result.value.end).toBeInstanceOf(Date);
-    }
+    expect(result.value).toBeInstanceOf(VolunteeringAction);
+    const action = result.value as VolunteeringAction;
+    expect(action.type).toBe('volunteering');
+    expect(action.start).toBeInstanceOf(Date);
+    expect(action.end).toBeInstanceOf(Date);
   });
 
-  it('Should create a funding action', () => {
+  it('should create a funding action', () => {
     const result = FundingAction.create({
       title: 'Buy Supplies',
       description: 'Purchase supplies for the cause',
@@ -29,10 +28,9 @@ describe('Action Aggregate', () => {
       causeId: UniqueEntityID.create().toString(),
     });
 
-    expect(result.isRight()).toBe(true);
-    if (result.isRight()) {
-      expect(result.value.type).toBe('funding');
-      expect(result.value.targetAmountValue).toBe(1000);
-    }
+    expect(result.value).toBeInstanceOf(FundingAction);
+    const action = result.value as FundingAction;
+    expect(action.type).toBe('funding');
+    expect(action.targetAmountValue).toBe(1000);
   });
 });

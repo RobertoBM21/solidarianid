@@ -7,10 +7,8 @@ import {
 } from '@app/shared/domain';
 import {
   CommunityProposal,
-  CommunityProposalCreationError,
   InvalidProposalStateError,
 } from '@app/shared/domain/aggregates/community-proposal.aggregate';
-import { CommunityProposalCreated } from '@app/shared/domain/events/community-proposal-created.event';
 import { Injectable, Logger } from '@nestjs/common';
 import { CommunityProposalsPort } from '../../domain/ports/community-proposals.port';
 import {
@@ -29,28 +27,6 @@ export class CommunityProposalsService implements CommunityProposalsPort {
 
   async listPendingProposals(): Promise<CommunityProposal[]> {
     return this.repository.findAllPending();
-  }
-
-  async handleNewProposal(
-    event: CommunityProposalCreated,
-  ): Promise<Either<CommunityProposalCreationError, void>> {
-    this.logger.debug(
-      `New community proposal received: ID=${event.proposalId}, Name=${event.name}, RequesterID=${event.requesterId}`,
-    );
-
-    const proposal = CommunityProposal.create({
-      name: event.name,
-      description: event.description,
-      requesterId: event.requesterId,
-      accepted: null,
-      createdAt: new Date(),
-    });
-    if (proposal.isLeft()) {
-      return left(proposal.value);
-    }
-
-    await this.repository.save(proposal.value);
-    return right(undefined);
   }
 
   async approve(

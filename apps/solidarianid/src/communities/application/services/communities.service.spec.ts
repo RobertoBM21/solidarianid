@@ -1,4 +1,4 @@
-import { DomainEventsPort, UniqueEntityID, left } from '@app/shared/domain';
+import { DomainEventsPort, UniqueEntityID } from '@app/shared/domain';
 import { InvalidCommunityNameError } from '@app/shared/domain/value-objects/community-name.vo';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
@@ -6,7 +6,6 @@ import {
   CommunityNameAlreadyExistsError,
 } from '../../domain/community.aggregate';
 import { CommunityRepository } from '../../domain/repositories/community.repository';
-import { CommunityFactory } from '../../domain/services/community-factory.service';
 import { CommunitiesService } from './communities.service';
 
 describe('CommunitiesService', () => {
@@ -19,11 +18,6 @@ describe('CommunitiesService', () => {
   const mockCommunityRepository = {
     existsByName: jest.fn(),
     findAll: jest.fn(),
-    save: jest.fn(),
-  };
-
-  const mockCommunityFactory = {
-    createCommunity: jest.fn(),
   };
 
   const mockCommunities: Community[] = [];
@@ -57,10 +51,6 @@ describe('CommunitiesService', () => {
         {
           provide: DomainEventsPort,
           useValue: mockDomainEvents,
-        },
-        {
-          provide: CommunityFactory,
-          useValue: mockCommunityFactory,
         },
       ],
     }).compile();
@@ -142,60 +132,6 @@ describe('CommunitiesService', () => {
         expect(result.value).toBeInstanceOf(InvalidCommunityNameError);
       }
       expect(mockDomainEvents.dispatch).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('createCommunity', () => {
-    it('should create a new community', async () => {
-      const createData = {
-        name: 'Created Community',
-        description: 'Created Description',
-        requesterId: UniqueEntityID.create().toString(),
-      };
-
-      mockCommunityFactory.createCommunity.mockResolvedValue(
-        Community.create({
-          name: createData.name,
-          description: createData.description,
-          admins: [createData.requesterId],
-          causes: [],
-        }),
-      );
-
-      const result = await service.createCommunity(createData);
-
-      expect(result.isRight()).toBe(true);
-      if (result.isLeft()) {
-        return;
-      }
-      expect(result.value).toHaveProperty('id');
-      expect(result.value.name).toBe(createData.name);
-      expect(result.value.description).toBe(createData.description);
-      expect(mockCommunityFactory.createCommunity).toHaveBeenCalledWith({
-        name: createData.name,
-        description: createData.description,
-        adminId: createData.requesterId,
-      });
-    });
-
-    it('should reject creation on factory error', async () => {
-      const createData = {
-        name: 'Community 1',
-        description: 'Description 1',
-        requesterId: UniqueEntityID.create().toString(),
-      };
-
-      mockCommunityFactory.createCommunity.mockResolvedValue(
-        left(new CommunityNameAlreadyExistsError(createData.name)),
-      );
-
-      const result = await service.createCommunity(createData);
-
-      expect(result.isLeft()).toBe(true);
-      if (result.isLeft()) {
-        expect(result.value).toBeInstanceOf(CommunityNameAlreadyExistsError);
-      }
-      expect(mockCommunityFactory.createCommunity).toHaveBeenCalled();
     });
   });
 });

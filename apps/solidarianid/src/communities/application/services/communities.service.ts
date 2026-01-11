@@ -7,7 +7,6 @@ import {
 } from '../../domain/community.aggregate';
 import { CommunitiesPort } from '../../domain/ports/community.port';
 import { CommunityRepository } from '../../domain/repositories/community.repository';
-import { CommunityFactory } from '../../domain/services/community-factory.service';
 import { CommunityOutDto } from '../dtos/community-out.dto';
 
 @Injectable()
@@ -15,7 +14,6 @@ export class CommunitiesService implements CommunitiesPort {
   constructor(
     private readonly domainEvents: DomainEventsPort,
     private readonly communityRepository: CommunityRepository,
-    private readonly communityFactory: CommunityFactory,
   ) {}
 
   async listCommunities(
@@ -57,27 +55,5 @@ export class CommunitiesService implements CommunitiesPort {
     }
     await this.domainEvents.dispatch(proposalOrError.value);
     return right({ proposalId: proposalOrError.value.id.toString() });
-  }
-
-  async createCommunity(data: {
-    name: string;
-    description: string;
-    requesterId: string;
-  }): Promise<
-    Either<
-      CommunityCreationError | CommunityNameAlreadyExistsError,
-      CommunityOutDto
-    >
-  > {
-    const communityOrError = await this.communityFactory.createCommunity({
-      name: data.name,
-      description: data.description,
-      adminId: data.requesterId,
-    });
-    if (communityOrError.isLeft()) {
-      return left(communityOrError.value);
-    }
-    const dto = new CommunityOutDto(communityOrError.value);
-    return right(dto);
   }
 }

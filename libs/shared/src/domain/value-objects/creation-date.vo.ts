@@ -20,8 +20,11 @@ export class CreationDate extends ValueObject<Date> {
   }
 
   static create(date?: Date | string): Either<InvalidDateError, CreationDate> {
-    const dateObj =
-      date instanceof Date ? date : date ? new Date(date) : new Date();
+    if (!date) {
+      return right(new CreationDate(new Date()));
+    }
+
+    const dateObj = date instanceof Date ? date : new Date(date);
 
     if (isNaN(dateObj.getTime())) {
       return left(

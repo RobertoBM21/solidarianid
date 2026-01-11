@@ -3,8 +3,6 @@ import {
   CommunityProposal,
   InvalidProposalStateError,
 } from '@app/shared/domain/aggregates/community-proposal.aggregate';
-import { CommunityProposalCreated } from '@app/shared/domain/events/community-proposal-created.event';
-import { InvalidCommunityNameError } from '@app/shared/domain/value-objects/community-name.vo';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CommunityProposalsPort } from '../../../domain/ports/community-proposals.port';
@@ -78,51 +76,6 @@ describe('CommunityProposalsController', () => {
     expect(result).toEqual({
       title: 'Solicitudes de comunidad',
       proposals: mockProposals,
-    });
-  });
-
-  describe('handleNewProposal', () => {
-    it('should handle new proposal event successfully', async () => {
-      const event: CommunityProposalCreated = {
-        proposalId: UniqueEntityID.create().toString(),
-        name: 'New Community',
-        description: 'New Description',
-        requesterId: UniqueEntityID.create().toString(),
-        occurredOn: new Date(),
-      };
-
-      mockCommunityProposalsPort.handleNewProposal.mockResolvedValue(
-        right(undefined),
-      );
-
-      await controller.handleNewProposal(event);
-
-      expect(mockCommunityProposalsPort.handleNewProposal).toHaveBeenCalledWith(
-        event,
-      );
-    });
-
-    it('should throw an error if handling new proposal fails', async () => {
-      const event: CommunityProposalCreated = {
-        proposalId: UniqueEntityID.create().toString(),
-        name: 'New Community',
-        description: 'New Description',
-        requesterId: UniqueEntityID.create().toString(),
-        occurredOn: new Date(),
-      };
-
-      const errorMessage = 'Invalid community name';
-      mockCommunityProposalsPort.handleNewProposal.mockResolvedValueOnce(
-        left(new InvalidCommunityNameError(errorMessage)),
-      );
-
-      await expect(controller.handleNewProposal(event)).rejects.toThrow(
-        `Error handling new community proposal: ${errorMessage}`,
-      );
-
-      expect(mockCommunityProposalsPort.handleNewProposal).toHaveBeenCalledWith(
-        event,
-      );
     });
   });
 

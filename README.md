@@ -44,6 +44,7 @@ Configuración específica de la aplicación principal:
 | Variable    | Tipo     | Descripción               | Valor por defecto |
 | ----------- | -------- | ------------------------- | ----------------- |
 | `REDIS_URL` | `string` | URL de la instancia Redis | -                 |
+| `STRIPE_SK` | `string` | Clave secreta de Stripe   | -                 |
 
 ### Aplicación: admin
 

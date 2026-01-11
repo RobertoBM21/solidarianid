@@ -21,10 +21,4 @@ export abstract class CommunitiesPort {
     },
     requesterId: string,
   ): Promise<Either<CommunityCreationError, { proposalId: string }>>;
-
-  abstract createCommunity(data: {
-    name: string;
-    description: string;
-    requesterId: string;
-  }): Promise<Either<CommunityCreationError, CommunityListOut>>;
 }

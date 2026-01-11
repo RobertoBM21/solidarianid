@@ -1,15 +1,13 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, PrimaryColumn, TableInheritance } from 'typeorm';
 
 @Entity('actions')
+@TableInheritance({ column: { type: 'varchar', name: 'type' } })
 export class ActionDbEntity {
   @PrimaryColumn('uuid')
   id: string;
 
   @Column({ name: 'cause_id', type: 'uuid' })
   causeId: string;
-
-  @Column({ type: 'varchar', length: 50 })
-  type: string;
 
   @Column({ type: 'varchar', length: 255 })
   title: string;
@@ -25,23 +23,4 @@ export class ActionDbEntity {
 
   @Column({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
-
-  @Column({ type: 'timestamptz', nullable: true })
-  start: Date | null;
-
-  @Column({ type: 'timestamptz', nullable: true })
-  end: Date | null;
-
-  @Column({
-    name: 'target_amount',
-    type: 'money',
-    nullable: true,
-  })
-  targetAmount: number | null;
-
-  @Column({
-    name: 'current_amount',
-    type: 'money',
-  })
-  currentAmount: number;
 }
