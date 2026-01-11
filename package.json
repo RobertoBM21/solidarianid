@@ -28,6 +28,7 @@
     "test:e2e:admin": "cross-env NODE_ENV=test jest --config ./apps/admin/test/jest-e2e.config.js",
     "test:e2e:solidarianid": "cross-env NODE_ENV=test jest --config ./apps/solidarianid/test/jest-e2e.config.js",
     "test:mvc:admin": "cross-env NODE_ENV=test jest --config ./apps/admin/test/jest-mvc.config.js",
+    "cy:open": "cypress open",
     "test:mutation": "stryker run"
   },
   "dependencies": {
@@ -82,6 +83,7 @@
     "autoprefixer": "^10.4.22",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
+    "cypress": "^15.8.2",
     "daisyui": "^5.5.14",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.0.1",
