@@ -15,15 +15,13 @@ services:
       timeout: 5s
       retries: 5
 
-  rabbitmq:
-    image: rabbitmq:4.2.2
-    environment:
-      RABBITMQ_DEFAULT_USER: user
-      RABBITMQ_DEFAULT_PASS: test
+  nats:
+    image: nats:2.12.3-alpine
+    command: '-js -m 8222'
     ports:
-      - 127.0.0.1:25672:5672
+      - 127.0.0.1:24222:24222
     healthcheck:
-      test: rabbitmq-diagnostics -q ping
+      test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:8222/varz']
       interval: 10s
       timeout: 5s
       retries: 5

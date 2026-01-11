@@ -20,6 +20,15 @@ export class DonationRepositoryImpl
   protected readonly dbEntityClass = DonationDbEntity;
   protected readonly notFoundErrorClass = DonationNotFoundError;
 
+  async getTotalDonationsAmount(): Promise<number> {
+    const result = await this.em
+      .createQueryBuilder(DonationDbEntity, 'donations')
+      .select('SUM(donations.amount)', 'total')
+      .getRawOne<{ total: string }>();
+
+    return result?.total ? parseFloat(result.total) : 0;
+  }
+
   protected mapFromDomain(item: Donation): DonationDbEntity {
     const entity = new DonationDbEntity();
     entity.id = item.id.toString();

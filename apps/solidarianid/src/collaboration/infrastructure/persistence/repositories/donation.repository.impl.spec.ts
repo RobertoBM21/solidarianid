@@ -10,13 +10,22 @@ describe('DonationRepositoryImpl', () => {
   let repo: DonationRepositoryImpl;
 
   const mockEntityManager: jest.Mocked<
-    Pick<EntityManager, 'save' | 'findOne' | 'find' | 'delete' | 'findOneBy'>
+    Pick<
+      EntityManager,
+      | 'save'
+      | 'findOne'
+      | 'find'
+      | 'delete'
+      | 'findOneBy'
+      | 'createQueryBuilder'
+    >
   > = {
     save: jest.fn(),
     findOne: jest.fn(),
     find: jest.fn(),
     delete: jest.fn(),
     findOneBy: jest.fn(),
+    createQueryBuilder: jest.fn(),
   };
 
   const donationId = UniqueEntityID.create().toString();
@@ -96,5 +105,35 @@ describe('DonationRepositoryImpl', () => {
     expect(mockEntityManager.findOne).toHaveBeenCalledWith(DonationDbEntity, {
       where: { id: donationId },
     });
+  });
+
+  it('should return all donations sum', async () => {
+    mockEntityManager.createQueryBuilder = jest.fn().mockReturnValueOnce({
+      select: jest.fn().mockReturnThis(),
+      getRawOne: jest.fn().mockResolvedValue({ total: '250.50' }),
+    } as any);
+
+    const total = await repo.getTotalDonationsAmount();
+
+    expect(total).toBe(250.5);
+    expect(mockEntityManager.createQueryBuilder).toHaveBeenCalledWith(
+      DonationDbEntity,
+      'donations',
+    );
+  });
+
+  it('should return zero when there are no donations', async () => {
+    mockEntityManager.createQueryBuilder = jest.fn().mockReturnValueOnce({
+      select: jest.fn().mockReturnThis(),
+      getRawOne: jest.fn().mockResolvedValue({ total: null }),
+    } as any);
+
+    const total = await repo.getTotalDonationsAmount();
+
+    expect(total).toBe(0);
+    expect(mockEntityManager.createQueryBuilder).toHaveBeenCalledWith(
+      DonationDbEntity,
+      'donations',
+    );
   });
 });

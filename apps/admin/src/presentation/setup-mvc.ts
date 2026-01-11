@@ -2,6 +2,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import hbs from 'hbs';
 import { join } from 'path';
+import { InternalErrorFilter } from '../shared/filters/internal-error.filter';
 import { NotFoundFilter } from '../shared/filters/not-found.filter';
 import { registerHbsHelpers } from './helpers';
 
@@ -28,5 +29,5 @@ export function setupMvcApp(
 
   registerHbsHelpers(hbs);
 
-  app.useGlobalFilters(new NotFoundFilter());
+  app.useGlobalFilters(new NotFoundFilter(), new InternalErrorFilter());
 }

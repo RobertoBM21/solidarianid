@@ -7,6 +7,7 @@ import { CommunityProposalRepository } from './domain/repositories/community-pro
 import { CommunityProposalDbEntity } from './infrastructure/persistence/entities/community-proposal.db-entity';
 import { CommunityProposalRepositoryImpl } from './infrastructure/persistence/repositories/community-proposal.repository.impl';
 import { CommunityProposalsController } from './infrastructure/presentation/controllers/community-proposals.controller';
+import { ProposalsEventsController } from './infrastructure/presentation/controllers/proposals-events.controller';
 
 @Module({
   imports: [TypeOrmModule.forFeature([CommunityProposalDbEntity])],
@@ -23,6 +24,6 @@ import { CommunityProposalsController } from './infrastructure/presentation/cont
     },
     CommunityProposalAcceptedHandler,
   ],
-  controllers: [CommunityProposalsController],
+  controllers: [CommunityProposalsController, ProposalsEventsController],
 })
 export class ModerationModule {}

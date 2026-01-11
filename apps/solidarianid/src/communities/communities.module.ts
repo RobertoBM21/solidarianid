@@ -3,8 +3,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { GetCommunityExistsHandler } from './application/handlers/get-community-exists.handler';
 import { IsCommunityAdminHandler } from './application/handlers/is-community-admin.handler';
 import { MembershipRequestAcceptedHandler } from './application/handlers/membership-request-accepted.handler';
-import { CommunityMembersPort } from './application/ports/community-members.port';
 import { CommunitiesPort } from './application/ports/communities.port';
+import { CommunityMembersPort } from './application/ports/community-members.port';
+import { CommunityStatisticsPort } from './application/ports/community-statistics.port';
 import { MembershipRequestsPort } from './application/ports/membership-requests.port';
 import { CommunitiesService } from './application/services/communities.service';
 import { CommunityMembersService } from './application/services/community-members.service';
@@ -13,6 +14,7 @@ import { CommunityMemberRepository } from './domain/repositories/community-membe
 import { CommunityRepository } from './domain/repositories/community.repository';
 import { MembershipRequestRepository } from './domain/repositories/membership-request.repository';
 import { CommunityFactory } from './domain/services/community-factory.service';
+import { CommunityStatisticsAdapter } from './infrastructure/persistence/community-statistics.adapter';
 import { CommunityMemberDbEntity } from './infrastructure/persistence/entities/community-member.db-entity';
 import { CommunityDbEntity } from './infrastructure/persistence/entities/community.db-entity';
 import { MembershipRequestDbEntity } from './infrastructure/persistence/entities/membership-request.db-entity';
@@ -20,6 +22,7 @@ import { CommunityMemberRepositoryImpl } from './infrastructure/persistence/repo
 import { CommunityRepositoryImpl } from './infrastructure/persistence/repositories/community.repository.impl';
 import { MembershipRequestRepositoryImpl } from './infrastructure/persistence/repositories/membership-request.repository.impl';
 import { CommunitiesController } from './infrastructure/presentation/controllers/communities.controller';
+import { CommunityEventsController } from './infrastructure/presentation/controllers/community-events.controller';
 import { CommunityMembersController } from './infrastructure/presentation/controllers/community-members.controller';
 import { MembershipRequestsController } from './infrastructure/presentation/controllers/membership-requests.controller';
 
@@ -59,6 +62,12 @@ import { MembershipRequestsController } from './infrastructure/presentation/cont
       },
     },
 
+    CommunityStatisticsAdapter,
+    {
+      provide: CommunityStatisticsPort,
+      useExisting: CommunityStatisticsAdapter,
+    },
+
     GetCommunityExistsHandler,
     MembershipRequestAcceptedHandler,
 
@@ -80,6 +89,7 @@ import { MembershipRequestsController } from './infrastructure/presentation/cont
   ],
   controllers: [
     CommunitiesController,
+    CommunityEventsController,
     MembershipRequestsController,
     CommunityMembersController,
   ],

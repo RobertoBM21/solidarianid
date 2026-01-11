@@ -61,7 +61,10 @@ export class StripeAdapter implements PaymentsGatewaryPort {
       }
       return right(checkoutSession.url);
     } catch (error) {
-      this.logger.error('Error creating payment link', (error as Error).stack);
+      this.logger.error(
+        'Error creating payment link',
+        (error as Error).message,
+      );
       return left(
         new PaymentsGatewaryError(
           'Error creating payment link: ' + (error as Error).message,

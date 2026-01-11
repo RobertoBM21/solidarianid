@@ -13,6 +13,7 @@ jest.mock('stripe', () => {
 });
 
 import { UniqueEntityID } from '@app/shared/domain';
+import { Logger } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { v4 } from 'uuid';
 import { DonationIntention } from '../../../initiatives/domain/entities/donation-intention.entity';
@@ -23,6 +24,8 @@ import { StripeAdapter } from './stripe.adapter';
 describe('StripeAdapter', () => {
   const secret = 'sk_test_abc';
   let adapter: StripeAdapter;
+
+  jest.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({

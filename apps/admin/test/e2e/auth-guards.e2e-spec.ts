@@ -69,12 +69,14 @@ describe('Auth Guards (e2e)', () => {
         .expect(HttpStatus.CREATED);
     });
 
-    it('should be able to access protected route (/)', () => {
-      return agent.get('/').expect(HttpStatus.OK);
+    it('should be able to access protected route (/comunidades/validaciones)', () => {
+      return agent.get('/comunidades/validaciones').expect(HttpStatus.OK);
     });
 
     it('should show user icon in header when logged in', async () => {
-      const res = await agent.get('/').expect(HttpStatus.OK);
+      const res = await agent
+        .get('/comunidades/validaciones')
+        .expect(HttpStatus.OK);
       expect(res.text).toContain('fa-user');
       expect(res.text).toContain('/auth/logout');
     });

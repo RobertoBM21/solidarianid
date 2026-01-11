@@ -17,6 +17,7 @@ import {
   ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
+import { ok } from 'assert';
 import { type Request } from 'express';
 import { AuthId } from '../../../../identity/infrastructure/decorators/auth-id.decorator';
 import { AuthGuard } from '../../../../identity/infrastructure/guards/auth.guard';
@@ -52,7 +53,10 @@ export class DonationsController {
     @AuthId() userId: string,
     @Req() request: Request,
   ): Promise<PaymentDto> {
-    const url = `${request.protocol}://${request.hostname}`;
+    const host = request.get('host');
+    ok(host, 'Host header is missing');
+    const url = `${request.protocol}://${host}`;
+
     const result = await this.donationsPort.startDonation(
       createDonationDto,
       userId,

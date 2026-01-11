@@ -7,10 +7,10 @@ import 'reflect-metadata';
 import { Subscription } from 'rxjs';
 import { DomainEventsPort } from '../domain/ports/domain-events.port';
 import { PasswordHasherPort } from '../domain/ports/password-hasher.port';
+import { NatsClientAdapter } from './adapters/nats-client.adapter';
 import { PasswordHasherAdapter } from './adapters/password-hasher.adapter';
-import { RabbitmqClientAdapter } from './adapters/rabbitmq-client.adapter';
 import databaseConfig from './config/database.config';
-import { RABBITMQ_CLIENT, rabbitmqConfig } from './config/rabbitmq.config';
+import { NATS_CLIENT, natsConfig } from './config/nats.config';
 
 @Global()
 @Module({
@@ -22,19 +22,19 @@ import { RABBITMQ_CLIENT, rabbitmqConfig } from './config/rabbitmq.config';
 
     ClientsModule.registerAsync([
       {
-        name: RABBITMQ_CLIENT,
-        ...rabbitmqConfig.asProvider(),
+        name: NATS_CLIENT,
+        ...natsConfig.asProvider(),
       },
     ]),
 
     TypeOrmModule.forRootAsync(databaseConfig.asProvider()),
   ],
   providers: [
-    RabbitmqClientAdapter,
+    NatsClientAdapter,
 
     {
       provide: DomainEventsPort,
-      useClass: RabbitmqClientAdapter,
+      useClass: NatsClientAdapter,
     },
     PasswordHasherAdapter,
     {
@@ -49,10 +49,10 @@ export class CommonInfrastructureModule
 {
   private sub?: Subscription;
 
-  constructor(private readonly rabbitmqClientAdapter: RabbitmqClientAdapter) {}
+  constructor(private readonly natsClientAdapter: NatsClientAdapter) {}
 
   onModuleInit() {
-    this.sub = this.rabbitmqClientAdapter.setupIntegrationEvents();
+    this.sub = this.natsClientAdapter.setupIntegrationEvents();
   }
 
   onModuleDestroy() {

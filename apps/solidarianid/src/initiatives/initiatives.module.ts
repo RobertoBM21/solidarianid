@@ -10,6 +10,7 @@ import { CausesPort } from './application/ports/causes.port';
 import { ActionsService } from './application/services/actions.service';
 import { CauseSupportsService } from './application/services/cause-supports.service';
 import { CausesService } from './application/services/causes.service';
+import { InitiativesStatisticsPort } from './domain/ports/initiatives-statistics.port';
 import { ActionRepository } from './domain/repositories/action.repository';
 import { AnonymousSupporterRepository } from './domain/repositories/anonymous-supporter.repository';
 import { CauseSupportRepository } from './domain/repositories/cause-support.repository';
@@ -21,6 +22,7 @@ import { CauseSupportDbEntity } from './infrastructure/persistence/entities/caus
 import { CauseDbEntity } from './infrastructure/persistence/entities/cause.db-entity';
 import { FundingActionDbEntity } from './infrastructure/persistence/entities/funding-action.db-entity';
 import { VolunteeringActionDbEntity } from './infrastructure/persistence/entities/volunteering-action.db-entity';
+import { InitiativesStatisticsAdapter } from './infrastructure/persistence/initiatives-statistics.adapter';
 import { ActionRepositoryImpl } from './infrastructure/persistence/repositories/action.repository.impl';
 import { AnonymousSupporterRepositoryImpl } from './infrastructure/persistence/repositories/anonymous-supporter.repository.impl';
 import { CauseSupportRepositoryImpl } from './infrastructure/persistence/repositories/cause-support.repository.impl';
@@ -30,6 +32,7 @@ import { ActionsController } from './infrastructure/presentation/controllers/act
 import { CauseSupportsController } from './infrastructure/presentation/controllers/cause-supports.controller';
 import { CauseController } from './infrastructure/presentation/controllers/cause.controller';
 import { CausesController } from './infrastructure/presentation/controllers/causes.controller';
+import { InitiativesEventsController } from './infrastructure/presentation/controllers/initiatives-events.controller';
 
 @Module({
   imports: [
@@ -44,7 +47,7 @@ import { CausesController } from './infrastructure/presentation/controllers/caus
     IdentityModule,
   ],
   providers: [
-    // Repositories
+    // Persistence
     CauseRepositoryImpl,
     {
       provide: CauseRepository,
@@ -69,6 +72,11 @@ import { CausesController } from './infrastructure/presentation/controllers/caus
     {
       provide: FundingActionRepository,
       useExisting: FundingActionRepositoryImpl,
+    },
+    InitiativesStatisticsAdapter,
+    {
+      provide: InitiativesStatisticsPort,
+      useExisting: InitiativesStatisticsAdapter,
     },
 
     // Handlers
@@ -98,6 +106,7 @@ import { CausesController } from './infrastructure/presentation/controllers/caus
     CauseController,
     CauseSupportsController,
     ActionsController,
+    InitiativesEventsController,
   ],
 })
 export class InitiativesModule {}

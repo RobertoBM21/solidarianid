@@ -58,7 +58,7 @@ describe('DonationsController', () => {
       const userId = v4();
       const request: any = {
         protocol: 'https',
-        hostname: 'example.com',
+        get: () => 'example.com',
       };
 
       const result = await controller.createDonation(
@@ -87,7 +87,7 @@ describe('DonationsController', () => {
       const userId = v4();
       const request: any = {
         protocol: 'https',
-        hostname: 'example.com',
+        get: () => 'example.com',
       };
 
       await expect(
@@ -116,7 +116,7 @@ describe('DonationsController', () => {
       const userId = v4();
       const request: any = {
         protocol: 'https',
-        hostname: 'example.com',
+        get: () => 'example.com',
       };
 
       await expect(
@@ -145,7 +145,7 @@ describe('DonationsController', () => {
       const userId = v4();
       const request: any = {
         protocol: 'https',
-        hostname: 'example.com',
+        get: () => 'example.com',
       };
 
       await expect(

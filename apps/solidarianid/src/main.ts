@@ -1,4 +1,4 @@
-import { rabbitmqConfig } from '@app/shared/infrastructure';
+import { natsConfig } from '@app/shared/infrastructure';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -6,7 +6,7 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.connectMicroservice(rabbitmqConfig.asProvider());
+  app.connectMicroservice(natsConfig.asProvider());
 
   app.useGlobalPipes(
     new ValidationPipe({

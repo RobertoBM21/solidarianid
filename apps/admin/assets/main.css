@@ -4,3 +4,11 @@
     emerald --default,
     dracula --prefersdark;
 }
+
+.dashboard-surface {
+  background: hsl(var(--b1));
+}
+
+[data-theme='dracula'] .dashboard-surface {
+  background: hsl(var(--b2));
+}

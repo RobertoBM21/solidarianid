@@ -1,16 +1,17 @@
 import { CommunityProposal } from '@app/shared/domain/aggregates/community-proposal.aggregate';
 import { CommunityProposalCreated } from '@app/shared/domain/events/community-proposal-created.event';
-import { Logger } from '@nestjs/common';
-import { EventsHandler } from '@nestjs/cqrs';
-import { CommunityProposalRepository } from '../../domain/repositories/community-proposal.repository';
+import { Controller, Logger } from '@nestjs/common';
+import { EventPattern } from '@nestjs/microservices';
+import { CommunityProposalRepository } from '../../../domain/repositories/community-proposal.repository';
 
-@EventsHandler(CommunityProposalCreated)
-export class CommunityProposalCreatedHandler {
-  private readonly logger = new Logger(CommunityProposalCreatedHandler.name);
+@Controller()
+export class ProposalsEventsController {
+  private readonly logger = new Logger(ProposalsEventsController.name);
 
   constructor(private readonly repository: CommunityProposalRepository) {}
 
-  async handle(event: CommunityProposalCreated) {
+  @EventPattern(CommunityProposalCreated.name)
+  async handleProposalCreated(event: CommunityProposalCreated) {
     this.logger.debug(
       `New community proposal received: ID=${event.proposalId}, Name=${event.name}, RequesterID=${event.requesterId}`,
     );

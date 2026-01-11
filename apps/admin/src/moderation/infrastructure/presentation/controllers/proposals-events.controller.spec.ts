@@ -1,12 +1,15 @@
 import { UniqueEntityID } from '@app/shared/domain';
 import { CommunityProposal } from '@app/shared/domain/aggregates/community-proposal.aggregate';
 import { CommunityProposalCreated } from '@app/shared/domain/events/community-proposal-created.event';
+import { Logger } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { CommunityProposalRepository } from '../../domain/repositories/community-proposal.repository';
-import { CommunityProposalCreatedHandler } from './community-proposal-created.handler';
+import { CommunityProposalRepository } from '../../../domain/repositories/community-proposal.repository';
+import { ProposalsEventsController } from './proposals-events.controller';
 
-describe('CommunityProposalCreatedHandler', () => {
-  let handler: CommunityProposalCreatedHandler;
+describe('ProposalsEventsController', () => {
+  let controller: ProposalsEventsController;
+
+  jest.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
 
   const mockCommunityProposalRepository = {
     findById: jest.fn(),
@@ -40,7 +43,7 @@ describe('CommunityProposalCreatedHandler', () => {
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
       providers: [
-        CommunityProposalCreatedHandler,
+        ProposalsEventsController,
         {
           provide: CommunityProposalRepository,
           useValue: mockCommunityProposalRepository,
@@ -48,9 +51,7 @@ describe('CommunityProposalCreatedHandler', () => {
       ],
     }).compile();
 
-    handler = app.get<CommunityProposalCreatedHandler>(
-      CommunityProposalCreatedHandler,
-    );
+    controller = app.get<ProposalsEventsController>(ProposalsEventsController);
   });
 
   afterEach(() => {
@@ -58,7 +59,7 @@ describe('CommunityProposalCreatedHandler', () => {
   });
 
   it('should be defined', () => {
-    expect(handler).toBeDefined();
+    expect(controller).toBeDefined();
   });
 
   describe('handleNewProposal', () => {
@@ -71,7 +72,7 @@ describe('CommunityProposalCreatedHandler', () => {
         occurredOn: new Date(),
       };
 
-      await handler.handle(event);
+      await controller.handleProposalCreated(event);
 
       expect(mockCommunityProposalRepository.save).toHaveBeenCalled();
       const savedProposal: CommunityProposal =
@@ -92,7 +93,7 @@ describe('CommunityProposalCreatedHandler', () => {
         occurredOn: new Date(),
       };
 
-      await handler.handle(event);
+      await controller.handleProposalCreated(event);
 
       expect(mockCommunityProposalRepository.save).not.toHaveBeenCalled();
     });

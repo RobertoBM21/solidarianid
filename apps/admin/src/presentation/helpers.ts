@@ -16,6 +16,7 @@ interface HelperOptions {
 
 const CDN_MAP: Record<string, string> = {
   axios: 'https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js',
+  chartjs: 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js',
 };
 
 export function registerHbsHelpers(hbsInstance: typeof hbs) {

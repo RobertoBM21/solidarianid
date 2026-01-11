@@ -27,12 +27,11 @@ describe('AdminController (e2e)', () => {
     await app.close();
   });
 
-  it('/ (GET)', async () => {
+  it('/ (GET) redirects to dashboard', async () => {
     const res = await request(app.getHttpServer())
       .get('/')
-      .expect(HttpStatus.OK)
-      .expect('Content-Type', /text\/html/);
+      .expect(HttpStatus.FOUND);
 
-    expect(res.text).toContain('<title>Inicio</title>');
+    expect(res.headers.location).toBe('/dashboard');
   });
 });

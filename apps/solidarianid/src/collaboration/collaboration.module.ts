@@ -14,6 +14,7 @@ import { DonationDbEntity } from './infrastructure/persistence/entities/donation
 import { VolunteerLogDbEntity } from './infrastructure/persistence/entities/volunteer-log.db-entity';
 import { DonationRepositoryImpl } from './infrastructure/persistence/repositories/donation.repository.impl';
 import { VolunteerLogRepositoryImpl } from './infrastructure/persistence/repositories/volunteer-log.repository.impl';
+import { DonationsEventsController } from './infrastructure/presentation/controllers/donations-events.controller';
 import { DonationsController } from './infrastructure/presentation/controllers/donations.controller';
 import { VolunteerLogsController } from './infrastructure/presentation/controllers/volunteer-logs.controller';
 
@@ -49,6 +50,10 @@ import { VolunteerLogsController } from './infrastructure/presentation/controlle
       useExisting: VolunteerLogService,
     },
   ],
-  controllers: [DonationsController, VolunteerLogsController],
+  controllers: [
+    DonationsController,
+    DonationsEventsController,
+    VolunteerLogsController,
+  ],
 })
 export class CollaborationModule {}

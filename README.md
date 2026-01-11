@@ -24,18 +24,14 @@ El proyecto NestJS se divide en tres componentes:
 
 Es posible configurar cada componente mediante variables de entorno. Se proporciona un archivo `.env.example` con la configuración mínima necesaria.
 
-| Variable                 | Tipo     | Descripción                                             | Valor por defecto |
-| ------------------------ | -------- | ------------------------------------------------------- | ----------------- |
-| `DB_HOST`                | `string` | Host de Postgres                                        | -                 |
-| `DB_PORT`                | `number` | Puerto de Postgres                                      | `5432`            |
-| `DB_USER`                | `string` | Usuario de Postgres                                     | -                 |
-| `DB_PASSWORD_FILE`       | `string` | Ruta del fichero que contiene la contraseña de Postgres | -                 |
-| `DB_NAME`                | `string` | Nombre de Postgres                                      | -                 |
-| `RABBITMQ_HOST`          | `string` | Host de RabbitMQ                                        | -                 |
-| `RABBITMQ_PORT`          | `number` | Puerto de RabbitMQ                                      | `5672`            |
-| `RABBITMQ_USER`          | `string` | Usuario de RabbitMQ                                     | -                 |
-| `RABBITMQ_PASSWORD_FILE` | `string` | Ruta del fichero que contiene la contraseña de RabbitMQ | -                 |
-| `RABBITMQ_QUEUE`         | `string` | Nombre de la cola en RabbitMQ                           | -                 |
+| Variable           | Tipo     | Descripción                                             | Valor por defecto |
+| ------------------ | -------- | ------------------------------------------------------- | ----------------- |
+| `DB_HOST`          | `string` | Host de Postgres                                        | -                 |
+| `DB_PORT`          | `number` | Puerto de Postgres                                      | `5432`            |
+| `DB_USER`          | `string` | Usuario de Postgres                                     | -                 |
+| `DB_PASSWORD_FILE` | `string` | Ruta del fichero que contiene la contraseña de Postgres | -                 |
+| `DB_NAME`          | `string` | Nombre de Postgres                                      | -                 |
+| `NATS_URL`         | `string` | URL de NATS                                             | -                 |
 
 ### Aplicación: solidarianid
 
@@ -66,7 +62,6 @@ cp .env.example .env
 openssl rand -base64 32 | tr -d '\n' > secrets/solidarian_password.txt
 openssl rand -base64 32 | tr -d '\n' > secrets/admin_password.txt
 openssl rand -base64 32 | tr -d '\n' > secrets/admin_session_secret.txt
-openssl rand -base64 32 | tr -d '\n' > secrets/rabbitmq_password.txt
 
 # Levantar la infraestructura local
 docker compose -f docker-compose.dev.yml up -d --wait

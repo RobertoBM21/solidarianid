@@ -1,0 +1,98 @@
+{{addLib 'chartjs'}}
+{{addJs '/dashboard.js'}}
+{{addCss '/dashboard.css'}}
+
+<script type='application/json' id='dashboard-stats-data'>
+  {{{statsJson}}}
+</script>
+
+<section class='space-y-6'>
+  <header class='flex flex-col gap-2'>
+    <p class='text-sm uppercase tracking-[0.2em] text-base-content/60'>Vista
+      general</p>
+    <h1 class='text-3xl font-semibold'>Dashboard de la plataforma</h1>
+  </header>
+
+  <div class='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+    <div class='card border border-base-200 bg-base-100 shadow-xl dashboard-surface'>
+      <div class='card-body p-4'>
+        <div class='flex items-center justify-between'>
+          <div>
+            <p class='text-sm text-base-content/60'>Total donaciones</p>
+            <p class='text-2xl font-semibold'>{{totals.donations}} &euro;</p>
+          </div>
+          <i class='fa-solid fa-hand-holding-dollar text-2xl text-primary'></i>
+        </div>
+      </div>
+    </div>
+    <div class='card border border-base-200 bg-base-100 shadow-xl dashboard-surface'>
+      <div class='card-body p-4'>
+        <div class='flex items-center justify-between'>
+          <div>
+            <p class='text-sm text-base-content/60'>Total apoyos</p>
+            <p class='text-2xl font-semibold'>{{totals.supports}}</p>
+          </div>
+          <i class='fa-solid fa-users text-2xl text-secondary'></i>
+        </div>
+      </div>
+    </div>
+    <div class='card border border-base-200 bg-base-100 shadow-xl dashboard-surface'>
+      <div class='card-body p-4'>
+        <div class='flex items-center justify-between'>
+          <div>
+            <p class='text-sm text-base-content/60'>Total causas</p>
+            <p class='text-2xl font-semibold'>{{totals.causes}}</p>
+          </div>
+          <i class='fa-solid fa-heart text-2xl text-accent'></i>
+        </div>
+      </div>
+    </div>
+    <div class='card border border-base-200 bg-base-100 shadow-xl dashboard-surface'>
+      <div class='card-body p-4'>
+        <div class='flex items-center justify-between'>
+          <div>
+            <p class='text-sm text-base-content/60'>Total comunidades</p>
+            <p class='text-2xl font-semibold'>{{totals.communities}}</p>
+          </div>
+          <i class='fa-solid fa-people-group text-2xl text-info'></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class='grid grid-cols-1 gap-6 lg:grid-cols-3'>
+    <section class='card border border-base-200 bg-base-100 shadow-xl dashboard-surface lg:col-span-2'>
+      <div class='card-body'>
+        <div class='flex items-center justify-between'>
+          <h2 class='text-lg font-semibold'>Actividad plataforma</h2>
+        </div>
+        <div class='mt-4'>
+          <canvas id='platform-activity' class='h-64 w-full lg:h-72'></canvas>
+        </div>
+      </div>
+    </section>
+
+    <section class='card border border-base-200 bg-base-100 shadow-xl dashboard-surface'>
+      <div class='card-body'>
+        <div class='flex items-center justify-between'>
+          <h2 class='text-lg font-semibold'>Objetivos ODS</h2>
+          <span class='badge badge-outline'>2026</span>
+        </div>
+        <div class='mt-4'>
+          <canvas id='ods-chart' class='h-72 w-full'></canvas>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section class='card border border-base-200 bg-base-100 shadow-xl dashboard-surface'>
+    <div class='card-body'>
+      <div class='flex items-center justify-between'>
+        <h2 class='text-lg font-semibold'>Resumen de comunidades</h2>
+      </div>
+      <div class='mt-4'>
+        <canvas id='actions-chart' class='h-64 w-full lg:h-72'></canvas>
+      </div>
+    </div>
+  </section>
+</section>

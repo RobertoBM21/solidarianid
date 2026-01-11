@@ -11,4 +11,6 @@ export class DonationNotFoundError implements DomainError {
 export abstract class DonationRepository extends Repository<
   Donation,
   DonationNotFoundError
-> {}
+> {
+  abstract getTotalDonationsAmount(): Promise<number>;
+}
