@@ -1,0 +1,106 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Infraestructura SolidarianID
+
+Parameters:
+  LabRoleArn:
+    Type: String
+    Description: ARN del rol 'LabRole' preexistente en la cuenta de AWS Academy
+
+Resources:
+  # --- VPC y Networking ---
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags: [{ Key: Name, Value: SolidarianVPC }]
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+
+  VPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags:
+        [
+          { Key: Name, Value: PublicSubnet1 },
+          { Key: kubernetes.io/role/elb, Value: 1 },
+        ]
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: !Select [1, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags:
+        [
+          { Key: Name, Value: PublicSubnet2 },
+          { Key: kubernetes.io/role/elb, Value: 1 },
+        ]
+
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref RouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  SubnetRouteTableAssociation1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: { SubnetId: !Ref PublicSubnet1, RouteTableId: !Ref RouteTable }
+
+  SubnetRouteTableAssociation2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: { SubnetId: !Ref PublicSubnet2, RouteTableId: !Ref RouteTable }
+
+  EKSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: SG para EKS
+      VpcId: !Ref VPC
+
+  # --- Cluster EKS ---
+  EKSCluster:
+    Type: AWS::EKS::Cluster
+    Properties:
+      Name: SolidarianCluster
+      Version: '1.34'
+      RoleArn: !Ref LabRoleArn
+      ResourcesVpcConfig:
+        SubnetIds: [!Ref PublicSubnet1, !Ref PublicSubnet2]
+        SecurityGroupIds: [!Ref EKSSecurityGroup]
+
+  EKSNodeGroup:
+    Type: AWS::EKS::Nodegroup
+    Properties:
+      ClusterName: !Ref EKSCluster
+      NodeRole: !Ref LabRoleArn
+      Subnets: [!Ref PublicSubnet1, !Ref PublicSubnet2]
+      InstanceTypes: [t3.medium]
+      ScalingConfig:
+        MinSize: 3
+        MaxSize: 5
+        DesiredSize: 3
+
+Outputs:
+  ClusterName:
+    Description: Nombre del Cluster para usar en kubectl
+    Value: !Ref EKSCluster

@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let message = '';
 
     const emailValue = emailInput.value.trim();
-    const passwordValue = passwordInput.value.trim();
+    const passwordValue = passwordInput.value;
 
     if (!emailValue) {
       isValid = false;

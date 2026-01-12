@@ -1,0 +1,94 @@
+name: SolidarianID CD (EKS)
+
+on:
+  workflow_run:
+    workflows: ['CI SolidarianID']
+    types:
+      - completed
+    branches:
+      - main
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECR_REPOSITORY_CORE: ${{ secrets.ECR_REPOSITORY_CORE }}
+  ECR_REPOSITORY_ADMIN: ${{ secrets.ECR_REPOSITORY_ADMIN }}
+  STACK_NAME: SolidarianStack
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push Core image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_CORE:$IMAGE_TAG --build-arg APP=solidarianid .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY_CORE:$IMAGE_TAG
+
+      - name: Build, tag, and push Admin image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_ADMIN:$IMAGE_TAG --build-arg APP=admin .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY_ADMIN:$IMAGE_TAG
+
+      - name: Deploy CloudFormation Stack
+        run: |
+          aws cloudformation deploy \
+            --template-file infra/eks-cluster.yaml \
+            --stack-name ${{ env.STACK_NAME }} \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --parameter-overrides LabRoleArn=${{ secrets.LAB_ROLE_ARN }}
+
+      - name: Update Kubeconfig
+        run: |
+          CLUSTER_NAME=$(aws cloudformation describe-stacks \
+            --stack-name ${{ env.STACK_NAME }} \
+            --query "Stacks[0].Outputs[?OutputKey=='ClusterName'].OutputValue" \
+            --output text)
+
+          echo "Connecting to cluster: $CLUSTER_NAME"
+          aws eks update-kubeconfig --name $CLUSTER_NAME --region ${{ env.AWS_REGION }}
+
+      - name: Install Metrics Server (for HPA)
+        run: |
+          kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+
+      - name: Deploy to Kubernetes
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          STRIPE_SK: ${{ secrets.STRIPE_SK }}
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+        run: |
+          envsubst < infra/k8s/deployment.yaml > infra/k8s/deployment-final.yaml
+
+          kubectl apply -f infra/k8s/deployment-final.yaml
+
+          # Verify status
+          kubectl get services

@@ -1,0 +1,187 @@
+# --- INFRAESTRUCTURA INTERNA (DBs, Redis, NATS) ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nats
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: nats } }
+  template:
+    metadata: { labels: { app: nats } }
+    spec:
+      containers:
+        [{ name: nats, image: nats:latest, ports: [{ containerPort: 4222 }] }]
+---
+apiVersion: v1
+kind: Service
+metadata: { name: nats }
+spec:
+  selector: { app: nats }
+  ports: [{ port: 4222 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: redis } }
+  template:
+    metadata: { labels: { app: redis } }
+    spec:
+      containers:
+        [{ name: redis, image: redis:7, ports: [{ containerPort: 6379 }] }]
+---
+apiVersion: v1
+kind: Service
+metadata: { name: redis }
+spec:
+  selector: { app: redis }
+  ports: [{ port: 6379 }]
+---
+# DB Core
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: postgres-core }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: postgres-core } }
+  template:
+    metadata: { labels: { app: postgres-core } }
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15
+          ports: [{ containerPort: 5432 }]
+          env:
+            - { name: POSTGRES_PASSWORD, value: '${DB_PASSWORD}' }
+            - { name: POSTGRES_DB, value: 'solidariancore' }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: postgres-core }
+spec:
+  selector: { app: postgres-core }
+  ports: [{ port: 5432 }]
+---
+# DB Admin
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: postgres-admin }
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: postgres-admin } }
+  template:
+    metadata: { labels: { app: postgres-admin } }
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15
+          ports: [{ containerPort: 5432 }]
+          env:
+            - { name: POSTGRES_PASSWORD, value: '${DB_PASSWORD}' }
+            - { name: POSTGRES_DB, value: 'solidarianadmin' }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: postgres-admin }
+spec:
+  selector: { app: postgres-admin }
+  ports: [{ port: 5432 }]
+
+
+# --- APLICACIONES ---
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: solidarianid-core
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: solidarianid-core } }
+  template:
+    metadata: { labels: { app: solidarianid-core } }
+    spec:
+      containers:
+        - name: core
+          image: ${ECR_REGISTRY}/${ECR_REPOSITORY_CORE}:${IMAGE_TAG}
+          ports: [{ containerPort: 3000 }]
+          env:
+            - { name: DB_HOST, value: 'postgres-core' }
+            - { name: DB_USER, value: 'postgres' }
+            - { name: DB_PASSWORD, value: '${DB_PASSWORD}' }
+            - { name: DB_NAME, value: 'solidariancore' }
+            - { name: NATS_URL, value: 'nats://nats:4222' }
+            - { name: REDIS_URL, value: 'redis://redis:6379' }
+            - { name: STRIPE_SK, value: '${STRIPE_SK}' }
+          resources:
+            requests:
+              cpu: '250m'
+              memory: '128Mi'
+            limits:
+              cpu: '500m'
+              memory: '256Mi'
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: core-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: solidarianid-core
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+---
+apiVersion: v1
+kind: Service
+metadata: { name: solidarianid-core-service }
+spec:
+  type: LoadBalancer
+  selector: { app: solidarianid-core }
+  ports: [{ protocol: TCP, port: 80, targetPort: 3000 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: solidarianid-admin
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: solidarianid-admin } }
+  template:
+    metadata: { labels: { app: solidarianid-admin } }
+    spec:
+      containers:
+        - name: admin
+          image: ${ECR_REGISTRY}/${ECR_REPOSITORY_ADMIN}:${IMAGE_TAG}
+          ports: [{ containerPort: 3001 }]
+          env:
+            - { name: DB_HOST, value: 'postgres-admin' }
+            - { name: DB_USER, value: 'postgres' }
+            - { name: DB_PASSWORD, value: '${DB_PASSWORD}' }
+            - { name: DB_NAME, value: 'solidarianadmin' }
+            - { name: NATS_URL, value: 'nats://nats:4222' }
+            - { name: SESSION_SECRET, value: '${SESSION_SECRET}' }
+          resources:
+            requests:
+              cpu: '200m'
+              memory: '128Mi'
+            limits:
+              cpu: '400m'
+              memory: '256Mi'
+---
+apiVersion: v1
+kind: Service
+metadata: { name: solidarianid-admin-service }
+spec:
+  type: LoadBalancer
+  selector: { app: solidarianid-admin }
+  ports: [{ protocol: TCP, port: 80, targetPort: 3001 }]
