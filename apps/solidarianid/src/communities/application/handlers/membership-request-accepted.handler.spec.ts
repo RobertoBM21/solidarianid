@@ -1,4 +1,5 @@
 import { UniqueEntityID } from '@app/shared/domain';
+import { Logger } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CommunityMember } from '../../domain/community-member.aggregate';
 import { MembershipRequestAcceptedEvent } from '../../domain/events/membership-request-accepted.event';
@@ -11,6 +12,8 @@ describe('MembershipRequestAcceptedHandler', () => {
   const mockCommunityMemberRepository = {
     save: jest.fn(),
   };
+
+  jest.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({

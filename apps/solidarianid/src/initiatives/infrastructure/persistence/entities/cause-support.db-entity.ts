@@ -1,6 +1,14 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryColumn,
+  type Relation,
+} from 'typeorm';
 import { UserDbEntity } from '../../../../identity/infrastructure/persistence/entities/user.db-entity';
 import { AnonymousUserDbEntity } from './anonymous-user.db-entity';
+import { CauseDbEntity } from './cause.db-entity';
 
 @Entity('cause_supports')
 export class CauseSupportDbEntity {
@@ -9,6 +17,10 @@ export class CauseSupportDbEntity {
 
   @Column({ name: 'cause_id', type: 'uuid' })
   causeId: string;
+
+  @ManyToOne(() => CauseDbEntity, (cause) => cause.id, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'cause_id' })
+  cause: Relation<CauseDbEntity>;
 
   @Column({ name: 'user_id', type: 'uuid', nullable: true })
   userId: string | null;
@@ -31,5 +43,5 @@ export class CauseSupportDbEntity {
   anonymousUser?: AnonymousUserDbEntity | null;
 
   @Column({ type: 'timestamptz' })
-  created_at: Date;
+  createdAt: Date;
 }

@@ -1,13 +1,13 @@
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-  FundingActionApiDto,
-  VolunteeringActionApiDto,
-} from 'apps/solidarianid/src/initiatives/infrastructure/presentation/dtos/action.api-dto';
 import request from 'supertest';
 import { DataSource } from 'typeorm';
 import { AppModule } from '../../../src/app.module';
 import { CommunityMemberDbEntity } from '../../../src/communities/infrastructure/persistence/entities/community-member.db-entity';
+import {
+  FundingActionApiDto,
+  VolunteeringActionApiDto,
+} from '../../../src/initiatives/infrastructure/presentation/dtos/action.api-dto';
 import { CommunityTestFactory } from '../../communities/community.test-factory';
 import { clearDatabase } from '../../db-test-utils';
 import { CauseTestFactory } from '../causes/cause.test-factory';

@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { GetCommunityExistsHandler } from './application/handlers/get-community-exists.handler';
+import { GetMyMembershipsHandler } from './application/handlers/get-my-memberships.handler';
 import { IsCommunityAdminHandler } from './application/handlers/is-community-admin.handler';
 import { MembershipRequestAcceptedHandler } from './application/handlers/membership-request-accepted.handler';
 import { CommunitiesPort } from './application/ports/communities.port';
 import { CommunityMembersPort } from './application/ports/community-members.port';
 import { CommunityStatisticsPort } from './application/ports/community-statistics.port';
 import { MembershipRequestsPort } from './application/ports/membership-requests.port';
+import { MyMembershipsPort } from './application/ports/my-memberships.port';
 import { CommunitiesService } from './application/services/communities.service';
 import { CommunityMembersService } from './application/services/community-members.service';
 import { MembershipRequestsService } from './application/services/membership-requests.service';
@@ -18,6 +20,7 @@ import { CommunityStatisticsAdapter } from './infrastructure/persistence/communi
 import { CommunityMemberDbEntity } from './infrastructure/persistence/entities/community-member.db-entity';
 import { CommunityDbEntity } from './infrastructure/persistence/entities/community.db-entity';
 import { MembershipRequestDbEntity } from './infrastructure/persistence/entities/membership-request.db-entity';
+import { MyMembershipsAdapter } from './infrastructure/persistence/my-memberships.adapter';
 import { CommunityMemberRepositoryImpl } from './infrastructure/persistence/repositories/community-member.repository.impl';
 import { CommunityRepositoryImpl } from './infrastructure/persistence/repositories/community.repository.impl';
 import { MembershipRequestRepositoryImpl } from './infrastructure/persistence/repositories/membership-request.repository.impl';
@@ -67,8 +70,14 @@ import { MembershipRequestsController } from './infrastructure/presentation/cont
       provide: CommunityStatisticsPort,
       useExisting: CommunityStatisticsAdapter,
     },
+    MyMembershipsAdapter,
+    {
+      provide: MyMembershipsPort,
+      useExisting: MyMembershipsAdapter,
+    },
 
     GetCommunityExistsHandler,
+    GetMyMembershipsHandler,
     MembershipRequestAcceptedHandler,
 
     CommunitiesService,

@@ -3,6 +3,7 @@ import {
   CommunityActivityRow,
   OdsCount,
 } from '@app/shared/domain/queries/get-initiatives-statistics.query';
+import { UserSupportHistoryItem } from '@app/shared/domain/queries/get-my-collaborations.query';
 
 export abstract class InitiativesStatisticsPort {
   abstract getOdsCounts(): Promise<OdsCount[]>;
@@ -10,4 +11,6 @@ export abstract class InitiativesStatisticsPort {
   abstract getCauseStatistics(): Promise<CauseStatisticsRow[]>;
   abstract getTotalCausesCount(): Promise<number>;
   abstract getTotalSupportsCount(): Promise<number>;
+
+  abstract getMySupports(userId: string): Promise<UserSupportHistoryItem[]>;
 }

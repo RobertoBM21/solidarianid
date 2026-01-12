@@ -32,4 +32,7 @@ export class CommunityMemberDbEntity {
 
   @Column({ type: 'boolean' })
   admin: boolean;
+
+  @Column({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
 }

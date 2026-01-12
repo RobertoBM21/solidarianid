@@ -4,7 +4,6 @@ import request from 'supertest';
 import { DataSource } from 'typeorm';
 import { AppModule } from '../../../src/app.module';
 import { CommunityMemberDbEntity } from '../../../src/communities/infrastructure/persistence/entities/community-member.db-entity';
-import { MembershipRequestDbEntity } from '../../../src/communities/infrastructure/persistence/entities/membership-request.db-entity';
 import { clearDatabase, waitFor } from '../../db-test-utils';
 import { UserTestFactory } from '../../identity/user.test-factory';
 import { CommunityTestFactory } from '../community.test-factory';
@@ -208,14 +207,14 @@ describe('Membership requests integration tests', () => {
     // Ensure member is created before next test/closure clears DB
     await waitFor(() =>
       dataSource
-        .getRepository(MembershipRequestDbEntity)
+        .getRepository(CommunityMemberDbEntity)
         .exists({ where: { userId, communityId: idCommunity } }),
     );
 
     const member = await dataSource
       .getRepository(CommunityMemberDbEntity)
       .findOneBy({ communityId: idCommunity, userId: userId });
-    expect(member).toBeDefined();
+    expect(member).not.toBeNull();
   });
 
   it('should reject a membership request', async () => {

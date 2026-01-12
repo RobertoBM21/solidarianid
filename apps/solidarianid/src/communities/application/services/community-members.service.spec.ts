@@ -64,7 +64,7 @@ describe('CommunityMembersService', () => {
         communityId: communityId,
         userId: nonAdminId,
         admin: false,
-      });
+      }).value as CommunityMember;
       mockCommunityMemberRepository.findByCommunityIdAndUserId.mockResolvedValue(
         right(requesterMember),
       );
@@ -80,7 +80,7 @@ describe('CommunityMembersService', () => {
         communityId: communityId,
         userId: requesterId,
         admin: true,
-      });
+      }).value as CommunityMember;
       mockCommunityMemberRepository.findByCommunityIdAndUserId.mockResolvedValue(
         right(requesterMember),
       );
@@ -89,7 +89,7 @@ describe('CommunityMembersService', () => {
         communityId: communityId,
         userId: targetUserId,
         admin: false,
-      });
+      }).value as CommunityMember;
       mockCommunityMemberRepository.findByCommunityId.mockResolvedValue([
         member,
       ]);
@@ -124,7 +124,7 @@ describe('CommunityMembersService', () => {
           admin: false,
         },
         memberId,
-      );
+      ).value as CommunityMember;
       mockCommunityMemberRepository.findById.mockResolvedValue(right(member));
       mockCommunityMemberRepository.findByCommunityIdAndUserId.mockResolvedValue(
         left(new CommunityMemberNotFoundError(communityId)),
@@ -143,14 +143,14 @@ describe('CommunityMembersService', () => {
           admin: false,
         },
         memberId,
-      );
+      ).value as CommunityMember;
       mockCommunityMemberRepository.findById.mockResolvedValue(right(member));
 
       const requesterMember = CommunityMember.create({
         communityId: communityId,
         userId: nonAdminId,
         admin: false,
-      });
+      }).value as CommunityMember;
       mockCommunityMemberRepository.findByCommunityIdAndUserId.mockResolvedValue(
         right(requesterMember),
       );
@@ -168,14 +168,14 @@ describe('CommunityMembersService', () => {
           admin: true,
         },
         memberId,
-      );
+      ).value as CommunityMember;
       mockCommunityMemberRepository.findById.mockResolvedValue(right(member));
 
       const requesterMember = CommunityMember.create({
         communityId: communityId,
         userId: requesterId,
         admin: true,
-      });
+      }).value as CommunityMember;
       mockCommunityMemberRepository.findByCommunityIdAndUserId.mockResolvedValue(
         right(requesterMember),
       );
@@ -193,14 +193,14 @@ describe('CommunityMembersService', () => {
           admin: false,
         },
         memberId,
-      );
+      ).value as CommunityMember;
       mockCommunityMemberRepository.findById.mockResolvedValue(right(member));
 
       const requesterMember = CommunityMember.create({
         communityId: communityId,
         userId: requesterId,
         admin: true,
-      });
+      }).value as CommunityMember;
       mockCommunityMemberRepository.findByCommunityIdAndUserId.mockResolvedValue(
         right(requesterMember),
       );
@@ -235,7 +235,7 @@ describe('CommunityMembersService', () => {
           admin: false,
         },
         memberId,
-      );
+      ).value as CommunityMember;
       mockCommunityMemberRepository.findById.mockResolvedValue(right(member));
       mockCommunityMemberRepository.findByCommunityIdAndUserId.mockResolvedValue(
         left(new CommunityMemberNotFoundError(communityId)),
@@ -254,14 +254,14 @@ describe('CommunityMembersService', () => {
           admin: false,
         },
         memberId,
-      );
+      ).value as CommunityMember;
       mockCommunityMemberRepository.findById.mockResolvedValue(right(member));
 
       const requesterMember = CommunityMember.create({
         communityId: communityId,
         userId: nonAdminId,
         admin: false,
-      });
+      }).value as CommunityMember;
       mockCommunityMemberRepository.findByCommunityIdAndUserId.mockResolvedValue(
         right(requesterMember),
       );
@@ -279,14 +279,14 @@ describe('CommunityMembersService', () => {
           admin: true,
         },
         memberId,
-      );
+      ).value as CommunityMember;
       mockCommunityMemberRepository.findById.mockResolvedValue(right(member));
 
       const requesterMember = CommunityMember.create({
         communityId: communityId,
         userId: requesterId,
         admin: true,
-      });
+      }).value as CommunityMember;
       mockCommunityMemberRepository.findByCommunityIdAndUserId.mockResolvedValue(
         right(requesterMember),
       );
@@ -304,7 +304,7 @@ describe('CommunityMembersService', () => {
           admin: false,
         },
         memberId,
-      );
+      ).value as CommunityMember;
       mockCommunityMemberRepository.findById.mockResolvedValue(right(member));
       mockCommunityMemberRepository.remove.mockResolvedValue(right(undefined));
 
@@ -312,7 +312,7 @@ describe('CommunityMembersService', () => {
         communityId: communityId,
         userId: requesterId,
         admin: true,
-      });
+      }).value as CommunityMember;
       mockCommunityMemberRepository.findByCommunityIdAndUserId.mockResolvedValue(
         right(requesterMember),
       );

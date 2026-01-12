@@ -2,18 +2,20 @@ import {
   CauseStatisticsRow,
   CommunityActivityRow,
 } from '@app/shared/domain/queries/get-initiatives-statistics.query';
+import { UserSupportHistoryItem } from '@app/shared/domain/queries/get-my-collaborations.query';
 import { Injectable } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { EntityManager } from 'typeorm';
+import { UserSupportHistoryItemDto } from '../../../collaboration/application/dtos/my-collaborations.dto';
 import { InitiativesStatisticsPort } from '../../domain/ports/initiatives-statistics.port';
 import { CauseSupportDbEntity } from './entities/cause-support.db-entity';
 import { CauseDbEntity } from './entities/cause.db-entity';
 
 @Injectable()
 export class InitiativesStatisticsAdapter implements InitiativesStatisticsPort {
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(private readonly entityManager: EntityManager) {}
 
   async getActivityData(): Promise<CommunityActivityRow[]> {
-    const result = await this.dataSource
+    const result = await this.entityManager
       .getRepository(CauseDbEntity)
       .createQueryBuilder('cause')
       .select('EXTRACT(MONTH FROM cause.created_at)', 'month')
@@ -42,7 +44,7 @@ export class InitiativesStatisticsAdapter implements InitiativesStatisticsPort {
   }
 
   async getCauseStatistics(): Promise<CauseStatisticsRow[]> {
-    const supportsCteQuery = this.dataSource
+    const supportsCteQuery = this.entityManager
       .createQueryBuilder()
       .select('cau.community_id', 'community_id')
       .addSelect('COUNT(casup.id)', 'total_supports')
@@ -50,7 +52,7 @@ export class InitiativesStatisticsAdapter implements InitiativesStatisticsPort {
       .innerJoin('causes', 'cau', 'casup.cause_id = cau.id')
       .groupBy('cau.community_id');
 
-    const stats = await this.dataSource
+    const stats = await this.entityManager
       .getRepository(CauseDbEntity)
       .createQueryBuilder('ca')
 
@@ -91,7 +93,7 @@ export class InitiativesStatisticsAdapter implements InitiativesStatisticsPort {
   }
 
   async getOdsCounts(): Promise<{ ods: number; count: number }[]> {
-    const result = await this.dataSource
+    const result = await this.entityManager
       .getRepository(CauseDbEntity)
       .createQueryBuilder('cause')
       .select('cause.ods', 'ods_id')
@@ -110,10 +112,33 @@ export class InitiativesStatisticsAdapter implements InitiativesStatisticsPort {
   }
 
   getTotalCausesCount(): Promise<number> {
-    return this.dataSource.getRepository(CauseDbEntity).count();
+    return this.entityManager.getRepository(CauseDbEntity).count();
   }
 
   getTotalSupportsCount(): Promise<number> {
-    return this.dataSource.getRepository(CauseSupportDbEntity).count();
+    return this.entityManager.getRepository(CauseSupportDbEntity).count();
+  }
+
+  async getMySupports(userId: string): Promise<UserSupportHistoryItem[]> {
+    const supports = await this.entityManager.find(CauseSupportDbEntity, {
+      where: { userId },
+      relations: { cause: true },
+      select: {
+        cause: {
+          id: true,
+          title: true,
+        },
+        createdAt: true,
+      },
+    });
+
+    return supports.map(
+      (support) =>
+        new UserSupportHistoryItemDto(
+          support.cause.id,
+          support.cause.title,
+          support.createdAt,
+        ),
+    );
   }
 }

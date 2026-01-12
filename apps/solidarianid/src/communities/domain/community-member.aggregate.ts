@@ -6,12 +6,17 @@ import {
   right,
   UniqueEntityID,
 } from '@app/shared/domain';
+import {
+  CreationDate,
+  InvalidDateError,
+} from '@app/shared/domain/value-objects/creation-date.vo';
 import { MemberRole } from './value-objects/member-role.vo';
 
 export interface CommunityMemberProps {
   communityId: UniqueEntityID;
   userId: UniqueEntityID;
   admin: MemberRole;
+  createdAt: CreationDate;
 }
 
 export class MemberAlreadyAdminError implements DomainError {
@@ -39,6 +44,10 @@ export class CommunityMember extends AggregateRoot<CommunityMemberProps> {
     return this.props.admin;
   }
 
+  get createdAt(): Date {
+    return this.props.createdAt.value;
+  }
+
   promoteToAdmin(): Either<MemberAlreadyAdminError, void> {
     if (this.role.isAdmin()) {
       return left(new MemberAlreadyAdminError());
@@ -52,12 +61,18 @@ export class CommunityMember extends AggregateRoot<CommunityMemberProps> {
       communityId: string;
       userId: string;
       admin: boolean;
+      createdAt?: Date;
     },
     id?: string,
-  ): CommunityMember {
+  ): Either<InvalidDateError, CommunityMember> {
     const communityId = UniqueEntityID.create(data.communityId);
     const userId = UniqueEntityID.create(data.userId);
     const admin = MemberRole.create(data.admin);
+
+    const dateOrError = CreationDate.create(data.createdAt);
+    if (dateOrError.isLeft()) {
+      return left(dateOrError.value);
+    }
 
     const idObj = id ? UniqueEntityID.create(id) : undefined;
 
@@ -65,9 +80,9 @@ export class CommunityMember extends AggregateRoot<CommunityMemberProps> {
       communityId,
       userId,
       admin,
+      createdAt: dateOrError.value,
     };
     const communityMember = new CommunityMember(props, idObj);
-
-    return communityMember;
+    return right(communityMember);
   }
 }

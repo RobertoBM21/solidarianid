@@ -39,6 +39,6 @@ export class DonationDbEntity {
   })
   amount: number;
 
-  @Column({ type: 'timestamptz' })
-  created_at: Date;
+  @Column({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
 }

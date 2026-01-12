@@ -20,6 +20,7 @@ export class CommunityMemberRepositoryImpl extends CommunityMemberRepository {
     dbEntity.communityId = member.communityId.toString();
     dbEntity.userId = member.userId.toString();
     dbEntity.admin = member.role.asBoolean();
+    dbEntity.createdAt = member.createdAt;
 
     await this.em.save(CommunityMemberDbEntity, dbEntity);
   }
@@ -74,13 +75,20 @@ export class CommunityMemberRepositoryImpl extends CommunityMemberRepository {
   }
 
   private mapToDomain(entity: CommunityMemberDbEntity): CommunityMember {
-    return CommunityMember.create(
+    const communityMemberOrError = CommunityMember.create(
       {
         communityId: entity.communityId,
         userId: entity.userId,
         admin: entity.admin,
+        createdAt: entity.createdAt,
       },
       entity.id,
     );
+    if (communityMemberOrError.isLeft()) {
+      throw new Error(
+        `Error mapping CommunityMemberDbEntity to CommunityMember: ${communityMemberOrError.value.message}`,
+      );
+    }
+    return communityMemberOrError.value;
   }
 }

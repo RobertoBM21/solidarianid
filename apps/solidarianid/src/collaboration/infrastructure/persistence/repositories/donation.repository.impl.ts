@@ -35,7 +35,7 @@ export class DonationRepositoryImpl
     entity.amount = item.amount;
     entity.userId = item.donorId;
     entity.actionId = item.fundingActionId;
-    entity.created_at = item.createdAt;
+    entity.createdAt = item.createdAt;
     return entity;
   }
 
@@ -45,7 +45,7 @@ export class DonationRepositoryImpl
         donorId: entity.userId,
         fundingActionId: entity.actionId,
         amount: entity.amount,
-        date: entity.created_at,
+        date: entity.createdAt,
       },
       UniqueEntityID.create(entity.id),
     );

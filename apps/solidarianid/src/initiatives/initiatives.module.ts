@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { IdentityModule } from '../identity/identity.module';
 import { DonationCreatedHandler } from './application/handlers/donation-created.handler';
 import { GetDonationIntentionHandler } from './application/handlers/get-donation-intention.handler';
+import { GetMySupportsHandler } from './application/handlers/get-my-supports.handler';
 import { IsCauseSupportedByUserHandler } from './application/handlers/is-cause-supported-by-user.handler';
 import { ActionsPort } from './application/ports/actions.port';
 import { CauseSupportsPort } from './application/ports/cause-supports.port';
@@ -82,6 +83,7 @@ import { InitiativesEventsController } from './infrastructure/presentation/contr
     // Handlers
     DonationCreatedHandler,
     GetDonationIntentionHandler,
+    GetMySupportsHandler,
     IsCauseSupportedByUserHandler,
 
     // Services / Ports

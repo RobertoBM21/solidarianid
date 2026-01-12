@@ -26,6 +26,7 @@ export class CommunityMemberTestFactory {
       communityId: community.id,
       userId: user.id,
       admin,
+      createdAt: new Date(),
     });
 
     // If there's an ongoing transaction, use it. If not, use the normal repo.
