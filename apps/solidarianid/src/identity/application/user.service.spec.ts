@@ -1,7 +1,6 @@
 import { left, PasswordHasherPort, right } from '@app/shared/domain';
 import { UserAlreadyExistsError } from '@app/shared/domain/aggregates/abstract-user.aggregate';
 import { InvalidUserEmailError } from '@app/shared/domain/value-objects/user-email.vo';
-import { InvalidUserPasswordError } from '@app/shared/domain/value-objects/user-password.vo';
 import { Test, TestingModule } from '@nestjs/testing';
 import { User } from '../domain/aggregates/user.aggregate';
 import { CountryCheckerPort } from '../domain/ports/country-checker.port';
@@ -99,27 +98,8 @@ describe('UserService', () => {
       expect(mockUserRepository.save).not.toHaveBeenCalled();
     });
 
-    // 2. S1-C1-C2-S3-FIN
-    it('should not create a user with an empty password', async () => {
-      mockUserRepository.findByEmail = jest
-        .fn()
-        .mockResolvedValue(left(new UserNotFoundError('')));
-
-      const result = await service.createUser({
-        name: 'User 2',
-        email: 'email2@example.com',
-        phone: '44455566',
-        password: '',
-        city: 'city 2',
-        country: 'es',
-      });
-      expect(result.isLeft()).toBe(true);
-      expect(result.value).toBeInstanceOf(InvalidUserPasswordError);
-      expect(mockUserRepository.save).not.toHaveBeenCalled();
-    });
-
-    // 3. S1-C1-C2-S4-S5-S6-C3-S7-FIN
-    it('should not create a user with invalid email', async () => {
+    // 2. S1-C1-S3-C2-S4-FIN
+    it('should not create an invalid user', async () => {
       mockUserRepository.findByEmail = jest
         .fn()
         .mockResolvedValue(left(new UserNotFoundError('')));
@@ -137,7 +117,7 @@ describe('UserService', () => {
       expect(mockUserRepository.save).not.toHaveBeenCalled();
     });
 
-    // 4. S1-C1-C2-S4-S5-S6-C3-S8-S9-S10-FIN
+    // 3. S1-C1-S3-C2-S5-S6-S7-FIN
     it('should create a new user', async () => {
       userRepository.findByEmail = jest
         .fn()

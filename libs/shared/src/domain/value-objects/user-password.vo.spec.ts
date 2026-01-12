@@ -9,10 +9,15 @@ describe('UserPassword Value Object', () => {
     comparePassword: jest.fn(),
   };
 
+  it('should create a UserPassword with valid hash', () => {
+    const result = UserPassword.fromHashed('hashed_password_123');
+    expect(result.value).toBe('hashed_password_123');
+  });
+
   // Basic path tests
 
-  // 1. C1-S1-FIN
-  it('should return error for empty password hash', async () => {
+  // 1. C1-S1-S3-FIN
+  it('should return error if the password is too short', async () => {
     const result = await UserPassword.create('123', mockHasher);
     expect(result.isLeft()).toBe(true);
     if (result.isLeft()) {
@@ -23,9 +28,13 @@ describe('UserPassword Value Object', () => {
     }
   });
 
-  // 2. C1-S2-FIN
-  it('should create a UserPassword with valid hash', () => {
-    const result = UserPassword.fromHashed('hashed_password_123');
-    expect(result.value).toBe('hashed_password_123');
+  // 2. C1-S2-S3-FIN
+  it('should create a UserPassword with valid password', async () => {
+    const result = await UserPassword.create('validPassword', mockHasher);
+    expect(result.isRight()).toBe(true);
+    if (result.isRight()) {
+      expect(result.value).toBeInstanceOf(UserPassword);
+      expect(result.value.value).toBe('hashed_validPassword');
+    }
   });
 });
