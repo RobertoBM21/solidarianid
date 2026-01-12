@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { GetCommunityExistsHandler } from './application/handlers/get-community-exists.handler';
+import { GetMembershipsHandler } from './application/handlers/get-memberships.handler';
 import { GetMyMembershipsHandler } from './application/handlers/get-my-memberships.handler';
 import { IsCommunityAdminHandler } from './application/handlers/is-community-admin.handler';
 import { MembershipRequestAcceptedHandler } from './application/handlers/membership-request-accepted.handler';
@@ -77,6 +78,7 @@ import { MembershipRequestsController } from './infrastructure/presentation/cont
     },
 
     GetCommunityExistsHandler,
+    GetMembershipsHandler,
     GetMyMembershipsHandler,
     MembershipRequestAcceptedHandler,
 

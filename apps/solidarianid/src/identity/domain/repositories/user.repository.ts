@@ -8,9 +8,20 @@ export class UserNotFoundError implements DomainError {
   }
 }
 
+export interface UserListItem {
+  id: string;
+  name: string;
+}
+
+export interface UsersPage {
+  users: UserListItem[];
+  totalPages: number;
+}
+
 export abstract class UserRepository extends Repository<
   User,
   UserNotFoundError
 > {
   abstract findByEmail(email: string): Promise<Either<UserNotFoundError, User>>;
+  abstract list(page?: number, search?: string): Promise<UsersPage>;
 }

@@ -135,8 +135,8 @@ export class InitiativesStatisticsAdapter implements InitiativesStatisticsPort {
     return supports.map(
       (support) =>
         new UserSupportHistoryItemDto(
-          support.cause.id,
           support.cause.title,
+          support.cause.id,
           support.createdAt,
         ),
     );

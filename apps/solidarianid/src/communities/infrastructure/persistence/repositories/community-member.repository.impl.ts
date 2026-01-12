@@ -74,6 +74,31 @@ export class CommunityMemberRepositoryImpl extends CommunityMemberRepository {
     return right(this.mapToDomain(dbEntity));
   }
 
+  async listByUserIds(userIds: string[]): Promise<Map<string, string[]>> {
+    if (userIds.length === 0) {
+      return new Map<string, string[]>();
+    }
+
+    const rawResults = await this.em
+      .createQueryBuilder(CommunityMemberDbEntity, 'm')
+      .innerJoin('m.community', 'community')
+      .select('m.userId', 'member_user_id')
+      .addSelect('community.name', 'community_name')
+      .where('m.userId IN (:...userIds)', { userIds })
+      .getRawMany<{ member_user_id: string; community_name: string }>();
+
+    const communityNamesPerUser = new Map<string, string[]>();
+    for (const result of rawResults) {
+      const userId = result.member_user_id;
+      const communityName = result.community_name;
+      if (!communityNamesPerUser.has(userId)) {
+        communityNamesPerUser.set(userId, []);
+      }
+      communityNamesPerUser.get(userId)?.push(communityName);
+    }
+    return communityNamesPerUser;
+  }
+
   private mapToDomain(entity: CommunityMemberDbEntity): CommunityMember {
     const communityMemberOrError = CommunityMember.create(
       {

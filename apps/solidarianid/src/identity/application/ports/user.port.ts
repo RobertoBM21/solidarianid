@@ -1,5 +1,6 @@
 import { Either } from '@app/shared/domain';
 import { UserAlreadyExistsError } from '@app/shared/domain/aggregates/abstract-user.aggregate';
+import { GetUsersQueryResult } from '@app/shared/domain/queries/get-users.query';
 import { UserCreationError } from '../../domain/aggregates/user.aggregate';
 import { CreateUserDto } from '../dtos/create-user.dto';
 
@@ -18,4 +19,9 @@ export abstract class UserPort {
   ): Promise<
     Either<UserCreationError | UserAlreadyExistsError, { id: string }>
   >;
+
+  abstract listUsers(
+    page?: number,
+    search?: string,
+  ): Promise<GetUsersQueryResult>;
 }

@@ -127,7 +127,8 @@
       "!**/*.*spec.ts",
       "!**/test/**",
       "!**/*.db-entity.ts",
-      "!**/admin/public/*.js"
+      "!**/admin/public/*.js",
+      "!**/admin/views/**"
     ],
     "coverageDirectory": "./coverage",
     "testEnvironment": "node",

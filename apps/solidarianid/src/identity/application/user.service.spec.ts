@@ -1,6 +1,7 @@
 import { left, PasswordHasherPort, right } from '@app/shared/domain';
 import { UserAlreadyExistsError } from '@app/shared/domain/aggregates/abstract-user.aggregate';
 import { InvalidUserEmailError } from '@app/shared/domain/value-objects/user-email.vo';
+import { QueryBus } from '@nestjs/cqrs';
 import { Test, TestingModule } from '@nestjs/testing';
 import { User } from '../domain/aggregates/user.aggregate';
 import { CountryCheckerPort } from '../domain/ports/country-checker.port';
@@ -14,9 +15,14 @@ describe('UserService', () => {
   let service: UserService;
   let userRepository: UserRepository;
 
+  const mockQueryBus = {
+    execute: jest.fn(),
+  };
+
   const mockUserRepository = {
     findByEmail: jest.fn(),
     save: jest.fn(),
+    list: jest.fn(),
   };
 
   const mockCountryChecker: CountryCheckerPort = {
@@ -48,6 +54,10 @@ describe('UserService', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
+        {
+          provide: QueryBus,
+          useValue: mockQueryBus,
+        },
         {
           provide: CountryCheckerPort,
           useValue: mockCountryChecker,
@@ -141,6 +151,39 @@ describe('UserService', () => {
         'email4@example.com',
       );
       expect(mockUserRepository.save).toHaveBeenCalledWith(expect.any(User));
+    });
+  });
+
+  describe('listUsers', () => {
+    it('should return users with their community names', async () => {
+      const mockUsersList = [
+        { id: mockUsers[0].id.toString(), name: mockUsers[0].name },
+      ];
+      mockUserRepository.list = jest
+        .fn()
+        .mockResolvedValue({ users: mockUsersList, totalPages: 1 });
+      mockQueryBus.execute = jest.fn().mockResolvedValue({
+        communityNamesPerUser: new Map<string, string[]>([
+          [mockUsers[0].id.toString(), ['Community A', 'Community B']],
+        ]),
+      });
+
+      const result = await service.listUsers();
+
+      expect(result.users).toHaveLength(mockUsersList.length);
+      expect(result.users[0].communities).toEqual([
+        'Community A',
+        'Community B',
+      ]);
+      expect(mockUserRepository.list).toHaveBeenCalledWith(
+        undefined,
+        undefined,
+      );
+      expect(mockQueryBus.execute).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userIds: mockUsersList.map((user) => user.id),
+        }),
+      );
     });
   });
 });

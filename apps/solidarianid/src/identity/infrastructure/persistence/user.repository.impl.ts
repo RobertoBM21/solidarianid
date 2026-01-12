@@ -6,6 +6,7 @@ import { CountryCheckerPort } from '../../domain/ports/country-checker.port';
 import {
   UserNotFoundError,
   UserRepository,
+  UsersPage,
 } from '../../domain/repositories/user.repository';
 import { UserDbEntity } from './entities/user.db-entity';
 
@@ -50,9 +51,34 @@ export class UserRepositoryImpl extends UserRepository {
     return right(this.mapUserToDomain(dbEntity));
   }
 
-  async findAll(): Promise<User[]> {
-    const dbEntities = await this.em.find(UserDbEntity);
-    return dbEntities.map((user) => this.mapUserToDomain(user));
+  async list(page?: number, search?: string): Promise<UsersPage> {
+    const take = 10;
+    const skip = page && page > 0 ? (page - 1) * take : 0;
+
+    const queryBuilder = this.em
+      .getRepository(UserDbEntity)
+      .createQueryBuilder('user');
+
+    if (search) {
+      queryBuilder.where('user.name ILIKE :search', {
+        search: `%${search}%`,
+      });
+    }
+
+    const users = await queryBuilder
+      .select('user.id', 'id')
+      .addSelect('user.name', 'name')
+      .take(take)
+      .skip(skip)
+      .getRawMany<{ id: string; name: string }>();
+
+    const totalUsers = await queryBuilder.getCount();
+    const totalPages = Math.ceil(totalUsers / take);
+
+    return {
+      users,
+      totalPages,
+    };
   }
 
   private mapUserToDomain(entity: UserDbEntity): User {

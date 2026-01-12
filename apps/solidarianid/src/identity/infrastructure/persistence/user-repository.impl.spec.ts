@@ -154,22 +154,6 @@ describe('UserRepositoryImpl', () => {
     });
   });
 
-  // 6. S1-S2-FIN
-  it('findAll should return all users mapped to domain', async () => {
-    const dbEntities = [makeDbEntity(), makeDbEntity()];
-    em.find.mockResolvedValue(dbEntities);
-
-    const result = await repo.findAll();
-
-    expect(Array.isArray(result)).toBe(true);
-    expect(result).toHaveLength(2);
-    expect(result[0].id.toString()).toBe(dbEntities[0].id);
-    expect(result[1].id.toString()).toBe(dbEntities[1].id);
-    expect(result[0].email).toBe(dbEntities[0].email);
-    expect(result[1].email).toBe(dbEntities[1].email);
-    expect(em.find).toHaveBeenCalledWith(UserDbEntity);
-  });
-
   // 7. S1-S2-FIN
   it('remove should return left(UserNotFoundError) when no rows affected', async () => {
     em.delete.mockResolvedValue({
