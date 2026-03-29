@@ -39,7 +39,7 @@ jobs:
         run: npm run test:mvc:admin
 
       - name: Build applications
-        run: npm run build
+        run: npm run build:all
 
       - name: Run admin application in background for end-to-end tests
         run: npx cross-env NODE_ENV=test node ./dist/apps/admin/main.js &

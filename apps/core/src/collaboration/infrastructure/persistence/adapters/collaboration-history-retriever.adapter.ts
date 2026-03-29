@@ -10,7 +10,9 @@ import { DonationDbEntity } from '../entities/donation.db-entity';
 import { VolunteerLogDbEntity } from '../entities/volunteer-log.db-entity';
 
 @Injectable()
-export class CollaborationHistoryRetrieverAdapter implements CollaborationHistoryRetrieverPort {
+export class CollaborationHistoryRetrieverAdapter
+  implements CollaborationHistoryRetrieverPort
+{
   constructor(private readonly entityManager: EntityManager) {}
 
   async getUserDonations(

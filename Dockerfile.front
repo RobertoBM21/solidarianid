@@ -1,0 +1,33 @@
+# STAGE 1: Build
+FROM node:24-alpine AS builder
+
+WORKDIR /app
+
+COPY package*.json ./
+COPY nx.json ./
+COPY tsconfig*.json ./
+
+RUN npm install
+
+COPY . .
+
+RUN npx nx build front
+
+# STAGE 2: Production Runner
+FROM node:24-alpine AS runner
+
+WORKDIR /app
+
+ARG NODE_ENV=production
+ENV NODE_ENV=${NODE_ENV}
+ARG PORT=3080
+ENV PORT=${PORT}
+ENV HOSTNAME="0.0.0.0"
+
+COPY --from=builder /app/apps/front/public ./public
+COPY --from=builder /app/apps/front/.next/standalone ./
+COPY --from=builder /app/apps/front/.next/static ./dist/apps/front/.next/static
+
+EXPOSE ${PORT}
+
+CMD ["node", "apps/front/server.js"]

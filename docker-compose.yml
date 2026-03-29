@@ -1,23 +1,23 @@
 services:
-  solidarianid:
+  core:
     build:
       context: .
       dockerfile: Dockerfile
       args:
-        - APP=solidarianid
+        - APP=core
     ports:
       - '3000:3000'
     environment:
-      - DB_HOST=db_solidarianid
-      - DB_USER=solidarian_user
-      - DB_PASSWORD_FILE=/run/secrets/db_pass_solidarianid
-      - DB_NAME=solidarian_db
+      - DB_HOST=db_core
+      - DB_USER=core_user
+      - DB_PASSWORD_FILE=/run/secrets/db_pass_core
+      - DB_NAME=core_db
       - REDIS_URL=redis://redis:6379
       - NATS_URL=nats://nats:4222
     secrets:
-      - db_pass_solidarianid
+      - db_pass_core
     depends_on:
-      db_solidarianid:
+      db_core:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -51,18 +51,30 @@ services:
       nats:
         condition: service_healthy
 
-  db_solidarianid:
+  front:
+    build:
+      context: .
+      dockerfile: Dockerfile.front
+    ports:
+      - '3080:3080'
+    environment:
+      - CORE_API_INTERNAL_URL=http://core:3000
+      - NEXT_PUBLIC_CORE_API_URL=http://localhost:3000
+    depends_on:
+      - core
+
+  db_core:
     image: postgres:18.1-alpine
     environment:
-      POSTGRES_USER: solidarian_user
-      POSTGRES_PASSWORD_FILE: /run/secrets/db_pass_solidarianid
-      POSTGRES_DB: solidarian_db
+      POSTGRES_USER: core_user
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_pass_core
+      POSTGRES_DB: core_db
     secrets:
-      - db_pass_solidarianid
+      - db_pass_core
     volumes:
-      - solidarian_db_data:/var/lib/postgresql/data
+      - core_db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U solidarian_user -d solidarian_db']
+      test: ['CMD-SHELL', 'pg_isready -U core_user -d core_db']
       interval: 5s
       timeout: 5s
       retries: 5
@@ -102,13 +114,13 @@ services:
       retries: 5
 
 volumes:
-  solidarian_db_data:
+  core_db_data:
   admin_db_data:
   nats_data:
 
 secrets:
-  db_pass_solidarianid:
-    file: ./secrets/solidarian_password.txt
+  db_pass_core:
+    file: ./secrets/core_password.txt
   db_pass_admin:
     file: ./secrets/admin_password.txt
   admin_session_secret:

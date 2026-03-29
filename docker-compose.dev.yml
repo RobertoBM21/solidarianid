@@ -63,4 +63,4 @@ volumes:
 
 secrets:
   db_pass:
-    file: ./secrets/solidarian_password.txt
+    file: ./secrets/core_password.txt

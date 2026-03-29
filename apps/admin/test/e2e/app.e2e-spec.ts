@@ -19,7 +19,7 @@ describe('AdminController (e2e)', () => {
       .compile();
 
     app = moduleFixture.createNestApplication();
-    setupMvcApp(app, join(__dirname, '../..'));
+    setupMvcApp(app, join(__dirname, '../../src'));
     await app.init();
   });
 

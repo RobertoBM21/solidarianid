@@ -16,7 +16,8 @@ export abstract class AbstractTypeormRepository<
   T extends Entity<unknown>,
   E extends DomainError,
   DbE extends { id: string },
-> implements Repository<T, E> {
+> implements Repository<T, E>
+{
   protected abstract readonly dbEntityClass: new () => DbE;
   protected abstract readonly notFoundErrorClass: new (id: string) => E;
 

@@ -20,7 +20,7 @@ describe('AuthController (MVC-e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    setupMvcApp(app, join(__dirname, '../..'));
+    setupMvcApp(app, join(__dirname, '../../src'));
     await app.init();
   });
 
@@ -46,7 +46,7 @@ describe('AuthController (MVC-e2e)', () => {
       jest.isolateModules(() => {
         global.axios = mockAxios;
 
-        require('../../public/login.js');
+        require('../../src/public/login.js');
 
         // Trigger the script initialization
         document.dispatchEvent(
@@ -92,7 +92,7 @@ describe('AuthController (MVC-e2e)', () => {
       jest.isolateModules(() => {
         global.axios = mockAxios;
 
-        require('../../public/login.js');
+        require('../../src/public/login.js');
 
         // Trigger the script initialization
         document.dispatchEvent(

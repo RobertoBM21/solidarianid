@@ -4,7 +4,7 @@ FROM node:24-alpine AS builder
 WORKDIR /app
 
 COPY package*.json ./
-COPY nest-cli.json ./
+COPY nx.json ./
 COPY tsconfig*.json ./
 
 RUN npm install

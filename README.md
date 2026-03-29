@@ -14,15 +14,16 @@ Es posible ejecutar las consultas de forma sencilla mediante el "Query Explorer"
 
 ## Arquitectura
 
-El proyecto NestJS se divide en tres componentes:
+El proyecto se divide en múltiples componentes:
 
-- `apps/solidarianid`: aplicación principal "core" (puerto `3000`).
-- `apps/admin`: aplicación de administración (puerto `3001`).
+- `apps/core`: aplicación NestJS principal (puerto `3000`).
+- `apps/admin`: aplicación NestJS de administración (puerto `3001`).
+- `apps/front`: aplicación NextJS principal (front-end, puerto `3080`).
 - `libs/shared`: librería compartida (módulos comunes, utilidades...).
 
-## Configuración
+## Configuración NestJS
 
-Es posible configurar cada componente mediante variables de entorno. Se proporciona un archivo `.env.example` con la configuración mínima necesaria.
+Es posible configurar cada componente back-end mediante variables de entorno. Se proporciona un archivo `.env.example` con la configuración mínima necesaria.
 
 | Variable           | Tipo     | Descripción                                             | Valor por defecto |
 | ------------------ | -------- | ------------------------------------------------------- | ----------------- |
@@ -33,7 +34,7 @@ Es posible configurar cada componente mediante variables de entorno. Se proporci
 | `DB_NAME`          | `string` | Nombre de Postgres                                      | -                 |
 | `NATS_URL`         | `string` | URL de NATS                                             | -                 |
 
-### Aplicación: solidarianid
+### Aplicación: core
 
 Configuración específica de la aplicación principal:
 
@@ -59,7 +60,7 @@ Para facilitar el desarrollo se ha incluido un archivo `docker-compose.dev.yml` 
 cp .env.example .env
 
 # Crear secretos con contenido aleatorio
-openssl rand -base64 32 | tr -d '\n' > secrets/solidarian_password.txt
+openssl rand -base64 32 | tr -d '\n' > secrets/core_password.txt
 openssl rand -base64 32 | tr -d '\n' > secrets/admin_password.txt
 openssl rand -base64 32 | tr -d '\n' > secrets/admin_session_secret.txt
 
@@ -70,8 +71,14 @@ docker compose -f docker-compose.dev.yml up -d --wait
 npm install
 
 # Lanzar una aplicación
-npm run start:dev:solidarianid
+npm run start:dev:core
 # ó npm run start:dev:admin
+```
+
+La aplicación front-end puede lanzarse mediante el comando:
+
+```bash
+npm run start:dev:front
 ```
 
 ## Testing

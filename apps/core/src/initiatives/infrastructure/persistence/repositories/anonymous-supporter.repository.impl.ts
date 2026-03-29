@@ -8,7 +8,9 @@ import {
 import { AnonymousUserDbEntity } from '../entities/anonymous-user.db-entity';
 
 @Injectable()
-export class AnonymousSupporterRepositoryImpl implements AnonymousSupporterRepository {
+export class AnonymousSupporterRepositoryImpl
+  implements AnonymousSupporterRepository
+{
   constructor(private readonly em: EntityManager) {}
 
   async getOrCreate(

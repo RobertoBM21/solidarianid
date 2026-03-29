@@ -3,7 +3,7 @@
 /node_modules
 /build
 
-**/admin/public/**.css*
+**/admin/src/public/**.css*
 
 # Logs
 logs
@@ -61,3 +61,11 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # stryker temp files
 .stryker-tmp
+
+# Nx
+.nx/cache
+.nx/workspace-data
+
+# Next.js
+.next
+out

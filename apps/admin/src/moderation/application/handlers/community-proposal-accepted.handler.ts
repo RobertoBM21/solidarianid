@@ -5,7 +5,9 @@ import { EventsHandler, IEventHandler } from '@nestjs/cqrs';
 import { CommunityProposalRepository } from '../../domain/repositories/community-proposal.repository';
 
 @EventsHandler(CommunityProposalAccepted)
-export class CommunityProposalAcceptedHandler implements IEventHandler<CommunityProposalAccepted> {
+export class CommunityProposalAcceptedHandler
+  implements IEventHandler<CommunityProposalAccepted>
+{
   private readonly logger = new Logger(CommunityProposalAcceptedHandler.name);
 
   constructor(
