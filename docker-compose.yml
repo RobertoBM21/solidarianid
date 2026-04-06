@@ -1,12 +1,24 @@
 services:
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - APP=gateway
+    ports:
+      - '3010:3010'
+    environment:
+      - CORE_URL=http://core:3000
+      - CORS_ORIGIN=http://localhost:3080
+    depends_on:
+      - core
+
   core:
     build:
       context: .
       dockerfile: Dockerfile
       args:
         - APP=core
-    ports:
-      - '3000:3000'
     environment:
       - DB_HOST=db_core
       - DB_USER=core_user
@@ -58,10 +70,10 @@ services:
     ports:
       - '3080:3080'
     environment:
-      - CORE_API_INTERNAL_URL=http://core:3000
-      - NEXT_PUBLIC_CORE_API_URL=http://localhost:3000
+      - GATEWAY_API_INTERNAL_URL=http://gateway:3010
+      - NEXT_PUBLIC_GATEWAY_API_URL=http://localhost:3010
     depends_on:
-      - core
+      - gateway
 
   db_core:
     image: postgres:18.1-alpine

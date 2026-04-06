@@ -18,6 +18,7 @@ El proyecto se divide en múltiples componentes:
 
 - `apps/core`: aplicación NestJS principal (puerto `3000`).
 - `apps/admin`: aplicación NestJS de administración (puerto `3001`).
+- `apps/gateway`: pasarela de API NestJS (puerto `3010`).
 - `apps/front`: aplicación NextJS principal (front-end, puerto `3080`).
 - `libs/shared`: librería compartida (módulos comunes, utilidades...).
 
@@ -33,6 +34,15 @@ Es posible configurar cada componente back-end mediante variables de entorno. Se
 | `DB_PASSWORD_FILE` | `string` | Ruta del fichero que contiene la contraseña de Postgres | -                 |
 | `DB_NAME`          | `string` | Nombre de Postgres                                      | -                 |
 | `NATS_URL`         | `string` | URL de NATS                                             | -                 |
+
+### Aplicación: gateway
+
+Configuración específica de la pasarela de API:
+
+| Variable      | Tipo     | Descripción                        | Valor por defecto       |
+| ------------- | -------- | ---------------------------------- | ----------------------- |
+| `CORE_URL`    | `string` | URL interna del microservicio core | `http://localhost:3000` |
+| `CORS_ORIGIN` | `string` | Origen permitido para CORS         | `*`                     |
 
 ### Aplicación: core
 
@@ -70,9 +80,10 @@ docker compose -f docker-compose.dev.yml up -d --wait
 # Instalar dependencias
 npm install
 
-# Lanzar una aplicación
+# Lanzar las aplicaciones backend
 npm run start:dev:core
 # ó npm run start:dev:admin
+# ó npm run start:dev:gateway
 ```
 
 La aplicación front-end puede lanzarse mediante el comando:
