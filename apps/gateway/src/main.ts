@@ -1,10 +1,10 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+import { GatewayAppModule } from './app.module';
 import { setupProxy } from './proxy/proxy.middleware';
 import { setupSwaggerAggregation } from './swagger/swagger.setup';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(GatewayAppModule);
 
   //! Check which value to use for CORS_ORIGIN
   app.enableCors({

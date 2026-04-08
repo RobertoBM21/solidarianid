@@ -2,7 +2,6 @@
 import eslintNestJs from '@darraghor/eslint-plugin-nestjs-typed';
 import eslint from '@eslint/js';
 import jestDom from 'eslint-plugin-jest-dom';
-import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import testingLibrary from 'eslint-plugin-testing-library';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
@@ -28,7 +27,6 @@ export default [
   ...tseslint.configs.strictTypeChecked,
   ...tseslint.configs.stylisticTypeChecked,
   ...eslintNestJs.configs.flatRecommended,
-  eslintPluginPrettierRecommended,
   {
     languageOptions: {
       globals: {
@@ -45,7 +43,6 @@ export default [
   {
     rules: {
       '@typescript-eslint/no-floating-promises': 'warn',
-      'prettier/prettier': ['error', { endOfLine: 'lf' }],
 
       '@darraghor/nestjs-typed/injectable-should-be-provided': [
         'error',
@@ -84,6 +81,7 @@ export default [
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/unbound-method': 'off',
       '@typescript-eslint/no-empty-function': 'off',
+      '@typescript-eslint/no-non-null-assertion': 'off',
     },
   },
   {

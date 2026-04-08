@@ -1,4 +1,4 @@
-import { Either } from '@app/shared/domain';
+import { Either, UniqueEntityID } from '@app/shared/domain';
 import {
   BadRequestException,
   Body,
@@ -28,7 +28,7 @@ import {
   FundingActionOut,
   VolunteeringActionOut,
 } from '../../../application/ports/actions.port';
-import { CauseNotFoundError } from '../../../domain/repositories/cause.repository';
+import { CauseNotFoundError } from '../../../domain/repositories/cause-aggr.repository';
 import { InitiativeAlreadyClosedError } from '../../../domain/value-objects/initiative-status.vo';
 import {
   FundingActionApiDto,
@@ -57,11 +57,11 @@ export class ActionsController {
     @AuthId() userId: string,
   ): Promise<FundingActionOut> {
     return this.mapResult(
-      await this.actionsService.createFundingAction({
-        causeId,
-        requesterId: userId,
-        data: dto,
-      }),
+      await this.actionsService.createFundingAction(
+        UniqueEntityID.create(causeId),
+        UniqueEntityID.create(userId),
+        dto,
+      ),
     );
   }
 
@@ -78,11 +78,11 @@ export class ActionsController {
     @AuthId() userId: string,
   ): Promise<VolunteeringActionOut> {
     return this.mapResult(
-      await this.actionsService.createVolunteeringAction({
-        causeId,
-        requesterId: userId,
-        data: dto,
-      }),
+      await this.actionsService.createVolunteeringAction(
+        UniqueEntityID.create(causeId),
+        UniqueEntityID.create(userId),
+        dto,
+      ),
     );
   }
 

@@ -20,7 +20,7 @@ import { AuthId } from '../../../../identity/infrastructure/decorators/auth-id.d
 import { AuthGuard } from '../../../../identity/infrastructure/guards/auth.guard';
 import { RegisterAnonymousSupportDto } from '../../../application/dtos/register-anonymous-support.dto';
 import { CauseSupportsPort } from '../../../application/ports/cause-supports.port';
-import { CauseNotFoundError } from '../../../domain/repositories/cause.repository';
+import { CauseNotFoundError } from '../../../domain/repositories/cause-aggr.repository';
 
 @Controller('causes/:causeId/supports')
 @ApiTags('causes')

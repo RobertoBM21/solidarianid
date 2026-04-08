@@ -1,3 +1,4 @@
+import { UniqueEntityID } from '@app/shared/domain';
 import { DataSource, Repository } from 'typeorm';
 import { CommunityDbEntity } from '../../src/communities/infrastructure/persistence/entities/community.db-entity';
 import { CommunityMemberTestFactory } from './memberships/community-member.test-factory';
@@ -15,7 +16,7 @@ export class CommunityTestFactory {
     overrides: Partial<CommunityDbEntity> = {},
   ): Promise<CommunityDbEntity> {
     const communityData = this.repository.create({
-      id: overrides.id ?? crypto.randomUUID(),
+      id: overrides.id ?? UniqueEntityID.create().toString(),
       name: overrides.name ?? 'Test Community',
       description: overrides.description ?? 'A community for testing purposes',
       createdAt: overrides.createdAt ?? new Date(),

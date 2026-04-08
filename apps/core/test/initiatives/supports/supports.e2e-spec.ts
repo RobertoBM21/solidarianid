@@ -2,7 +2,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { DataSource } from 'typeorm';
-import { AppModule } from '../../../src/app.module';
+import { CoreAppModule } from '../../../src/app.module';
 import { CommunityTestFactory } from '../../communities/community.test-factory';
 import { clearDatabase } from '../../db-test-utils';
 import { UserTestFactory } from '../../identity/user.test-factory';
@@ -19,7 +19,7 @@ describe('Supports integration tests', () => {
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
+      imports: [CoreAppModule],
     }).compile();
 
     dataSource = moduleFixture.get(DataSource);

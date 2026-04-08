@@ -16,7 +16,7 @@ import { NATS_CLIENT, natsConfig } from './config/nats.config';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: [`.env.${process.env.NODE_ENV ?? 'development'}`, '.env'],
+      envFilePath: [`.env.${process.env['NODE_ENV'] ?? 'development'}`, '.env'],
     }),
     CqrsModule.forRoot(),
 

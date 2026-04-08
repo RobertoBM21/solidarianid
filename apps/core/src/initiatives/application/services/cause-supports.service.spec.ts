@@ -3,13 +3,13 @@ import { DomainEventsPort } from '@app/shared/domain/ports/domain-events.port';
 import { QueryBus } from '@nestjs/cqrs';
 import { Test, TestingModule } from '@nestjs/testing';
 import { GetUserExistsQuery } from '../../../identity/application/queries/get-user-exists.query';
-import { Cause } from '../../domain/aggregates/cause.aggregate';
+import { CauseAggr } from '../../domain/aggregates/cause.aggregate';
 import { AnonymousSupporterRepository } from '../../domain/repositories/anonymous-supporter.repository';
+import { CauseAggrRepository } from '../../domain/repositories/cause-aggr.repository';
 import {
   CauseSupportNotFoundError,
   CauseSupportRepository,
 } from '../../domain/repositories/cause-support.repository';
-import { CauseRepository } from '../../domain/repositories/cause.repository';
 import { CauseSupportsService } from './cause-supports.service';
 
 describe('CauseSupportsService', () => {
@@ -26,7 +26,7 @@ describe('CauseSupportsService', () => {
   const mockAnonymousSupporters = {
     getOrCreate: jest.fn(),
   };
-  const mockDomainEvents: jest.Mocked<DomainEventsPort> = {
+  const mockDomainEvents: jest.Mocked<Pick<DomainEventsPort, 'dispatch'>> = {
     dispatch: jest.fn(),
   };
   const mockQueryBus = {
@@ -41,7 +41,7 @@ describe('CauseSupportsService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CauseSupportsService,
-        { provide: CauseRepository, useValue: mockCauseRepository },
+        { provide: CauseAggrRepository, useValue: mockCauseRepository },
         {
           provide: CauseSupportRepository,
           useValue: mockCauseSupportRepository,
@@ -70,13 +70,10 @@ describe('CauseSupportsService', () => {
 
   describe('registerSupportForUser', () => {
     it('should register support for a registered user', async () => {
-      const cause = Cause.create({
-        title: 'Demo',
-        description: 'Desc',
-        duration: '1m',
-        ods: 1,
+      const cause = CauseAggr.create({
+        id: causeId,
         communityId,
-      }).value as Cause;
+      });
 
       mockCauseRepository.findById.mockResolvedValue(right(cause));
       mockQueryBus.execute.mockResolvedValue(true);
@@ -109,13 +106,10 @@ describe('CauseSupportsService', () => {
     });
 
     it('should return error when user does not exist', async () => {
-      const cause = Cause.create({
-        title: 'Demo',
-        description: 'Desc',
-        duration: '1m',
-        ods: 1,
+      const cause = CauseAggr.create({
+        id: causeId,
         communityId,
-      }).value as Cause;
+      });
       mockCauseRepository.findById.mockResolvedValue(right(cause));
       mockQueryBus.execute.mockResolvedValue(false);
 
@@ -125,13 +119,10 @@ describe('CauseSupportsService', () => {
     });
 
     it('should return error when already supporting (user)', async () => {
-      const cause = Cause.create({
-        title: 'Demo',
-        description: 'Desc',
-        duration: '1m',
-        ods: 1,
+      const cause = CauseAggr.create({
+        id: causeId,
         communityId,
-      }).value as Cause;
+      });
       mockCauseRepository.findById.mockResolvedValue(right(cause));
       mockQueryBus.execute.mockResolvedValue(true);
       mockCauseSupportRepository.existsForSupporterAndCause.mockResolvedValue(
@@ -146,13 +137,10 @@ describe('CauseSupportsService', () => {
 
   describe('registerSupportForAnonymous', () => {
     it('should register support for an anonymous supporter', async () => {
-      const cause = Cause.create({
-        title: 'Demo',
-        description: 'Desc',
-        duration: '1m',
-        ods: 1,
+      const cause = CauseAggr.create({
+        id: causeId,
         communityId,
-      }).value as Cause;
+      });
 
       mockCauseRepository.findById.mockResolvedValue(right(cause));
       mockAnonymousSupporters.getOrCreate.mockResolvedValue(
@@ -177,13 +165,10 @@ describe('CauseSupportsService', () => {
     });
 
     it('should return error when anonymous supporter creation fails', async () => {
-      const cause = Cause.create({
-        title: 'Demo',
-        description: 'Desc',
-        duration: '1m',
-        ods: 1,
+      const cause = CauseAggr.create({
+        id: causeId,
         communityId,
-      }).value as Cause;
+      });
       mockCauseRepository.findById.mockResolvedValue(right(cause));
       mockAnonymousSupporters.getOrCreate.mockResolvedValue(left(new Error()));
 
@@ -199,13 +184,10 @@ describe('CauseSupportsService', () => {
     });
 
     it('should return error when already supporting (anonymous)', async () => {
-      const cause = Cause.create({
-        title: 'Demo',
-        description: 'Desc',
-        duration: '1m',
-        ods: 1,
+      const cause = CauseAggr.create({
+        id: causeId,
         communityId,
-      }).value as Cause;
+      });
       mockCauseRepository.findById.mockResolvedValue(right(cause));
       mockAnonymousSupporters.getOrCreate.mockResolvedValue(
         right(UniqueEntityID.create()),
@@ -228,13 +210,10 @@ describe('CauseSupportsService', () => {
 
   describe('cancelSupport', () => {
     it('should cancel support for user', async () => {
-      const cause = Cause.create({
-        title: 'Demo',
-        description: 'Desc',
-        duration: '1m',
-        ods: 1,
+      const cause = CauseAggr.create({
+        id: causeId,
         communityId,
-      }).value as Cause;
+      });
 
       mockCauseRepository.findById.mockResolvedValue(right(cause));
       mockCauseSupportRepository.removeByUserAndCause.mockResolvedValue(
@@ -250,13 +229,10 @@ describe('CauseSupportsService', () => {
     });
 
     it('should return error when support not found on cancel', async () => {
-      const cause = Cause.create({
-        title: 'Demo',
-        description: 'Desc',
-        duration: '1m',
-        ods: 1,
+      const cause = CauseAggr.create({
+        id: causeId,
         communityId,
-      }).value as Cause;
+      });
 
       mockCauseRepository.findById.mockResolvedValue(right(cause));
       mockCauseSupportRepository.removeByUserAndCause.mockResolvedValue(

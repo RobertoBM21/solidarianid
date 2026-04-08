@@ -2,8 +2,9 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { DataSource } from 'typeorm';
-import { AppModule } from '../../../src/app.module';
+import { CoreAppModule } from '../../../src/app.module';
 import { CommunityMemberDbEntity } from '../../../src/communities/infrastructure/persistence/entities/community-member.db-entity';
+import { CauseAggrDbEntity } from '../../../src/initiatives/infrastructure/persistence/entities/cause-aggr.db-entity';
 import { CommunityTestFactory } from '../../communities/community.test-factory';
 import { clearDatabase } from '../../db-test-utils';
 
@@ -23,7 +24,7 @@ describe('Causes integration tests', () => {
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
+      imports: [CoreAppModule],
     }).compile();
 
     dataSource = moduleFixture.get(DataSource);
@@ -70,7 +71,8 @@ describe('Causes integration tests', () => {
       .expect('Content-Type', /json/);
 
     expect(res.body).toMatchObject({
-      causeId: expect.any(String),
+      id: expect.any(String),
+      title: causeData.title,
     });
     return res;
   };
@@ -91,97 +93,136 @@ describe('Causes integration tests', () => {
     return res;
   };
 
-  it('should create a cause successfully', async () => {
-    const causeData = buildCauseData();
-    await createCauseAndExpectSuccess(causeData);
+  const waitForCauseEventsPropagation = async (
+    causeId: string,
+    closed: boolean,
+  ) => {
+    let cause: CauseAggrDbEntity | null = null;
+    for (let i = 0; i < 3 && cause?.closed !== closed; i++) {
+      cause = await dataSource
+        .getRepository(CauseAggrDbEntity)
+        .findOneBy({ id: causeId });
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    expect(cause).not.toBeNull();
+    expect(cause!.closed).toBe(closed);
+  };
+
+  describe('Create Cause', () => {
+    it('should create a cause successfully', async () => {
+      const causeData = buildCauseData();
+      const res = await createCauseAndExpectSuccess(causeData);
+      expect(res.body).toMatchObject({
+        id: expect.any(String),
+        title: causeData.title,
+        description: causeData.description,
+        duration: causeData.duration,
+        ods: causeData.ods,
+      });
+    });
+
+    it('should fail to create a cause with empty title', async () => {
+      const causeData = buildCauseData({ title: '' });
+      await createCauseAndExpectBadRequest(causeData);
+    });
+
+    it('should fail to create a cause with empty description', async () => {
+      const causeData = buildCauseData({ description: '' });
+      await createCauseAndExpectBadRequest(causeData);
+    });
+
+    it('should fail to create a cause with invalid ODS', async () => {
+      const causeData = buildCauseData({ ods: 20 });
+      await createCauseAndExpectBadRequest(causeData);
+    });
+
+    it('should fail to create a cause with empty duration', async () => {
+      const causeData = buildCauseData({ duration: '' });
+      await createCauseAndExpectBadRequest(causeData);
+    });
   });
 
-  it('should fail to create a cause with empty title', async () => {
-    const causeData = buildCauseData({ title: '' });
-    await createCauseAndExpectBadRequest(causeData);
+  describe('Get Cause', () => {
+    it('should get all causes for a community successfully', async () => {
+      const causeData1 = buildCauseData({ title: 'Cause One' });
+      const causeData2 = buildCauseData({ title: 'Cause Two' });
+
+      await createCauseAndExpectSuccess(causeData1);
+      await createCauseAndExpectSuccess(causeData2);
+
+      const res = await request(app.getHttpServer())
+        .get('/communities/' + idCommunity)
+        .set('Authorization', userId)
+        .expect(200)
+        .expect('Content-Type', /json/);
+
+      expect(res.body.causes).toHaveLength(2);
+      const titles = res.body.causes.map((c: any) => c.title).sort();
+      expect(titles).toEqual(['Cause One', 'Cause Two']);
+    });
+
+    it('should get a cause by ID successfully', async () => {
+      const causeData = buildCauseData({ title: 'Specific Cause' });
+      const createRes = await createCauseAndExpectSuccess(causeData);
+      const causeId = createRes.body.id as string;
+
+      await waitForCauseEventsPropagation(causeId, false);
+
+      const res = await request(app.getHttpServer())
+        .get(`/causes/${causeId}`)
+        .set('Authorization', userId)
+        .expect(200)
+        .expect('Content-Type', /json/);
+
+      expect(res.body).toMatchObject({
+        id: causeId,
+        actions: [],
+      });
+    });
   });
 
-  it('should fail to create a cause with empty description', async () => {
-    const causeData = buildCauseData({ description: '' });
-    await createCauseAndExpectBadRequest(causeData);
-  });
+  describe('Close Cause', () => {
+    it('should close a cause successfully', async () => {
+      const causeData = buildCauseData({ title: 'Closable Cause' });
+      const createRes = await createCauseAndExpectSuccess(causeData);
+      const causeId = createRes.body.id as string;
 
-  it('should fail to create a cause with invalid ODS', async () => {
-    const causeData = buildCauseData({ ods: 20 });
-    await createCauseAndExpectBadRequest(causeData);
-  });
+      expect(causeId).toBeTruthy();
+      await waitForCauseEventsPropagation(causeId, false);
 
-  it('should fail to create a cause with empty duration', async () => {
-    const causeData = buildCauseData({ duration: '' });
-    await createCauseAndExpectBadRequest(causeData);
-  });
+      const closeRes = await request(app.getHttpServer())
+        .post(`/communities/${idCommunity}/causes/${causeId}/close`)
+        .set('Authorization', userId);
+      expect(closeRes.body).toEqual({});
+      expect(closeRes.status).toBe(200);
 
-  it('should get all causes for a community successfully', async () => {
-    const causeData1 = buildCauseData({ title: 'Cause One' });
-    const causeData2 = buildCauseData({ title: 'Cause Two' });
+      await waitForCauseEventsPropagation(causeId, true);
 
-    await createCauseAndExpectSuccess(causeData1);
-    await createCauseAndExpectSuccess(causeData2);
+      const getRes = await request(app.getHttpServer())
+        .get(`/causes/${causeId}`)
+        .set('Authorization', userId)
+        .expect(200)
+        .expect('Content-Type', /json/);
 
-    const res = await request(app.getHttpServer())
-      .get('/communities/' + idCommunity + '/causes')
-      .set('Authorization', userId)
-      .expect(200)
-      .expect('Content-Type', /json/);
+      expect(getRes.body).toMatchObject({ closed: true });
+    });
 
-    expect(res.body).toHaveLength(2);
-    const titles = res.body.map((c: any) => c.title).sort();
-    expect(titles).toEqual(['Cause One', 'Cause Two']);
-  });
+    it('should fail to close a cause without authentication', async () => {
+      const causeData = buildCauseData({ title: 'Non-Closable Cause' });
+      const createRes = await createCauseAndExpectSuccess(causeData);
+      const causeId = createRes.body.id as string;
 
-  it('should get a cause by ID successfully', async () => {
-    const causeData = buildCauseData({ title: 'Specific Cause' });
-    const createRes = await createCauseAndExpectSuccess(causeData);
-    const causeId = createRes.body.causeId as string;
+      await request(app.getHttpServer())
+        .post(`/communities/${idCommunity}/causes/${causeId}/close`)
+        .expect(401);
+    });
 
-    const res = await request(app.getHttpServer())
-      .get(`/causes/${causeId}`)
-      .set('Authorization', userId)
-      .expect(200)
-      .expect('Content-Type', /json/);
-
-    expect(res.body).toMatchObject({ title: 'Specific Cause' });
-  });
-
-  it('should close a cause successfully', async () => {
-    const causeData = buildCauseData({ title: 'Closable Cause' });
-    const createRes = await createCauseAndExpectSuccess(causeData);
-    const causeId = createRes.body.causeId as string;
-
-    await request(app.getHttpServer())
-      .post(`/causes/${causeId}/close`)
-      .set('Authorization', userId)
-      .expect(200);
-
-    const getRes = await request(app.getHttpServer())
-      .get(`/causes/${causeId}`)
-      .set('Authorization', userId)
-      .expect(200)
-      .expect('Content-Type', /json/);
-
-    expect(getRes.body).toMatchObject({ closed: true });
-  });
-
-  it('should fail to close a cause without authentication', async () => {
-    const causeData = buildCauseData({ title: 'Non-Closable Cause' });
-    const createRes = await createCauseAndExpectSuccess(causeData);
-    const causeId = createRes.body.causeId as string;
-
-    await request(app.getHttpServer())
-      .post(`/causes/${causeId}/close`)
-      .expect(401);
-  });
-
-  it('should fail to close a non-existing cause', async () => {
-    const nonExistingCauseId = '00000000-0000-0000-0000-000000000000';
-    await request(app.getHttpServer())
-      .post(`/causes/${nonExistingCauseId}/close`)
-      .set('Authorization', userId)
-      .expect(404);
+    it('should fail to close a non-existing cause', async () => {
+      const nonExistingCauseId = '00000000-0000-0000-0000-000000000000';
+      await request(app.getHttpServer())
+        .post(`/communities/${idCommunity}/causes/${nonExistingCauseId}/close`)
+        .set('Authorization', userId)
+        .expect(404);
+    });
   });
 });

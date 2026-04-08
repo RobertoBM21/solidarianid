@@ -1,10 +1,11 @@
 import { left, right } from '@app/shared/domain';
 import { InvalidCommunityNameError } from '@app/shared/domain/value-objects/community-name.vo';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { v4 } from 'uuid';
 import { CommunityOutDto } from '../../../application/dtos/community-out.dto';
 import { CommunitiesPort } from '../../../application/ports/communities.port';
+import { CommunityListItemDto } from '../dtos/community-list-item.dto';
 import { CommunitiesController } from './communities.controller';
 
 describe('CommunitiesController', () => {
@@ -13,6 +14,7 @@ describe('CommunitiesController', () => {
   const mockCommunitiesService = {
     listCommunities: jest.fn().mockResolvedValue([]),
     proposeCommunity: jest.fn().mockResolvedValue(undefined),
+    getCommunity: jest.fn().mockResolvedValue(undefined),
   };
 
   beforeEach(async () => {
@@ -38,7 +40,7 @@ describe('CommunitiesController', () => {
   });
 
   it('should return an array of communities', async () => {
-    const mockCommunities: CommunityOutDto[] = [
+    const mockCommunities: CommunityListItemDto[] = [
       {
         id: '1',
         name: 'Community A',
@@ -100,6 +102,48 @@ describe('CommunitiesController', () => {
       expect(mockCommunitiesService.proposeCommunity).toHaveBeenCalledWith(
         dto,
         expect.any(String),
+      );
+    });
+  });
+
+  describe('detail', () => {
+    it('should return community details if community exists', async () => {
+      const communityId = '1';
+      const mockCommunity: CommunityOutDto = {
+        id: communityId,
+        name: 'Community A',
+        description: 'Description A',
+        createdAt: new Date().toISOString(),
+        causes: [],
+      };
+
+      mockCommunitiesService.getCommunity.mockResolvedValue(
+        right(mockCommunity),
+      );
+
+      const result = await controller.detail(communityId);
+
+      expect(result).toEqual(mockCommunity);
+      expect(mockCommunitiesService.getCommunity).toHaveBeenCalledTimes(1);
+      expect(mockCommunitiesService.getCommunity).toHaveBeenCalledWith(
+        communityId,
+      );
+    });
+
+    it('should throw NotFoundException if community does not exist', async () => {
+      const communityId = '00000000-0000-0000-0000-000000000000';
+      const errorMessage = `Community with ID ${communityId} not found.`;
+
+      mockCommunitiesService.getCommunity.mockResolvedValue(
+        left({ message: errorMessage }),
+      );
+
+      await expect(controller.detail(communityId)).rejects.toThrow(
+        NotFoundException,
+      );
+      expect(mockCommunitiesService.getCommunity).toHaveBeenCalledTimes(1);
+      expect(mockCommunitiesService.getCommunity).toHaveBeenCalledWith(
+        communityId,
       );
     });
   });

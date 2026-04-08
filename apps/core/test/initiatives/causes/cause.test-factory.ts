@@ -1,11 +1,14 @@
 import { DataSource, Repository } from 'typeorm';
-import { CauseDbEntity } from '../../../src/initiatives/infrastructure/persistence/entities/cause.db-entity';
+import { CauseDbEntity } from '../../../src/communities/infrastructure/persistence/entities/cause.db-entity';
+import { CauseAggrDbEntity } from '../../../src/initiatives/infrastructure/persistence/entities/cause-aggr.db-entity';
 
 export class CauseTestFactory {
   private repository: Repository<CauseDbEntity>;
+  private aggrRepository: Repository<CauseAggrDbEntity>;
 
   constructor(private dataSource: DataSource) {
     this.repository = dataSource.getRepository(CauseDbEntity);
+    this.aggrRepository = dataSource.getRepository(CauseAggrDbEntity);
   }
 
   async create(overrides: Partial<CauseDbEntity> = {}): Promise<CauseDbEntity> {
@@ -19,8 +22,14 @@ export class CauseTestFactory {
       communityId: overrides.communityId ?? crypto.randomUUID(),
     });
 
+    const aggrData = this.aggrRepository.create({
+      id: causeData.id,
+      communityId: causeData.communityId,
+    });
+
     return this.dataSource.transaction(async (manager) => {
       const savedCause = await manager.save(CauseDbEntity, causeData);
+      await manager.save(CauseAggrDbEntity, aggrData);
       return savedCause;
     });
   }

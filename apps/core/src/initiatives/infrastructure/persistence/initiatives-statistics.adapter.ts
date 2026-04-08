@@ -6,9 +6,9 @@ import { UserSupportHistoryItem } from '@app/shared/domain/queries/get-my-collab
 import { Injectable } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
 import { UserSupportHistoryItemDto } from '../../../collaboration/application/dtos/my-collaborations.dto';
+import { CauseDbEntity } from '../../../communities/infrastructure/persistence/entities/cause.db-entity';
 import { InitiativesStatisticsPort } from '../../domain/ports/initiatives-statistics.port';
 import { CauseSupportDbEntity } from './entities/cause-support.db-entity';
-import { CauseDbEntity } from './entities/cause.db-entity';
 
 @Injectable()
 export class InitiativesStatisticsAdapter implements InitiativesStatisticsPort {
@@ -126,7 +126,6 @@ export class InitiativesStatisticsAdapter implements InitiativesStatisticsPort {
       select: {
         cause: {
           id: true,
-          title: true,
         },
         createdAt: true,
       },
@@ -135,7 +134,7 @@ export class InitiativesStatisticsAdapter implements InitiativesStatisticsPort {
     return supports.map(
       (support) =>
         new UserSupportHistoryItemDto(
-          support.cause.title,
+          'nope', // TODO: fix me please T.T
           support.cause.id,
           support.createdAt,
         ),

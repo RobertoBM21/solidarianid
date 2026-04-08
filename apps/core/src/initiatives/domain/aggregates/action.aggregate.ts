@@ -15,6 +15,10 @@ import {
   MoneyAmount,
 } from '@app/shared/domain/value-objects/money-amount.vo';
 import {
+  InvalidTitleError,
+  Title,
+} from '@app/shared/domain/value-objects/title.vo';
+import {
   DonationIntention,
   DonationIntentionCreationError,
 } from '../entities/donation-intention.entity';
@@ -38,7 +42,6 @@ import {
   InitiativeAlreadyClosedError,
   InitiativeStatus,
 } from '../value-objects/initiative-status.vo';
-import { InvalidTitleError, Title } from '../value-objects/title.vo';
 
 export class InvalidActionTypeError implements DomainError {
   message = 'Action type must be volunteering or funding.';

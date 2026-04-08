@@ -3,8 +3,8 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
-import { AppModule as CoreAppModule } from '../../core/src/app.module';
-import { AppModule as GatewayAppModule } from '../src/app.module';
+import { CoreAppModule } from '../../core/src/app.module';
+import { GatewayAppModule } from '../src/app.module';
 import { setupProxy } from '../src/proxy/proxy.middleware';
 import { setupSwaggerAggregation } from '../src/swagger/swagger.setup';
 

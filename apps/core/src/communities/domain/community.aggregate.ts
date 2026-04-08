@@ -18,14 +18,18 @@ import {
   CreationDate,
   InvalidDateError,
 } from '@app/shared/domain/value-objects/creation-date.vo';
-import {
-  CausesList,
-  InvalidCausesListError,
-} from '../../initiatives/domain/value-objects/causes-list.vo';
+import { InitiativeAlreadyClosedError } from '../../initiatives/domain/value-objects/initiative-status.vo';
+import { Cause } from './entities/cause.entity';
+import { CauseClosedEvent } from './events/cause-closed.event';
+import { CauseCreatedEvent } from './events/cause-created.event';
 import {
   AdminsList,
   InvalidAdminsListError,
 } from './value-objects/admins-list.vo';
+import {
+  CausesList,
+  InvalidCausesListError,
+} from './value-objects/causes-list.vo';
 
 export interface CommunityProps {
   name: CommunityName;
@@ -55,6 +59,10 @@ export class UserIsNotAdminError implements DomainError {
     this.message = `User is not an admin of community ${communityId}`;
   }
 }
+export type CloseCauseError =
+  | UserIsNotAdminError
+  | InvalidCausesListError
+  | InitiativeAlreadyClosedError;
 
 export class Community extends AggregateRoot<CommunityProps> {
   private constructor(props: CommunityProps, id?: UniqueEntityID) {
@@ -77,18 +85,56 @@ export class Community extends AggregateRoot<CommunityProps> {
     return this.props.admins;
   }
 
+  get causes(): Cause[] {
+    return [...this.props.causes.value];
+  }
+
   addCause(
-    causeId: UniqueEntityID,
+    causeProps: {
+      title: string;
+      description: string;
+      duration: string;
+      ods: number;
+    },
     requesterId: UniqueEntityID,
-  ): Either<UserIsNotAdminError | InvalidCausesListError, void> {
+  ): Either<UserIsNotAdminError | InvalidCausesListError, Cause> {
     if (!this.props.admins.has(requesterId)) {
       return left(new UserIsNotAdminError(this.id.toString()));
     }
-    const updatedCauses = this.props.causes.withAdded(causeId);
+    const causeEither = Cause.create(causeProps);
+    if (causeEither.isLeft()) {
+      return left(causeEither.value);
+    }
+    const cause = causeEither.value;
+    const updatedCauses = this.props.causes.withAdded(cause);
     if (updatedCauses.isLeft()) {
       return left(updatedCauses.value);
     }
     this.props.causes = updatedCauses.value;
+    this.addDomainEvent(
+      new CauseCreatedEvent(cause.id.toString(), this.id.toString()),
+    );
+    return right(cause);
+  }
+
+  closeCause(
+    causeId: UniqueEntityID,
+    requesterId: UniqueEntityID,
+  ): Either<CloseCauseError, void> {
+    if (!this.props.admins.has(requesterId)) {
+      return left(new UserIsNotAdminError(this.id.toString()));
+    }
+    const cause = this.props.causes.getCause(causeId);
+    if (!cause) {
+      return left(new InvalidCausesListError('Cause not found'));
+    }
+    const closedOrError = cause.close();
+    if (closedOrError.isLeft()) {
+      return left(closedOrError.value);
+    }
+    this.addDomainEvent(
+      new CauseClosedEvent(cause.id.toString(), this.id.toString()),
+    );
     return right(undefined);
   }
 
@@ -98,7 +144,7 @@ export class Community extends AggregateRoot<CommunityProps> {
       description: string;
       createdAt?: Date | string;
       admins: string[];
-      causes?: string[];
+      causes?: Cause[];
     },
     id?: string,
   ): Either<CommunityCreationError, Community> {

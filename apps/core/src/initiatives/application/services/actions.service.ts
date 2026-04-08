@@ -1,24 +1,24 @@
 import { Either, left, right, UniqueEntityID } from '@app/shared/domain';
 import { Injectable } from '@nestjs/common';
-import { QueryBus } from '@nestjs/cqrs';
-import { IsCommunityAdminQuery } from '../../../communities/application/queries/is-community-admin.query';
 import { UserIsNotAdminError } from '../../../communities/domain/community.aggregate';
 import {
   FundingAction,
   VolunteeringAction,
 } from '../../domain/aggregates/action.aggregate';
+import { CauseAggr } from '../../domain/aggregates/cause.aggregate';
+import { CommunityAuthorizationPort } from '../../domain/ports/community-authz.port';
 import { ActionRepository } from '../../domain/repositories/action.repository';
-import { CauseRepository } from '../../domain/repositories/cause.repository';
+import { CauseAggrRepository } from '../../domain/repositories/cause-aggr.repository';
 import { InitiativeAlreadyClosedError } from '../../domain/value-objects/initiative-status.vo';
 import {
   FundingActionOutDto,
   VolunteeringActionOutDto,
 } from '../dtos/action-out.dto';
+import { CreateFundingActionDto } from '../dtos/create-funding-action.dto';
+import { CreateVolunteeringActionDto } from '../dtos/create-volunteering-action.dto';
 import {
   ActionsPort,
   CreateActionError,
-  CreateFundingActionRequest,
-  CreateVolunteeringActionRequest,
   FundingActionOut,
   VolunteeringActionOut,
 } from '../ports/actions.port';
@@ -27,17 +27,21 @@ import {
 export class ActionsService extends ActionsPort {
   constructor(
     private readonly actionRepository: ActionRepository,
-    private readonly causeRepository: CauseRepository,
-    private readonly queryBus: QueryBus,
+    private readonly causeAggrRepository: CauseAggrRepository,
+    private readonly communityAuthzPort: CommunityAuthorizationPort,
   ) {
     super();
   }
 
   async createFundingAction(
-    request: CreateFundingActionRequest,
+    causeId: UniqueEntityID,
+    requesterId: UniqueEntityID,
+    data: CreateFundingActionDto,
   ): Promise<Either<CreateActionError, FundingActionOut>> {
-    const { causeId, requesterId, data } = request;
-    const causeOrError = await this.ensureCanCreateAction(causeId, requesterId);
+    const causeOrError = await this.getCauseAggrIfCanCreateActions(
+      causeId,
+      requesterId,
+    );
     if (causeOrError.isLeft()) {
       return left(causeOrError.value);
     }
@@ -58,10 +62,14 @@ export class ActionsService extends ActionsPort {
   }
 
   async createVolunteeringAction(
-    request: CreateVolunteeringActionRequest,
+    causeId: UniqueEntityID,
+    requesterId: UniqueEntityID,
+    data: CreateVolunteeringActionDto,
   ): Promise<Either<CreateActionError, VolunteeringActionOut>> {
-    const { causeId, requesterId, data } = request;
-    const causeOrError = await this.ensureCanCreateAction(causeId, requesterId);
+    const causeOrError = await this.getCauseAggrIfCanCreateActions(
+      causeId,
+      requesterId,
+    );
     if (causeOrError.isLeft()) {
       return left(causeOrError.value);
     }
@@ -82,31 +90,25 @@ export class ActionsService extends ActionsPort {
     return right(new VolunteeringActionOutDto(action));
   }
 
-  private async ensureCanCreateAction(
-    causeId: string,
-    requesterId: string,
-  ): Promise<Either<CreateActionError, { id: UniqueEntityID }>> {
-    const causeResult = await this.causeRepository.findById(
-      UniqueEntityID.create(causeId),
-    );
-    if (causeResult.isLeft()) {
-      return left(causeResult.value);
+  private async getCauseAggrIfCanCreateActions(
+    causeId: UniqueEntityID,
+    userId: UniqueEntityID,
+  ): Promise<Either<CreateActionError, CauseAggr>> {
+    const causeOrError = await this.causeAggrRepository.findById(causeId);
+    if (causeOrError.isLeft()) {
+      return left(causeOrError.value);
     }
-    const cause = causeResult.value;
+    const cause = causeOrError.value;
     if (cause.closed) {
       return left(new InitiativeAlreadyClosedError());
     }
-
-    const isAdmin = await this.queryBus.execute(
-      new IsCommunityAdminQuery(
-        cause.communityId,
-        UniqueEntityID.create(requesterId),
-      ),
+    const canManageCommunity = await this.communityAuthzPort.canManageCommunity(
+      userId.toString(),
+      cause.communityId.toString(),
     );
-    if (!isAdmin) {
+    if (!canManageCommunity) {
       return left(new UserIsNotAdminError(cause.communityId.toString()));
     }
-
-    return right({ id: cause.id });
+    return right(cause);
   }
 }

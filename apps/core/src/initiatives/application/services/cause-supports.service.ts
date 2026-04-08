@@ -11,11 +11,11 @@ import { GetUserExistsQuery } from '../../../identity/application/queries/get-us
 import { UserNotFoundError } from '../../../identity/domain/repositories/user.repository';
 import { CauseSupport } from '../../domain/aggregates/cause-support.aggregate';
 import { AnonymousSupporterRepository } from '../../domain/repositories/anonymous-supporter.repository';
+import { CauseAggrRepository } from '../../domain/repositories/cause-aggr.repository';
 import {
   CauseSupportNotFoundError,
   CauseSupportRepository,
 } from '../../domain/repositories/cause-support.repository';
-import { CauseRepository } from '../../domain/repositories/cause.repository';
 import {
   AnonymousSupporter,
   Supporter,
@@ -33,7 +33,7 @@ import {
 @Injectable()
 export class CauseSupportsService extends CauseSupportsPort {
   constructor(
-    private readonly causeRepository: CauseRepository,
+    private readonly causeAggrRepository: CauseAggrRepository,
     private readonly causeSupportRepository: CauseSupportRepository,
     private readonly anonymousSupporters: AnonymousSupporterRepository,
     private readonly domainEvents: DomainEventsPort,
@@ -77,7 +77,7 @@ export class CauseSupportsService extends CauseSupportsPort {
   ): Promise<
     Either<RegisterUserSupportError | RegisterAnonymousSupportError, void>
   > {
-    const causeResult = await this.causeRepository.findById(
+    const causeResult = await this.causeAggrRepository.findById(
       UniqueEntityID.create(causeId),
     );
     if (causeResult.isLeft()) {

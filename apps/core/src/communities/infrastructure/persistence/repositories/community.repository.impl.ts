@@ -1,12 +1,14 @@
 import { Either, left, right, UniqueEntityID } from '@app/shared/domain';
 import { Injectable } from '@nestjs/common';
+import { ok } from 'assert';
 import { EntityManager, ILike, In } from 'typeorm';
-import { CauseDbEntity } from '../../../../initiatives/infrastructure/persistence/entities/cause.db-entity';
 import { Community } from '../../../domain/community.aggregate';
+import { Cause } from '../../../domain/entities/cause.entity';
 import {
   CommunityNotFoundError,
   CommunityRepository,
 } from '../../../domain/repositories/community.repository';
+import { CauseDbEntity } from '../entities/cause.db-entity';
 import { CommunityMemberDbEntity } from '../entities/community-member.db-entity';
 import { CommunityDbEntity } from '../entities/community.db-entity';
 
@@ -23,13 +25,27 @@ export class CommunityRepositoryImpl extends CommunityRepository {
   }
 
   async save(community: Community): Promise<void> {
-    await this.em.transaction(async (manager) => {
-      const dbEntity = new CommunityDbEntity();
-      dbEntity.id = community.id.toString();
-      dbEntity.name = community.name;
-      dbEntity.description = community.description;
-      dbEntity.createdAt = community.createdAt;
+    const dbEntity = new CommunityDbEntity();
+    dbEntity.id = community.id.toString();
+    dbEntity.name = community.name;
+    dbEntity.description = community.description;
+    dbEntity.createdAt = community.createdAt;
 
+    dbEntity.causes = community.causes.map((cause) => {
+      const causeEntity = new CauseDbEntity();
+      causeEntity.id = cause.id.toString();
+      causeEntity.community = dbEntity;
+      causeEntity.communityId = community.id.toString();
+      causeEntity.title = cause.title;
+      causeEntity.description = cause.description;
+      causeEntity.duration = cause.duration;
+      causeEntity.ods = cause.ods;
+      causeEntity.closed = cause.closed;
+      causeEntity.createdAt = cause.createdAt;
+      return causeEntity;
+    });
+
+    await this.em.transaction(async (manager) => {
       await manager.save(CommunityDbEntity, dbEntity);
 
       const admins = community.admins.value;
@@ -40,6 +56,7 @@ export class CommunityRepositoryImpl extends CommunityRepository {
           communityId: community.id.toString(),
           userId: adminId.toString(),
           admin: true,
+          createdAt: new Date(),
         })),
         {
           conflictPaths: ['communityId', 'userId'],
@@ -54,6 +71,7 @@ export class CommunityRepositoryImpl extends CommunityRepository {
   ): Promise<Either<CommunityNotFoundError, Community>> {
     const dbEntity = await this.em.findOne(CommunityDbEntity, {
       where: { id: id.toString() },
+      relations: { causes: true },
     });
     if (!dbEntity) {
       return left(new CommunityNotFoundError(id.toString()));
@@ -72,6 +90,7 @@ export class CommunityRepositoryImpl extends CommunityRepository {
     const dbEntities = await this.em.find(CommunityDbEntity, {
       where,
       order: { [orderField]: orderDirection },
+      relations: { causes: true },
     });
 
     if (!dbEntities.length) {
@@ -79,17 +98,10 @@ export class CommunityRepositoryImpl extends CommunityRepository {
     }
 
     const ids = dbEntities.map((com) => com.id);
-    const [adminMap, causeMap] = await Promise.all([
-      this.loadAdminIdsByCommunities(ids),
-      this.loadCauseIdsByCommunities(ids),
-    ]);
+    const [adminMap] = await Promise.all([this.loadAdminIdsByCommunities(ids)]);
 
     return dbEntities.map((com) =>
-      this.mapCommunityToDomainWithData(
-        com,
-        adminMap.get(com.id) ?? [],
-        causeMap.get(com.id) ?? [],
-      ),
+      this.mapCommunityToDomainWithData(com, adminMap.get(com.id) ?? []),
     );
   }
 
@@ -116,26 +128,42 @@ export class CommunityRepositoryImpl extends CommunityRepository {
   private async mapCommunityToDomain(
     entity: CommunityDbEntity,
   ): Promise<Community> {
-    const [adminIds, causeIds] = await Promise.all([
-      this.loadAdminIds(entity.id),
-      this.loadCauseIds(entity.id),
-    ]);
-
-    return this.mapCommunityToDomainWithData(entity, adminIds, causeIds);
+    const adminIds = await this.loadAdminIds(entity.id);
+    return this.mapCommunityToDomainWithData(entity, adminIds);
   }
 
   private mapCommunityToDomainWithData(
     entity: CommunityDbEntity,
     adminIds: string[],
-    causeIds: string[],
   ): Community {
+    ok(entity.causes, `Causes should be loaded for community ${entity.id}`);
+    const causes = entity.causes.map((causeEntity) => {
+      const causeOrError = Cause.create(
+        {
+          title: causeEntity.title,
+          description: causeEntity.description,
+          duration: causeEntity.duration,
+          ods: causeEntity.ods,
+          closed: causeEntity.closed,
+          createdAt: causeEntity.createdAt,
+        },
+        causeEntity.id,
+      );
+      if (causeOrError.isLeft()) {
+        // This should never happen, as data is coming from the DB
+        throw new Error(
+          `Error mapping CauseDbEntity to Cause entity: ${causeOrError.value.message}`,
+        );
+      }
+      return causeOrError.value;
+    });
     const obj = Community.create(
       {
         name: entity.name,
         description: entity.description,
         createdAt: entity.createdAt,
         admins: adminIds,
-        causes: causeIds,
+        causes,
       },
       entity.id,
     );
@@ -156,14 +184,6 @@ export class CommunityRepositoryImpl extends CommunityRepository {
     return members.map((member) => member.userId);
   }
 
-  private async loadCauseIds(communityId: string): Promise<string[]> {
-    const causes = await this.em.find(CauseDbEntity, {
-      select: { id: true },
-      where: { communityId },
-    });
-    return causes.map((cause) => cause.id);
-  }
-
   private async loadAdminIdsByCommunities(
     communityIds: string[],
   ): Promise<Map<string, string[]>> {
@@ -176,25 +196,6 @@ export class CommunityRepositoryImpl extends CommunityRepository {
       const list = map.get(member.communityId) ?? [];
       list.push(member.userId);
       map.set(member.communityId, list);
-    }
-    return map;
-  }
-
-  private async loadCauseIdsByCommunities(
-    communityIds: string[],
-  ): Promise<Map<string, string[]>> {
-    if (communityIds.length === 0) {
-      return new Map();
-    }
-    const causes = await this.em.find(CauseDbEntity, {
-      select: { id: true, communityId: true },
-      where: { communityId: In(communityIds) },
-    });
-    const map = new Map<string, string[]>();
-    for (const cause of causes) {
-      const list = map.get(cause.communityId) ?? [];
-      list.push(cause.id);
-      map.set(cause.communityId, list);
     }
     return map;
   }

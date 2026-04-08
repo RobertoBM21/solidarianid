@@ -2,7 +2,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { DataSource } from 'typeorm';
-import { AppModule } from '../../src/app.module';
+import { CoreAppModule } from '../../src/app.module';
 import { CreateUserDto } from '../../src/identity/application/dtos/create-user.dto';
 import { clearDatabase } from '../db-test-utils';
 
@@ -12,7 +12,7 @@ describe('Users controller (e2e)', () => {
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
+      imports: [CoreAppModule],
     }).compile();
 
     dataSource = moduleFixture.get(DataSource);

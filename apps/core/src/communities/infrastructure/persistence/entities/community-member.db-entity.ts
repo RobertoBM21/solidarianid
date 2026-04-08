@@ -14,25 +14,25 @@ import { CommunityDbEntity } from './community.db-entity';
 @Unique(['communityId', 'userId'])
 export class CommunityMemberDbEntity {
   @PrimaryColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ name: 'community_id', type: 'uuid' })
-  communityId: string;
+  communityId!: string;
 
   @ManyToOne(() => CommunityDbEntity, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'community_id' })
-  community: Relation<CommunityDbEntity>;
+  community!: Relation<CommunityDbEntity>;
 
   @Column({ name: 'user_id', type: 'uuid' })
-  userId: string;
+  userId!: string;
 
   @ManyToOne(() => UserDbEntity, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  user: Relation<UserDbEntity>;
+  user!: Relation<UserDbEntity>;
 
   @Column({ type: 'boolean' })
-  admin: boolean;
+  admin!: boolean;
 
   @Column({ name: 'created_at', type: 'timestamptz' })
-  createdAt: Date;
+  createdAt!: Date;
 }

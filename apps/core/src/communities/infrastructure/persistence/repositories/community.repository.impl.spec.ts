@@ -1,8 +1,10 @@
 import { UniqueEntityID } from '@app/shared/domain';
 import { Test, TestingModule } from '@nestjs/testing';
-import { EntityManager, type ObjectLiteral } from 'typeorm';
+import { EntityManager } from 'typeorm';
 import { Community } from '../../../domain/community.aggregate';
+import { Cause } from '../../../domain/entities/cause.entity';
 import { CommunityNotFoundError } from '../../../domain/repositories/community.repository';
+import { CauseDbEntity } from '../entities/cause.db-entity';
 import { CommunityDbEntity } from '../entities/community.db-entity';
 import { CommunityRepositoryImpl } from './community.repository.impl';
 
@@ -36,11 +38,23 @@ describe('CommunityRepositoryImpl', () => {
 
   const communityId = UniqueEntityID.create().toString();
   const userId = UniqueEntityID.create().toString();
-  const communityEntity: ObjectLiteral = {
+
+  const causeEntity: Partial<CauseDbEntity> = {
+    id: UniqueEntityID.create().toString(),
+    communityId,
+    title: 'Cause Title',
+    description: 'Cause Description',
+    duration: '3 months',
+    ods: 3,
+    closed: false,
+    createdAt: new Date(),
+  };
+  const communityEntity: Partial<CommunityDbEntity> = {
     id: communityId,
     name: 'Community',
     description: 'Desc',
     createdAt: new Date(),
+    causes: [],
   };
 
   beforeEach(async () => {
@@ -80,20 +94,65 @@ describe('CommunityRepositoryImpl', () => {
         }),
       );
     });
+
+    it('should save a community with causes', async () => {
+      const causeId = UniqueEntityID.create().toString();
+      const cause = Cause.create(
+        {
+          title: 'Cause 1',
+          description: 'Cause Desc',
+          duration: '3 months',
+          ods: 3,
+        },
+        causeId,
+      ).value as Cause;
+      const aggregate = Community.create({
+        name: 'Community',
+        description: 'Desc',
+        createdAt: new Date(),
+        admins: [userId],
+        causes: [cause],
+      }).value as Community;
+
+      await repo.save(aggregate);
+
+      expect(mockEntityManager.save).toHaveBeenCalledWith(
+        CommunityDbEntity,
+        expect.objectContaining({
+          id: expect.any(String),
+          causes: [
+            expect.objectContaining({
+              id: causeId,
+              title: 'Cause 1',
+              description: 'Cause Desc',
+              duration: '3 months',
+              ods: 3,
+              communityId: expect.any(String),
+            }),
+          ],
+        }),
+      );
+    });
   });
 
   describe('findById', () => {
     it('should find by id', async () => {
-      mockEntityManager.findOne.mockResolvedValue(communityEntity);
+      const entity = {
+        ...communityEntity,
+        causes: [causeEntity as CauseDbEntity],
+      };
+      mockEntityManager.findOne.mockResolvedValue(entity);
       jest.spyOn(repo as any, 'loadAdminIds').mockResolvedValue([userId]);
-      jest.spyOn(repo as any, 'loadCauseIds').mockResolvedValue([]);
 
       const result = await repo.findById(UniqueEntityID.create(communityId));
 
       expect(result.isRight()).toBe(true);
-      if (result.isRight()) {
-        expect(result.value.id.toString()).toBe(communityId);
-      }
+      const community = result.value as Community;
+      expect(community).toBeInstanceOf(Community);
+      expect(community.id.toString()).toBe(communityId);
+      expect(community.causes).toHaveLength(1);
+      expect(community.causes[0]).toBeInstanceOf(Cause);
+      expect(community.causes[0].id.toString()).toBe(causeEntity.id);
     });
 
     it('should return left when not found', async () => {
@@ -114,25 +173,17 @@ describe('CommunityRepositoryImpl', () => {
       jest
         .spyOn(repo as any, 'loadAdminIdsByCommunities')
         .mockResolvedValue(new Map([[communityId, [userId]]]));
-      jest
-        .spyOn(repo as any, 'loadCauseIdsByCommunities')
-        .mockResolvedValue(new Map());
 
       const result = await repo.findAll();
 
       expect(result).toHaveLength(1);
     });
 
-    it('should map admin and cause ids when listing', async () => {
+    it('should map admin ids and causes when listing', async () => {
       mockEntityManager.find.mockResolvedValue([communityEntity]);
       jest
         .spyOn(repo as any, 'loadAdminIdsByCommunities')
         .mockResolvedValue(new Map([[communityId, [userId]]]));
-      jest
-        .spyOn(repo as any, 'loadCauseIdsByCommunities')
-        .mockResolvedValue(
-          new Map([[communityId, [UniqueEntityID.create().toString()]]]),
-        );
 
       const result = await repo.findAll();
 

@@ -13,21 +13,23 @@ import {
   FundingActionOut,
   VolunteeringActionOut,
 } from '../../../application/ports/actions.port';
-import { CauseNotFoundError } from '../../../domain/repositories/cause.repository';
+import { CauseNotFoundError } from '../../../domain/repositories/cause-aggr.repository';
 import { InitiativeAlreadyClosedError } from '../../../domain/value-objects/initiative-status.vo';
 import { ActionsController } from './actions.controller';
 
 describe('ActionsController', () => {
   let controller: ActionsController;
 
-  const mockActionsPort = {
+  const mockActionsPort: jest.Mocked<
+    Pick<ActionsPort, 'createFundingAction' | 'createVolunteeringAction'>
+  > = {
     createFundingAction: jest.fn(),
     createVolunteeringAction: jest.fn(),
   };
 
-  const causeId = UniqueEntityID.create().toString();
-  const userId = UniqueEntityID.create().toString();
-  const actionId = UniqueEntityID.create().toString();
+  const causeId = UniqueEntityID.create();
+  const userId = UniqueEntityID.create();
+  const actionId = UniqueEntityID.create();
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -57,8 +59,8 @@ describe('ActionsController', () => {
 
     it('should return created funding action when successful', async () => {
       const expectedOutput: FundingActionOut = {
-        id: actionId,
-        causeId,
+        id: actionId.toString(),
+        causeId: causeId.toString(),
         title: dto.title,
         description: dto.description,
         objectives: dto.objectives,
@@ -73,33 +75,37 @@ describe('ActionsController', () => {
         right(expectedOutput),
       );
 
-      const result = await controller.createFunding(causeId, dto, userId);
+      const result = await controller.createFunding(
+        causeId.toString(),
+        dto,
+        userId.toString(),
+      );
 
       expect(result).toEqual(expectedOutput);
-      expect(mockActionsPort.createFundingAction).toHaveBeenCalledWith({
+      expect(mockActionsPort.createFundingAction).toHaveBeenCalledWith(
         causeId,
-        requesterId: userId,
-        data: dto,
-      });
+        userId,
+        dto,
+      );
     });
 
     it('should throw NotFoundException when CauseNotFoundError', async () => {
       mockActionsPort.createFundingAction.mockResolvedValue(
-        left(new CauseNotFoundError(causeId)),
+        left(new CauseNotFoundError(causeId.toString())),
       );
 
       await expect(
-        controller.createFunding(causeId, dto, userId),
+        controller.createFunding(causeId.toString(), dto, userId.toString()),
       ).rejects.toThrow(NotFoundException);
     });
 
     it('should throw ForbiddenException when UserIsNotAdminError', async () => {
       mockActionsPort.createFundingAction.mockResolvedValue(
-        left(new UserIsNotAdminError(userId)),
+        left(new UserIsNotAdminError(userId.toString())),
       );
 
       await expect(
-        controller.createFunding(causeId, dto, userId),
+        controller.createFunding(causeId.toString(), dto, userId.toString()),
       ).rejects.toThrow(ForbiddenException);
     });
 
@@ -109,7 +115,7 @@ describe('ActionsController', () => {
       );
 
       await expect(
-        controller.createFunding(causeId, dto, userId),
+        controller.createFunding(causeId.toString(), dto, userId.toString()),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -119,7 +125,7 @@ describe('ActionsController', () => {
       );
 
       await expect(
-        controller.createFunding(causeId, dto, userId),
+        controller.createFunding(causeId.toString(), dto, userId.toString()),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -135,8 +141,8 @@ describe('ActionsController', () => {
 
     it('should return created volunteering action when successful', async () => {
       const expectedOutput: VolunteeringActionOut = {
-        id: actionId,
-        causeId,
+        id: actionId.toString(),
+        causeId: causeId.toString(),
         title: dto.title,
         description: dto.description,
         objectives: dto.objectives,
@@ -151,33 +157,45 @@ describe('ActionsController', () => {
         right(expectedOutput),
       );
 
-      const result = await controller.createVolunteering(causeId, dto, userId);
+      const result = await controller.createVolunteering(
+        causeId.toString(),
+        dto,
+        userId.toString(),
+      );
 
       expect(result).toEqual(expectedOutput);
-      expect(mockActionsPort.createVolunteeringAction).toHaveBeenCalledWith({
+      expect(mockActionsPort.createVolunteeringAction).toHaveBeenCalledWith(
         causeId,
-        requesterId: userId,
-        data: dto,
-      });
+        userId,
+        dto,
+      );
     });
 
     it('should throw NotFoundException when CauseNotFoundError', async () => {
       mockActionsPort.createVolunteeringAction.mockResolvedValue(
-        left(new CauseNotFoundError(causeId)),
+        left(new CauseNotFoundError(causeId.toString())),
       );
 
       await expect(
-        controller.createVolunteering(causeId, dto, userId),
+        controller.createVolunteering(
+          causeId.toString(),
+          dto,
+          userId.toString(),
+        ),
       ).rejects.toThrow(NotFoundException);
     });
 
     it('should throw ForbiddenException when UserIsNotAdminError', async () => {
       mockActionsPort.createVolunteeringAction.mockResolvedValue(
-        left(new UserIsNotAdminError(userId)),
+        left(new UserIsNotAdminError(userId.toString())),
       );
 
       await expect(
-        controller.createVolunteering(causeId, dto, userId),
+        controller.createVolunteering(
+          causeId.toString(),
+          dto,
+          userId.toString(),
+        ),
       ).rejects.toThrow(ForbiddenException);
     });
 
@@ -187,7 +205,11 @@ describe('ActionsController', () => {
       );
 
       await expect(
-        controller.createVolunteering(causeId, dto, userId),
+        controller.createVolunteering(
+          causeId.toString(),
+          dto,
+          userId.toString(),
+        ),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -197,7 +219,11 @@ describe('ActionsController', () => {
       );
 
       await expect(
-        controller.createVolunteering(causeId, dto, userId),
+        controller.createVolunteering(
+          causeId.toString(),
+          dto,
+          userId.toString(),
+        ),
       ).rejects.toThrow(BadRequestException);
     });
   });

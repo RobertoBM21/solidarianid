@@ -28,4 +28,4 @@ import { InitiativesModule } from './initiatives/initiatives.module';
   ],
   controllers: [],
 })
-export class AppModule {}
+export class CoreAppModule {}

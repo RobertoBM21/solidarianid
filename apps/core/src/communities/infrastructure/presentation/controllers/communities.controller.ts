@@ -4,6 +4,9 @@ import {
   Controller,
   Get,
   Logger,
+  NotFoundException,
+  Param,
+  ParseUUIDPipe,
   Post,
   Query,
   UseGuards,
@@ -18,6 +21,7 @@ import {
 } from '@nestjs/swagger';
 import { AuthId } from '../../../../identity/infrastructure/decorators/auth-id.decorator';
 import { AuthGuard } from '../../../../identity/infrastructure/guards/auth.guard';
+import { CommunityOutDto } from '../../../application/dtos/community-out.dto';
 import { CommunitiesPort } from '../../../application/ports/communities.port';
 import { CommunityListItemDto } from '../dtos/community-list-item.dto';
 import { CommunityProposalDto } from '../dtos/community-proposal.dto';
@@ -67,5 +71,22 @@ export class CommunitiesController {
       throw new BadRequestException(result.value.message);
     }
     return result.value;
+  }
+
+  @Get(':communityId')
+  @ApiOkResponse({
+    description: 'Detailed information of a community retrieved successfully',
+    type: CommunityOutDto,
+  })
+  @ApiQuery({ name: 'id', required: true })
+  async detail(
+    @Param('communityId', ParseUUIDPipe) communityId: string,
+  ): Promise<CommunityOutDto> {
+    const communityOrError =
+      await this.communitiesPort.getCommunity(communityId);
+    if (communityOrError.isLeft()) {
+      throw new NotFoundException(communityOrError.value.message);
+    }
+    return communityOrError.value;
   }
 }

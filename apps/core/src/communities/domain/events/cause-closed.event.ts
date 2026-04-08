@@ -1,6 +1,6 @@
 import { DomainEvent } from '@app/shared/domain';
 
-export class CauseCreated implements DomainEvent {
+export class CauseClosedEvent implements DomainEvent {
   readonly occurredOn: Date;
 
   constructor(

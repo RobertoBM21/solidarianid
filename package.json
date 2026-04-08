@@ -155,7 +155,8 @@
       "!**/*.db-entity.ts",
       "!**/admin/public/*.js",
       "!**/*.module.ts",
-      "!**/admin/views/**"
+      "!**/admin/views/**",
+      "!apps/front/**/*"
     ],
     "coverageDirectory": "./coverage",
     "testEnvironment": "node",

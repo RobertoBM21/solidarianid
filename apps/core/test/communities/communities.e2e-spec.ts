@@ -3,7 +3,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { DataSource } from 'typeorm';
-import { AppModule } from '../../src/app.module';
+import { CoreAppModule } from '../../src/app.module';
 import { clearDatabase } from '../db-test-utils';
 import { CommunityTestFactory } from './community.test-factory';
 
@@ -14,7 +14,7 @@ describe('CommunitiesController (e2e)', () => {
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
+      imports: [CoreAppModule],
     }).compile();
 
     dataSource = moduleFixture.get(DataSource);
@@ -62,6 +62,27 @@ describe('CommunitiesController (e2e)', () => {
           }),
         ),
       ),
+    );
+  });
+
+  it('/communities/:id (GET) should return community details', async () => {
+    const community = await communitiesFactory.create({
+      name: 'Community Detail',
+      description: 'Community for detail test',
+    });
+
+    const res = await request(app.getHttpServer())
+      .get('/communities/' + community.id)
+      .expect(HttpStatus.OK)
+      .expect('Content-Type', /json/);
+
+    expect(res.body).toEqual(
+      expect.objectContaining({
+        id: community.id,
+        name: community.name,
+        description: community.description,
+        createdAt: community.createdAt.toISOString(),
+      }),
     );
   });
 });

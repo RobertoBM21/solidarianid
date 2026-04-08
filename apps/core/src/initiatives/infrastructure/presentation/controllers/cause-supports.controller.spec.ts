@@ -2,7 +2,7 @@ import { left, right, UniqueEntityID } from '@app/shared/domain';
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CauseSupportsPort } from '../../../application/ports/cause-supports.port';
-import { CauseNotFoundError } from '../../../domain/repositories/cause.repository';
+import { CauseNotFoundError } from '../../../domain/repositories/cause-aggr.repository';
 import { CauseSupportsController } from './cause-supports.controller';
 
 describe('CauseSupportsController', () => {

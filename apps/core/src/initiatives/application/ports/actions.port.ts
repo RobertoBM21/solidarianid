@@ -1,8 +1,8 @@
-import { Either } from '@app/shared/domain';
+import { Either, UniqueEntityID } from '@app/shared/domain';
 import { UserIsNotAdminError } from '../../../communities/domain/community.aggregate';
 import { CommunityNotFoundError } from '../../../communities/domain/repositories/community.repository';
 import { ActionCreationError } from '../../domain/aggregates/action.aggregate';
-import { CauseNotFoundError } from '../../domain/repositories/cause.repository';
+import { CauseNotFoundError } from '../../domain/repositories/cause-aggr.repository';
 import { InitiativeAlreadyClosedError } from '../../domain/value-objects/initiative-status.vo';
 import { CreateFundingActionDto } from '../dtos/create-funding-action.dto';
 import { CreateVolunteeringActionDto } from '../dtos/create-volunteering-action.dto';
@@ -38,24 +38,16 @@ export interface VolunteeringActionOut extends BaseActionOut {
 
 export type ActionOut = FundingActionOut | VolunteeringActionOut;
 
-export interface CreateFundingActionRequest {
-  causeId: string;
-  requesterId: string;
-  data: CreateFundingActionDto;
-}
-
-export interface CreateVolunteeringActionRequest {
-  causeId: string;
-  requesterId: string;
-  data: CreateVolunteeringActionDto;
-}
-
 export abstract class ActionsPort {
   abstract createFundingAction(
-    options: CreateFundingActionRequest,
+    causeId: UniqueEntityID,
+    requesterId: UniqueEntityID,
+    data: CreateFundingActionDto,
   ): Promise<Either<CreateActionError, FundingActionOut>>;
 
   abstract createVolunteeringAction(
-    options: CreateVolunteeringActionRequest,
+    causeId: UniqueEntityID,
+    requesterId: UniqueEntityID,
+    data: CreateVolunteeringActionDto,
   ): Promise<Either<CreateActionError, VolunteeringActionOut>>;
 }

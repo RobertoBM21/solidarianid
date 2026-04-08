@@ -4,7 +4,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { v4 } from 'uuid';
 import { CauseDto } from '../../../application/dtos/cause.dto';
 import { CausesPort } from '../../../application/ports/causes.port';
-import { CauseNotFoundError } from '../../../domain/repositories/cause.repository';
+import { CauseNotFoundError } from '../../../domain/repositories/cause-aggr.repository';
 import { CauseController } from './cause.controller';
 
 describe('CauseController', () => {
@@ -43,12 +43,7 @@ describe('CauseController', () => {
       const detail: CauseDto = {
         id: causeId,
         communityId,
-        title: 't',
-        description: 'd',
-        duration: '1m',
-        ods: 1,
         closed: false,
-        createdAt: new Date().toISOString(),
         actions: [],
       };
       const userId = v4();
@@ -57,7 +52,7 @@ describe('CauseController', () => {
 
       const result = await controller.detail(causeId, userId);
 
-      expect(result).toBe(detail);
+      expect(result).toEqual(detail);
       expect(mockCausesPort.getCause).toHaveBeenCalledWith(causeId, userId);
     });
 
@@ -80,42 +75,6 @@ describe('CauseController', () => {
 
       await expect(result).rejects.toBeInstanceOf(BadRequestException);
       expect(mockCausesPort.getCause).toHaveBeenCalledWith(causeId, userId);
-    });
-  });
-
-  describe('close', () => {
-    it('should call service and return void on success', async () => {
-      mockCausesPort.closeCause.mockResolvedValue(right(undefined));
-
-      const userId = v4();
-
-      await controller.close(causeId, userId);
-
-      expect(mockCausesPort.closeCause).toHaveBeenCalledWith(causeId, userId);
-    });
-
-    it('should throw 404 when community not found', async () => {
-      mockCausesPort.closeCause.mockResolvedValue(
-        left(new CauseNotFoundError(causeId)),
-      );
-
-      const userId = v4();
-
-      const result = controller.close(causeId, userId);
-
-      await expect(result).rejects.toBeInstanceOf(NotFoundException);
-      expect(mockCausesPort.closeCause).toHaveBeenCalledWith(causeId, userId);
-    });
-
-    it('should throw 400 on other errors', async () => {
-      mockCausesPort.closeCause.mockResolvedValue(left(new Error('boom')));
-
-      const userId = v4();
-
-      const result = controller.close(causeId, userId);
-
-      await expect(result).rejects.toBeInstanceOf(BadRequestException);
-      expect(mockCausesPort.closeCause).toHaveBeenCalledWith(causeId, userId);
     });
   });
 });
