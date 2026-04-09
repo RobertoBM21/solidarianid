@@ -22,6 +22,7 @@ import { CauseAggrRepository } from './domain/repositories/cause-aggr.repository
 import { CauseSupportRepository } from './domain/repositories/cause-support.repository';
 import { FundingActionRepository } from './domain/repositories/funding-action.repository';
 import { CommunitiesIntegrationAdapter } from './infrastructure/communities-integration.adapter';
+import { causeSupportPubSubProvider } from './infrastructure/graphql/pubsub.provider';
 import { ActionDbEntity } from './infrastructure/persistence/entities/action.db-entity';
 import { AnonymousUserDbEntity } from './infrastructure/persistence/entities/anonymous-user.db-entity';
 import { CauseAggrDbEntity } from './infrastructure/persistence/entities/cause-aggr.db-entity';
@@ -38,6 +39,7 @@ import { ActionsController } from './infrastructure/presentation/controllers/act
 import { CauseSupportsController } from './infrastructure/presentation/controllers/cause-supports.controller';
 import { CauseController } from './infrastructure/presentation/controllers/cause.controller';
 import { InitiativesEventsController } from './infrastructure/presentation/controllers/initiatives-events.controller';
+import { CauseSupportsResolver } from './infrastructure/presentation/graphql/cause-supports.resolver';
 
 @Module({
   imports: [
@@ -115,6 +117,9 @@ import { InitiativesEventsController } from './infrastructure/presentation/contr
       provide: ActionsPort,
       useExisting: ActionsService,
     },
+
+    causeSupportPubSubProvider,
+    CauseSupportsResolver,
   ],
   controllers: [
     CauseController,

@@ -8,12 +8,13 @@ export function setupProxy(app: INestApplication) {
   const routes = proxyConfig();
 
   for (const route of routes) {
+    const isCatchAll = route.path === '/';
     expressApp.use(
-      route.path,
       createProxyMiddleware({
         target: route.target,
         changeOrigin: true,
         ws: route.ws ?? false,
+        ...(isCatchAll ? {} : { pathFilter: route.path }),
       }),
     );
   }

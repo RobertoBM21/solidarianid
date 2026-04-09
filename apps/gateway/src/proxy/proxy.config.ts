@@ -11,8 +11,8 @@ export function proxyConfig(): ServiceRoute[] {
     // Example for future donations service:
     // { path: '/donations', target: process.env.DONATIONS_URL ?? 'http://localhost:3020' },
 
-    // GraphQL — currently served by core. When subscriptions are needed, set ws: true.
-    // { path: '/graphql', target: process.env.CORE_URL ?? 'http://localhost:3000', ws: true },
+    // GraphQL — served by core, with WebSocket support for subscriptions.
+    { path: '/graphql', target: process.env.CORE_URL ?? 'http://localhost:3000', ws: true },
 
     // Catch-all: everything else goes to core
     { path: '/', target: process.env.CORE_URL ?? 'http://localhost:3000' },

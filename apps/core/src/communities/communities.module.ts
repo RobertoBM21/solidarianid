@@ -31,6 +31,7 @@ import { CommunityCausesController } from './infrastructure/presentation/control
 import { CommunityEventsController } from './infrastructure/presentation/controllers/community-events.controller';
 import { CommunityMembersController } from './infrastructure/presentation/controllers/community-members.controller';
 import { MembershipRequestsController } from './infrastructure/presentation/controllers/membership-requests.controller';
+import { CommunitiesResolver } from './infrastructure/presentation/graphql/communities.resolver';
 
 @Module({
   imports: [
@@ -101,6 +102,8 @@ import { MembershipRequestsController } from './infrastructure/presentation/cont
     },
 
     CommunitiesIntegrationService,
+
+    CommunitiesResolver,
   ],
   exports: [CommunitiesIntegrationService],
   controllers: [
