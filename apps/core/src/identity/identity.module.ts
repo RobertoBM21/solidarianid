@@ -1,7 +1,7 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { GetUserExistsHandler } from './application/handlers/get-user-exists.handler';
 import { UserPort } from './application/ports/user.port';
+import { IdentityIntegrationService } from './application/services/identity-integration.service';
 import { UserService } from './application/user.service';
 import { CountryCheckerPort } from './domain/ports/country-checker.port';
 import { UserRepository } from './domain/repositories/user.repository';
@@ -9,8 +9,8 @@ import { CountryCheckerAdapter } from './infrastructure/adapters/country-checker
 import { AuthMiddleware } from './infrastructure/middlewares/auth.middleware';
 import { UserDbEntity } from './infrastructure/persistence/entities/user.db-entity';
 import { UserRepositoryImpl } from './infrastructure/persistence/user.repository.impl';
+import { CoreAuthController } from './infrastructure/presentation/controllers/auth.controller';
 import { UsersEventsController } from './infrastructure/presentation/controllers/users-events.controller';
-import { UsersController } from './infrastructure/presentation/controllers/users.controller';
 
 @Module({
   imports: [TypeOrmModule.forFeature([UserDbEntity])],
@@ -25,14 +25,15 @@ import { UsersController } from './infrastructure/presentation/controllers/users
       provide: UserRepository,
       useExisting: UserRepositoryImpl,
     },
-    GetUserExistsHandler,
+    IdentityIntegrationService,
     UserService,
     {
       provide: UserPort,
       useExisting: UserService,
     },
   ],
-  controllers: [UsersController, UsersEventsController],
+  controllers: [CoreAuthController, UsersEventsController],
+  exports: [IdentityIntegrationService],
 })
 export class IdentityModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

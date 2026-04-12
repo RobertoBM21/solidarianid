@@ -31,6 +31,10 @@ export class AuthService implements AuthPort {
 
     const user = userOrError.value;
 
+    if (!user.passwordHash) {
+      return left(new InvalidCredentialsError());
+    }
+
     const isPasswordValid = await this.passwordHasher.comparePassword(
       data.password,
       user.passwordHash,

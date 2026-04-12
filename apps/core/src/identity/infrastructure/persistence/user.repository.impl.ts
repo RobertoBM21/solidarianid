@@ -24,10 +24,10 @@ export class UserRepositoryImpl extends UserRepository {
     dbEntity.id = user.id.toString();
     dbEntity.name = user.name;
     dbEntity.email = user.email;
-    dbEntity.passwordHash = user.passwordHash;
-    dbEntity.phone = user.phone;
-    dbEntity.city = user.city;
-    dbEntity.country = user.country;
+    dbEntity.passwordHash = user.passwordHash ?? '';
+    dbEntity.phone = user.phone ?? '';
+    dbEntity.city = user.city ?? '';
+    dbEntity.country = user.country ?? '';
     await this.em.save(UserDbEntity, dbEntity);
   }
 
@@ -82,6 +82,22 @@ export class UserRepositoryImpl extends UserRepository {
   }
 
   private mapUserToDomain(entity: UserDbEntity): User {
+    if (!entity.passwordHash && !entity.city && !entity.country) {
+      const obj = User.createSocialUser(
+        {
+          name: entity.name,
+          email: entity.email,
+        },
+        entity.id,
+      );
+      if (obj.isLeft()) {
+        throw new Error(
+          `Error mapping UserDbEntity to User aggregate: ${obj.value.message}`,
+        );
+      }
+      return obj.value;
+    }
+
     const obj = User.createWithHashed(
       {
         name: entity.name,

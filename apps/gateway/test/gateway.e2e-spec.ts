@@ -12,9 +12,12 @@ describe('Gateway smoke (e2e)', () => {
   let coreApp: NestExpressApplication;
   let gatewayApp: NestExpressApplication;
   let previousCoreUrl: string | undefined;
+  let previousJwtSecret: string | undefined;
 
   beforeAll(async () => {
     previousCoreUrl = process.env.CORE_URL;
+    previousJwtSecret = process.env.JWT_SECRET;
+    process.env.JWT_SECRET = 'test-jwt-secret';
 
     coreApp = await createCoreApplication();
     process.env.CORE_URL = `http://127.0.0.1:${String(getListeningPort(coreApp))}`;
@@ -28,10 +31,15 @@ describe('Gateway smoke (e2e)', () => {
 
     if (previousCoreUrl === undefined) {
       delete process.env.CORE_URL;
-      return;
+    } else {
+      process.env.CORE_URL = previousCoreUrl;
     }
 
-    process.env.CORE_URL = previousCoreUrl;
+    if (previousJwtSecret === undefined) {
+      delete process.env.JWT_SECRET;
+    } else {
+      process.env.JWT_SECRET = previousJwtSecret;
+    }
   });
 
   it('proxies a core API route through the gateway', async () => {
@@ -70,16 +78,7 @@ async function createCoreApplication(): Promise<NestExpressApplication> {
     .setTitle('SolidarianID API')
     .setDescription('The SolidarianID official API')
     .setVersion('1.0')
-    .addApiKey(
-      {
-        type: 'apiKey',
-        name: 'Authorization',
-        in: 'header',
-        description:
-          'Enter your UUIDv4 token directly (e.g., 550e8400-e29b-41d4-a716-446655440000)',
-      },
-      'userId',
-    )
+    .addBearerAuth()
     .build();
 
   const documentFactory = () => SwaggerModule.createDocument(app, config);

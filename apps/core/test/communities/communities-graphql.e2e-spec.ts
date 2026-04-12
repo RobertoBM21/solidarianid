@@ -213,7 +213,7 @@ describe('GraphQL resolvers', () => {
     it('should register support when authenticated', async () => {
       const res = await request(app.getHttpServer())
         .post('/graphql')
-        .set('Authorization', USER_ID)
+        .set('x-user-id', USER_ID)
         .send({ query: REGISTER_SUPPORT, variables: { causeId: CAUSE_ID } })
         .expect(200);
 
@@ -243,7 +243,7 @@ describe('GraphQL resolvers', () => {
 
       const res = await request(app.getHttpServer())
         .post('/graphql')
-        .set('Authorization', USER_ID)
+        .set('x-user-id', USER_ID)
         .send({ query: REGISTER_SUPPORT, variables: { causeId: CAUSE_ID } })
         .expect(200);
 
@@ -258,7 +258,7 @@ describe('GraphQL resolvers', () => {
 
       const res = await request(app.getHttpServer())
         .post('/graphql')
-        .set('Authorization', USER_ID)
+        .set('x-user-id', USER_ID)
         .send({ query: REGISTER_SUPPORT, variables: { causeId: CAUSE_ID } })
         .expect(200);
 

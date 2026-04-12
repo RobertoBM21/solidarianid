@@ -70,7 +70,7 @@ describe('Supports integration tests', () => {
     await waitFor(async () => {
       const res = await request(app.getHttpServer())
         .get(`/causes/${idCause}`)
-        .set('Authorization', idUser);
+        .set('x-user-id', idUser);
       return res.body.supportedByUser === true;
     });
   };
@@ -87,7 +87,7 @@ describe('Supports integration tests', () => {
   it('should create a user support successfully', async () => {
     await request(app.getHttpServer())
       .post(`/causes/${idCause}/supports`)
-      .set('Authorization', idUser)
+      .set('x-user-id', idUser)
       .send({})
       .expect(201);
     await waitForUserSupportPersisted();
@@ -113,7 +113,7 @@ describe('Supports integration tests', () => {
     const nonExistingCauseId = '00000000-0000-0000-0000-000000000000';
     await request(app.getHttpServer())
       .post(`/causes/${nonExistingCauseId}/supports`)
-      .set('Authorization', idUser)
+      .set('x-user-id', idUser)
       .send({})
       .expect(404);
   });

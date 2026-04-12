@@ -10,6 +10,14 @@ services:
     environment:
       - CORE_URL=http://core:3000
       - CORS_ORIGIN=http://localhost:3080
+      - JWT_SECRET_FILE=/run/secrets/jwt_secret
+      - JWT_EXPIRATION=1d
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_CALLBACK_URL=http://localhost:3010/auth/google/callback
+      - FRONTEND_URL=http://localhost:3080
+    secrets:
+      - jwt_secret
     depends_on:
       - core
 
@@ -131,6 +139,8 @@ volumes:
   nats_data:
 
 secrets:
+  jwt_secret:
+    file: ./secrets/jwt_secret.txt
   db_pass_core:
     file: ./secrets/core_password.txt
   db_pass_admin:

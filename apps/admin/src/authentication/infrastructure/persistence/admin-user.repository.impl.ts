@@ -19,8 +19,8 @@ export class AdminUserRepositoryImpl extends AdminUserRepository {
     dbEntity.id = adminUser.id.toString();
     dbEntity.name = adminUser.name;
     dbEntity.email = adminUser.email;
-    dbEntity.phone = adminUser.phone;
-    dbEntity.passwordHash = adminUser.passwordHash;
+    dbEntity.phone = adminUser.phone ?? '';
+    dbEntity.passwordHash = adminUser.passwordHash ?? '';
 
     await this.em.save(AdminUserDbEntity, dbEntity);
   }

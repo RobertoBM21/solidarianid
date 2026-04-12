@@ -27,8 +27,8 @@ import {
 export interface AbstractUserProps {
   name: UserName;
   email: UserEmail;
-  phone: UserPhone;
-  passwordHash: UserPassword;
+  phone?: UserPhone;
+  passwordHash?: UserPassword;
 }
 
 export type AbstractUserCreationError =
@@ -66,12 +66,12 @@ export abstract class AbstractUser<
     return this.props.email.value;
   }
 
-  get phone(): string {
-    return this.props.phone.value;
+  get phone(): string | undefined {
+    return this.props.phone?.value;
   }
 
-  get passwordHash(): string {
-    return this.props.passwordHash.value;
+  get passwordHash(): string | undefined {
+    return this.props.passwordHash?.value;
   }
 
   protected static async prepare(
@@ -122,5 +122,25 @@ export abstract class AbstractUser<
       passwordHash,
     };
     return right(props);
+  }
+
+  protected static prepareSocialUser(data: {
+    name: string;
+    email: string;
+  }): Either<AbstractUserCreationError, AbstractUserProps> {
+    const nameOrError = UserName.create(data.name);
+    if (nameOrError.isLeft()) {
+      return left(nameOrError.value);
+    }
+
+    const emailOrError = UserEmail.create(data.email);
+    if (emailOrError.isLeft()) {
+      return left(emailOrError.value);
+    }
+
+    return right({
+      name: nameOrError.value,
+      email: emailOrError.value,
+    });
   }
 }

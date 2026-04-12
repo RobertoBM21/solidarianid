@@ -10,15 +10,13 @@ import { AuthRequest } from '../auth-request';
 @Injectable()
 export class AuthMiddleware implements NestMiddleware {
   use(req: AuthRequest, res: Response, next: NextFunction) {
-    const authHeader = req.headers.authorization;
+    const userIdHeader = req.headers['x-user-id'];
 
-    if (authHeader) {
-      if (isUUID(authHeader)) {
-        req.authId = authHeader;
+    if (typeof userIdHeader === 'string' && userIdHeader) {
+      if (isUUID(userIdHeader)) {
+        req.authId = userIdHeader;
       } else {
-        throw new BadRequestException(
-          'Authorization header must be a valid UUID',
-        );
+        throw new BadRequestException('x-user-id header must be a valid UUID');
       }
     }
 

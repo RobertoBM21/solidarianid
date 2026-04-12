@@ -1,3 +1,4 @@
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { GatewayAppModule } from './app.module';
 import { setupProxy } from './proxy/proxy.middleware';
@@ -5,6 +6,13 @@ import { setupSwaggerAggregation } from './swagger/swagger.setup';
 
 async function bootstrap() {
   const app = await NestFactory.create(GatewayAppModule);
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      forbidUnknownValues: true,
+    }),
+  );
 
   //! Check which value to use for CORS_ORIGIN
   app.enableCors({

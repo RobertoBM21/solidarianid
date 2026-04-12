@@ -6,9 +6,8 @@ import {
   UniqueEntityID,
 } from '@app/shared/domain';
 import { Injectable } from '@nestjs/common';
-import { QueryBus } from '@nestjs/cqrs';
-import { GetUserExistsQuery } from '../../../identity/application/queries/get-user-exists.query';
 import { UserNotFoundError } from '../../../identity/domain/repositories/user.repository';
+import { UserCheckerPort } from '../../domain/ports/user-checker.port';
 import { AnonymousSupporterRepository } from '../../domain/repositories/anonymous-supporter.repository';
 import { CauseAggrRepository } from '../../domain/repositories/cause-aggr.repository';
 import {
@@ -36,7 +35,7 @@ export class CauseSupportsService extends CauseSupportsPort {
     private readonly causeSupportRepository: CauseSupportRepository,
     private readonly anonymousSupporters: AnonymousSupporterRepository,
     private readonly domainEvents: DomainEventsPort,
-    private readonly queryBus: QueryBus,
+    private readonly userChecker: UserCheckerPort,
   ) {
     super();
   }
@@ -44,8 +43,8 @@ export class CauseSupportsService extends CauseSupportsPort {
   async registerSupportForUser(
     options: RegisterUserSupportDto,
   ): Promise<Either<RegisterUserSupportError, void>> {
-    const userExists = await this.queryBus.execute(
-      new GetUserExistsQuery(UniqueEntityID.create(options.userId)),
+    const userExists = await this.userChecker.userExists(
+      UniqueEntityID.create(options.userId),
     );
     if (!userExists) {
       return left(new UserNotFoundError(options.userId));

@@ -1,11 +1,13 @@
 import { left, right, UniqueEntityID } from '@app/shared/domain';
 import { DomainEventsPort } from '@app/shared/domain/ports/domain-events.port';
-import { QueryBus } from '@nestjs/cqrs';
 import { Test, TestingModule } from '@nestjs/testing';
-import { GetUserExistsQuery } from '../../../identity/application/queries/get-user-exists.query';
 import { CauseAggr } from '../../domain/aggregates/cause.aggregate';
+import { UserCheckerPort } from '../../domain/ports/user-checker.port';
 import { AnonymousSupporterRepository } from '../../domain/repositories/anonymous-supporter.repository';
-import { CauseAggrRepository } from '../../domain/repositories/cause-aggr.repository';
+import {
+  CauseAggrRepository,
+  CauseNotFoundError,
+} from '../../domain/repositories/cause-aggr.repository';
 import {
   CauseSupportNotFoundError,
   CauseSupportRepository,
@@ -15,22 +17,35 @@ import { CauseSupportsService } from './cause-supports.service';
 describe('CauseSupportsService', () => {
   let service: CauseSupportsService;
 
-  const mockCauseRepository = {
+  const mockCauseRepository: jest.Mocked<
+    Pick<CauseAggrRepository, 'findById'>
+  > = {
     findById: jest.fn(),
   };
-  const mockCauseSupportRepository = {
+
+  const mockCauseSupportRepository: jest.Mocked<
+    Pick<
+      CauseSupportRepository,
+      'save' | 'existsForSupporterAndCause' | 'removeByUserAndCause'
+    >
+  > = {
     save: jest.fn(),
     existsForSupporterAndCause: jest.fn(),
     removeByUserAndCause: jest.fn(),
   };
-  const mockAnonymousSupporters = {
+
+  const mockAnonymousSupporters: jest.Mocked<
+    Pick<AnonymousSupporterRepository, 'getOrCreate'>
+  > = {
     getOrCreate: jest.fn(),
   };
+
   const mockDomainEvents: jest.Mocked<Pick<DomainEventsPort, 'dispatch'>> = {
     dispatch: jest.fn(),
   };
-  const mockQueryBus = {
-    execute: jest.fn(),
+
+  const mockUserChecker: jest.Mocked<Pick<UserCheckerPort, 'userExists'>> = {
+    userExists: jest.fn(),
   };
 
   const communityId = UniqueEntityID.create().toString();
@@ -63,8 +78,8 @@ describe('CauseSupportsService', () => {
           useValue: mockDomainEvents,
         },
         {
-          provide: QueryBus,
-          useValue: mockQueryBus,
+          provide: UserCheckerPort,
+          useValue: mockUserChecker,
         },
       ],
     }).compile();
@@ -81,7 +96,7 @@ describe('CauseSupportsService', () => {
       const cause = makeCauseAggr();
 
       mockCauseRepository.findById.mockResolvedValue(right(cause));
-      mockQueryBus.execute.mockResolvedValue(true);
+      mockUserChecker.userExists.mockResolvedValue(true);
       mockCauseSupportRepository.existsForSupporterAndCause.mockResolvedValue(
         false,
       );
@@ -93,15 +108,15 @@ describe('CauseSupportsService', () => {
       });
 
       expect(result.isRight()).toBe(true);
-      expect(mockQueryBus.execute).toHaveBeenCalledWith(
-        new GetUserExistsQuery(UniqueEntityID.create(userId)),
+      expect(mockUserChecker.userExists).toHaveBeenCalledWith(
+        UniqueEntityID.create(userId),
       );
       expect(mockDomainEvents.dispatch).toHaveBeenCalledWith(cause);
     });
 
     it('should return error when cause not found for user', async () => {
       mockCauseRepository.findById.mockResolvedValue(
-        left(new Error('not found')),
+        left(new CauseNotFoundError(UniqueEntityID.create(causeId).toString())),
       );
 
       const result = await service.registerSupportForUser({ causeId, userId });
@@ -113,7 +128,7 @@ describe('CauseSupportsService', () => {
       const cause = makeCauseAggr();
 
       mockCauseRepository.findById.mockResolvedValue(right(cause));
-      mockQueryBus.execute.mockResolvedValue(false);
+      mockUserChecker.userExists.mockResolvedValue(false);
 
       const result = await service.registerSupportForUser({ causeId, userId });
 
@@ -124,7 +139,7 @@ describe('CauseSupportsService', () => {
       const cause = makeCauseAggr();
 
       mockCauseRepository.findById.mockResolvedValue(right(cause));
-      mockQueryBus.execute.mockResolvedValue(true);
+      mockUserChecker.userExists.mockResolvedValue(true);
       mockCauseSupportRepository.existsForSupporterAndCause.mockResolvedValue(
         true,
       );

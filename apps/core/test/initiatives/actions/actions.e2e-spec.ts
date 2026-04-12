@@ -90,7 +90,7 @@ describe('Actions integration tests', () => {
   ) => {
     const res = await request(app.getHttpServer())
       .post(`/causes/${idCause}/actions/funding`)
-      .set('Authorization', userId)
+      .set('x-user-id', userId)
       .send(actionData)
       .expect(201)
       .expect('Content-Type', /json/);
@@ -107,7 +107,7 @@ describe('Actions integration tests', () => {
   ) => {
     const res = await request(app.getHttpServer())
       .post(`/causes/${idCause}/actions/volunteering`)
-      .set('Authorization', userId)
+      .set('x-user-id', userId)
       .send(actionData)
       .expect(201)
       .expect('Content-Type', /json/);
@@ -124,7 +124,7 @@ describe('Actions integration tests', () => {
   ) => {
     const res = await request(app.getHttpServer())
       .post(`/causes/${idCause}/actions/funding`)
-      .set('Authorization', userId)
+      .set('x-user-id', userId)
       .send(actionData)
       .expect(400)
       .expect('Content-Type', /json/);
@@ -137,7 +137,7 @@ describe('Actions integration tests', () => {
   ) => {
     const res = await request(app.getHttpServer())
       .post(`/causes/${idCause}/actions/volunteering`)
-      .set('Authorization', userId)
+      .set('x-user-id', userId)
       .send(actionData)
       .expect(400)
       .expect('Content-Type', /json/);

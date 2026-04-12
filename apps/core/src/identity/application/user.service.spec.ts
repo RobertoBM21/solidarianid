@@ -34,7 +34,7 @@ describe('UserService', () => {
     comparePassword: () => Promise.resolve(true),
   };
 
-  const mockUsers: User[] = [];
+  let mockUsers: User[] = [];
 
   beforeEach(async () => {
     const user1 = User.createWithHashed(
@@ -47,10 +47,9 @@ describe('UserService', () => {
         country: 'es',
       },
       mockCountryChecker,
-    );
-    if (user1.isRight()) {
-      mockUsers.push(user1.value);
-    }
+    ).value as User;
+
+    mockUsers = [user1];
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -95,7 +94,7 @@ describe('UserService', () => {
         .fn()
         .mockResolvedValue(right(mockUsers[0]));
 
-      const result = await service.createUser({
+      const result = await service.createLocalUser({
         name: 'User 1',
         email: 'email1@example.com',
         phone: '11122233',
@@ -114,7 +113,7 @@ describe('UserService', () => {
         .fn()
         .mockResolvedValue(left(new UserNotFoundError('')));
 
-      const result = await service.createUser({
+      const result = await service.createLocalUser({
         name: 'User 3',
         email: 'invalid-email',
         phone: '44455566',
@@ -134,7 +133,7 @@ describe('UserService', () => {
         .mockResolvedValue(left(new UserNotFoundError('')));
       userRepository.save = jest.fn().mockResolvedValue(undefined);
 
-      const result = await service.createUser({
+      const result = await service.createLocalUser({
         name: 'User 4',
         email: 'email4@example.com',
         phone: '98765432',
@@ -151,6 +150,59 @@ describe('UserService', () => {
         'email4@example.com',
       );
       expect(mockUserRepository.save).toHaveBeenCalledWith(expect.any(User));
+    });
+  });
+
+  describe('findOrCreateGoogleUser', () => {
+    it('should return the existing user if email already exists', async () => {
+      userRepository.findByEmail = jest
+        .fn()
+        .mockResolvedValue(right(mockUsers[0]));
+
+      const result = await service.findOrCreateGoogleUser(
+        'email1@example.com',
+        'User 1',
+      );
+
+      expect(result.isRight()).toBe(true);
+      expect(result.value).toEqual({ userId: mockUsers[0].id.toString() });
+      expect(mockUserRepository.save).not.toHaveBeenCalled();
+    });
+
+    it('should not create an invalid Google user', async () => {
+      userRepository.findByEmail = jest
+        .fn()
+        .mockResolvedValue(left(new UserNotFoundError('')));
+
+      const result = await service.findOrCreateGoogleUser(
+        'invalid-email',
+        'Google User',
+      );
+
+      expect(result.isLeft()).toBe(true);
+      expect(result.value).toBeInstanceOf(InvalidUserEmailError);
+      expect(mockUserRepository.save).not.toHaveBeenCalled();
+    });
+
+    it('should create a new Google user when email does not exist', async () => {
+      userRepository.findByEmail = jest
+        .fn()
+        .mockResolvedValue(left(new UserNotFoundError('')));
+      userRepository.save = jest.fn().mockResolvedValue(undefined);
+
+      const result = await service.findOrCreateGoogleUser(
+        'google.user@example.com',
+        'Google User',
+      );
+
+      expect(result.isRight()).toBe(true);
+      expect(mockUserRepository.findByEmail).toHaveBeenCalledWith(
+        'google.user@example.com',
+      );
+      expect(mockUserRepository.save).toHaveBeenCalledWith(expect.any(User));
+      expect(result.value).toEqual({
+        userId: expect.any(String),
+      });
     });
   });
 

@@ -18,8 +18,8 @@ import {
 } from '../value-objects/user-country.vo';
 
 export interface UserProps extends AbstractUserProps {
-  city: UserCity;
-  country: UserCountry;
+  city?: UserCity;
+  country?: UserCountry;
 }
 
 export type UserCreationError =
@@ -28,12 +28,12 @@ export type UserCreationError =
   | InvalidUserCountryError;
 
 export class User extends AbstractUser<UserProps> {
-  get city(): string {
-    return this.props.city.value;
+  get city(): string | undefined {
+    return this.props.city?.value;
   }
 
-  get country(): string {
-    return this.props.country.value;
+  get country(): string | undefined {
+    return this.props.country?.value;
   }
 
   static async create(
@@ -107,6 +107,25 @@ export class User extends AbstractUser<UserProps> {
       ...propsOrError.value,
       city: cityOrError.value,
       country: countryOrError.value,
+    };
+    const idObj = id ? UniqueEntityID.create(id) : undefined;
+    return right(new User(props, idObj));
+  }
+
+  static createSocialUser(
+    data: {
+      name: string;
+      email: string;
+    },
+    id?: string,
+  ): Either<UserCreationError, User> {
+    const propsOrError = this.prepareSocialUser(data);
+    if (propsOrError.isLeft()) {
+      return left(propsOrError.value);
+    }
+
+    const props: UserProps = {
+      ...propsOrError.value,
     };
     const idObj = id ? UniqueEntityID.create(id) : undefined;
     return right(new User(props, idObj));

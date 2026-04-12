@@ -65,7 +65,7 @@ describe('Causes integration tests', () => {
   const createCauseAndExpectSuccess = async (causeData: CreateCauseData) => {
     const res = await request(app.getHttpServer())
       .post('/communities/' + idCommunity + '/causes')
-      .set('Authorization', userId)
+      .set('x-user-id', userId)
       .send(causeData)
       .expect(201)
       .expect('Content-Type', /json/);
@@ -80,7 +80,7 @@ describe('Causes integration tests', () => {
   const createCauseAndExpectBadRequest = async (causeData: CreateCauseData) => {
     const res = await request(app.getHttpServer())
       .post('/communities/' + idCommunity + '/causes')
-      .set('Authorization', userId)
+      .set('x-user-id', userId)
       .send(causeData)
       .expect(400)
       .expect('Content-Type', /json/);
@@ -152,7 +152,7 @@ describe('Causes integration tests', () => {
 
       const res = await request(app.getHttpServer())
         .get('/communities/' + idCommunity)
-        .set('Authorization', userId)
+        .set('x-user-id', userId)
         .expect(200)
         .expect('Content-Type', /json/);
 
@@ -170,7 +170,7 @@ describe('Causes integration tests', () => {
 
       const res = await request(app.getHttpServer())
         .get(`/causes/${causeId}`)
-        .set('Authorization', userId)
+        .set('x-user-id', userId)
         .expect(200)
         .expect('Content-Type', /json/);
 
@@ -192,7 +192,7 @@ describe('Causes integration tests', () => {
 
       const closeRes = await request(app.getHttpServer())
         .post(`/communities/${idCommunity}/causes/${causeId}/close`)
-        .set('Authorization', userId);
+        .set('x-user-id', userId);
       expect(closeRes.body).toEqual({});
       expect(closeRes.status).toBe(200);
 
@@ -200,7 +200,7 @@ describe('Causes integration tests', () => {
 
       const getRes = await request(app.getHttpServer())
         .get(`/causes/${causeId}`)
-        .set('Authorization', userId)
+        .set('x-user-id', userId)
         .expect(200)
         .expect('Content-Type', /json/);
 
@@ -221,7 +221,7 @@ describe('Causes integration tests', () => {
       const nonExistingCauseId = '00000000-0000-0000-0000-000000000000';
       await request(app.getHttpServer())
         .post(`/communities/${idCommunity}/causes/${nonExistingCauseId}/close`)
-        .set('Authorization', userId)
+        .set('x-user-id', userId)
         .expect(404);
     });
   });

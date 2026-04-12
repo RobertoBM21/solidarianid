@@ -64,7 +64,7 @@ describe('Membership requests integration tests', () => {
   it('should create a membership request successfully', async () => {
     const res = await request(app.getHttpServer())
       .post(`/communities/${idCommunity}/membership-requests`)
-      .set('Authorization', userId)
+      .set('x-user-id', userId)
       .send({})
       .expect(201)
       .expect('Content-Type', /json/);
@@ -82,7 +82,7 @@ describe('Membership requests integration tests', () => {
     const nonExistingCommunityId = '00000000-0000-0000-0000-000000000000';
     await request(app.getHttpServer())
       .post(`/communities/${nonExistingCommunityId}/membership-requests`)
-      .set('Authorization', userId)
+      .set('x-user-id', userId)
       .send({})
       .expect(404);
   });
@@ -98,14 +98,14 @@ describe('Membership requests integration tests', () => {
     // First request should succeed
     await request(app.getHttpServer())
       .post(`/communities/${idCommunity}/membership-requests`)
-      .set('Authorization', userId)
+      .set('x-user-id', userId)
       .send({})
       .expect(201);
 
     // Second request should fail with 409 Conflict
     await request(app.getHttpServer())
       .post(`/communities/${idCommunity}/membership-requests`)
-      .set('Authorization', userId)
+      .set('x-user-id', userId)
       .send({})
       .expect(400);
   });
@@ -114,14 +114,14 @@ describe('Membership requests integration tests', () => {
     // Create a membership request
     await request(app.getHttpServer())
       .post(`/communities/${idCommunity}/membership-requests`)
-      .set('Authorization', userId)
+      .set('x-user-id', userId)
       .send({})
       .expect(201);
 
     // Retrieve membership requests
     const res = await request(app.getHttpServer())
       .get(`/communities/${idCommunity}/membership-requests`)
-      .set('Authorization', userId)
+      .set('x-user-id', userId)
       .expect(403)
       .expect('Content-Type', /json/);
 
@@ -135,14 +135,14 @@ describe('Membership requests integration tests', () => {
     // Create a membership request
     await request(app.getHttpServer())
       .post(`/communities/${idCommunity}/membership-requests`)
-      .set('Authorization', userId)
+      .set('x-user-id', userId)
       .send({})
       .expect(201);
 
     // Retrieve membership requests
     const res = await request(app.getHttpServer())
       .get(`/communities/${idCommunity}/membership-requests`)
-      .set('Authorization', adminId)
+      .set('x-user-id', adminId)
       .expect(200)
       .expect('Content-Type', /json/);
 
@@ -154,7 +154,7 @@ describe('Membership requests integration tests', () => {
     const nonExistingCommunityId = '00000000-0000-0000-0000-000000000000';
     await request(app.getHttpServer())
       .get(`/communities/${nonExistingCommunityId}/membership-requests`)
-      .set('Authorization', userId)
+      .set('x-user-id', userId)
       .expect(404);
   });
 
@@ -162,14 +162,14 @@ describe('Membership requests integration tests', () => {
     // Create a membership request
     await request(app.getHttpServer())
       .post(`/communities/${idCommunity}/membership-requests`)
-      .set('Authorization', userId)
+      .set('x-user-id', userId)
       .send({})
       .expect(201);
 
     // Retrieve my membership requests
     const res = await request(app.getHttpServer())
       .get(`/membership-requests/mine`)
-      .set('Authorization', userId)
+      .set('x-user-id', userId)
       .expect(200)
       .expect('Content-Type', /json/);
 
@@ -186,7 +186,7 @@ describe('Membership requests integration tests', () => {
     // Create a membership request
     const createRes = await request(app.getHttpServer())
       .post(`/communities/${idCommunity}/membership-requests`)
-      .set('Authorization', userId)
+      .set('x-user-id', userId)
       .send({})
       .expect(201);
 
@@ -194,7 +194,7 @@ describe('Membership requests integration tests', () => {
     // Accept the membership request
     const acceptRes = await request(app.getHttpServer())
       .put(`/membership-requests/${membershipRequestId}`)
-      .set('Authorization', adminId)
+      .set('x-user-id', adminId)
       .send({ verdict: 'accepted' })
       .expect(200)
       .expect('Content-Type', /json/);
@@ -221,7 +221,7 @@ describe('Membership requests integration tests', () => {
     // Create a membership request
     const createRes = await request(app.getHttpServer())
       .post(`/communities/${idCommunity}/membership-requests`)
-      .set('Authorization', userId)
+      .set('x-user-id', userId)
       .send({})
       .expect(201);
 
@@ -229,7 +229,7 @@ describe('Membership requests integration tests', () => {
     // Reject the membership request
     const rejectRes = await request(app.getHttpServer())
       .put(`/membership-requests/${membershipRequestId}`)
-      .set('Authorization', adminId)
+      .set('x-user-id', adminId)
       .send({ verdict: 'rejected' })
       .expect(200)
       .expect('Content-Type', /json/);

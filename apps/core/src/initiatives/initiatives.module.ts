@@ -19,6 +19,7 @@ import { CauseSupportsService } from './application/services/cause-supports.serv
 import { CausesService } from './application/services/causes.service';
 import { CommunityAuthorizationPort } from './domain/ports/community-authz.port';
 import { InitiativesStatisticsPort } from './domain/ports/initiatives-statistics.port';
+import { UserCheckerPort } from './domain/ports/user-checker.port';
 import { ActionRepository } from './domain/repositories/action.repository';
 import { AnonymousSupporterRepository } from './domain/repositories/anonymous-supporter.repository';
 import { CauseAggrRepository } from './domain/repositories/cause-aggr.repository';
@@ -26,6 +27,7 @@ import { CauseSupportRepository } from './domain/repositories/cause-support.repo
 import { FundingActionRepository } from './domain/repositories/funding-action.repository';
 import { CommunitiesIntegrationAdapter } from './infrastructure/communities-integration.adapter';
 import { causeSupportPubSubProvider } from './infrastructure/graphql/pubsub.provider';
+import { IdentityIntegrationAdapter } from './infrastructure/identity-integration.adapter';
 import { ActionDbEntity } from './infrastructure/persistence/entities/action.db-entity';
 import { AnonymousUserDbEntity } from './infrastructure/persistence/entities/anonymous-user.db-entity';
 import { CauseAggrDbEntity } from './infrastructure/persistence/entities/cause-aggr.db-entity';
@@ -98,6 +100,12 @@ import { CauseSupportsResolver } from './infrastructure/presentation/graphql/cau
     {
       provide: CauseDataGetterPort,
       useExisting: CommunitiesIntegrationAdapter,
+    },
+
+    IdentityIntegrationAdapter,
+    {
+      provide: UserCheckerPort,
+      useExisting: IdentityIntegrationAdapter,
     },
 
     // Handlers

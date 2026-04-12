@@ -72,7 +72,7 @@ describe('Community members integration tests', () => {
   it('should retrieve community members', async () => {
     const res = await request(app.getHttpServer())
       .get(`/communities/${idCommunity}/members`)
-      .set('Authorization', adminId)
+      .set('x-user-id', adminId)
       .expect(200);
 
     expect(res.body).toBeDefined();
@@ -93,14 +93,14 @@ describe('Community members integration tests', () => {
     const nonExistingCommunityId = '00000000-0000-0000-0000-000000000000';
     await request(app.getHttpServer())
       .get(`/communities/${nonExistingCommunityId}/members`)
-      .set('Authorization', adminId)
+      .set('x-user-id', adminId)
       .expect(404);
   });
 
   it('should promote a member to admin', async () => {
     await request(app.getHttpServer())
       .post(`/community-members/${userMemberId}/promote`)
-      .set('Authorization', adminId)
+      .set('x-user-id', adminId)
       .expect(200);
   });
 
@@ -114,14 +114,14 @@ describe('Community members integration tests', () => {
     const nonExistingMemberId = '00000000-0000-0000-0000-000000000000';
     await request(app.getHttpServer())
       .post(`/community-members/${nonExistingMemberId}/promote`)
-      .set('Authorization', adminId)
+      .set('x-user-id', adminId)
       .expect(404);
   });
 
   it('should expel a member from the community', async () => {
     await request(app.getHttpServer())
       .delete(`/community-members/${userMemberId}`)
-      .set('Authorization', adminId)
+      .set('x-user-id', adminId)
       .expect(200);
 
     const expelledMember = await dataSource
@@ -143,7 +143,7 @@ describe('Community members integration tests', () => {
     const nonExistingMemberId = '00000000-0000-0000-0000-000000000000';
     await request(app.getHttpServer())
       .delete(`/community-members/${nonExistingMemberId}`)
-      .set('Authorization', userId)
+      .set('x-user-id', userId)
       .expect(404);
   });
 });
