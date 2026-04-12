@@ -4,11 +4,11 @@ import {
   OdsCount,
 } from '@app/shared/domain/queries/get-initiatives-statistics.query';
 import { Test, TestingModule } from '@nestjs/testing';
-import { InitiativesStatisticsPort } from '../../../domain/ports/initiatives-statistics.port';
-import { InitiativesEventsController } from './initiatives-events.controller';
+import { InitiativesStatisticsPort } from '../../domain/ports/initiatives-statistics.port';
+import { InitiativesGrpcController } from './initiatives-grpc.controller';
 
-describe('InitiativesEventsController', () => {
-  let controller: InitiativesEventsController;
+describe('InitiativesGrpcEventsController', () => {
+  let controller: InitiativesGrpcController;
 
   const mockStatisticsPort = {
     getOdsCounts: jest.fn(),
@@ -21,7 +21,7 @@ describe('InitiativesEventsController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [InitiativesEventsController],
+      controllers: [InitiativesGrpcController],
       providers: [
         {
           provide: InitiativesStatisticsPort,
@@ -30,8 +30,8 @@ describe('InitiativesEventsController', () => {
       ],
     }).compile();
 
-    controller = module.get<InitiativesEventsController>(
-      InitiativesEventsController,
+    controller = module.get<InitiativesGrpcController>(
+      InitiativesGrpcController,
     );
   });
 
@@ -39,7 +39,7 @@ describe('InitiativesEventsController', () => {
     jest.clearAllMocks();
   });
 
-  describe('handleGetInitiativesStatistics', () => {
+  describe('getInitiativesStatistics', () => {
     it('should aggregate data from all statistics port methods', async () => {
       const mockOdsCounts: OdsCount[] = [{ ods: 1, count: 10 }];
       const mockActivityData: CommunityActivityRow[] = [
@@ -67,7 +67,7 @@ describe('InitiativesEventsController', () => {
         mockTotalSupports,
       );
 
-      const result = await controller.handleGetInitiativesStatistics();
+      const result = await controller.getInitiativesStatistics();
 
       expect(result).toEqual({
         odsCount: mockOdsCounts,

@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package statistics;
+
+service StatisticsService {
+  rpc GetCommunitiesStatistics (Empty) returns (CommunitiesStatisticsData);
+  rpc GetInitiativesStatistics (Empty) returns (InitiativesStatisticsData);
+  rpc GetCollaborationStatistics (Empty) returns (CollaborationStatisticsData);
+}
+
+message Empty {}
+message CommunityData {
+  string id = 1;
+  string name = 2;
+  int32 users = 3;
+  int32 admins = 4;
+}
+message CommunitiesStatisticsData {
+  repeated CommunityData data = 1;
+}
+message OdsCount {
+  int32 ods = 1;
+  int32 count = 2;
+}
+message CauseStatisticsRow {
+  string communityId = 1;
+  int32 activeCauses = 2;
+  int32 closedCauses = 3;
+  int32 odsCovered = 4;
+  int32 supports = 5;
+}
+message CommunityActivityRow {
+  int32 month = 1;
+  int32 year = 2;
+  string communityId = 3;
+  int32 newCauses = 4;
+}
+message InitiativesStatisticsData {
+  repeated OdsCount odsCount = 1;
+  repeated CommunityActivityRow activity = 2;
+  repeated CauseStatisticsRow causes = 3;
+  int32 totalCauses = 4;
+  int32 totalSupports = 5;
+}
+message CollaborationStatisticsData {
+  double totalDonationsMoney = 1;
+}

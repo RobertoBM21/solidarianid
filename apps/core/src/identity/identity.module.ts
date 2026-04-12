@@ -6,11 +6,11 @@ import { UserService } from './application/user.service';
 import { CountryCheckerPort } from './domain/ports/country-checker.port';
 import { UserRepository } from './domain/repositories/user.repository';
 import { CountryCheckerAdapter } from './infrastructure/adapters/country-checker.adapter';
+import { UsersGrpcController } from './infrastructure/grpc/users-grpc.controller';
 import { AuthMiddleware } from './infrastructure/middlewares/auth.middleware';
 import { UserDbEntity } from './infrastructure/persistence/entities/user.db-entity';
 import { UserRepositoryImpl } from './infrastructure/persistence/user.repository.impl';
 import { CoreAuthController } from './infrastructure/presentation/controllers/auth.controller';
-import { UsersEventsController } from './infrastructure/presentation/controllers/users-events.controller';
 
 @Module({
   imports: [TypeOrmModule.forFeature([UserDbEntity])],
@@ -32,7 +32,7 @@ import { UsersEventsController } from './infrastructure/presentation/controllers
       useExisting: UserService,
     },
   ],
-  controllers: [CoreAuthController, UsersEventsController],
+  controllers: [CoreAuthController, UsersGrpcController],
   exports: [IdentityIntegrationService],
 })
 export class IdentityModule implements NestModule {

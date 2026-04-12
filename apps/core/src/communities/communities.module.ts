@@ -17,6 +17,8 @@ import { CommunityMemberRepository } from './domain/repositories/community-membe
 import { CommunityRepository } from './domain/repositories/community.repository';
 import { MembershipRequestRepository } from './domain/repositories/membership-request.repository';
 import { CommunityFactory } from './domain/services/community-factory.service';
+import { CommunityProposalAcceptedConsumer } from './infrastructure/consumers/community-proposal-accepted.consumer';
+import { CommunitiesGrpcController } from './infrastructure/grpc/communities-grpc.controller';
 import { CommunityStatisticsAdapter } from './infrastructure/persistence/community-statistics.adapter';
 import { CauseDbEntity } from './infrastructure/persistence/entities/cause.db-entity';
 import { CommunityMemberDbEntity } from './infrastructure/persistence/entities/community-member.db-entity';
@@ -28,7 +30,6 @@ import { CommunityRepositoryImpl } from './infrastructure/persistence/repositori
 import { MembershipRequestRepositoryImpl } from './infrastructure/persistence/repositories/membership-request.repository.impl';
 import { CommunitiesController } from './infrastructure/presentation/controllers/communities.controller';
 import { CommunityCausesController } from './infrastructure/presentation/controllers/community-causes.controller';
-import { CommunityEventsController } from './infrastructure/presentation/controllers/community-events.controller';
 import { CommunityMembersController } from './infrastructure/presentation/controllers/community-members.controller';
 import { MembershipRequestsController } from './infrastructure/presentation/controllers/membership-requests.controller';
 import { CommunitiesResolver } from './infrastructure/presentation/graphql/communities.resolver';
@@ -109,7 +110,8 @@ import { CommunitiesResolver } from './infrastructure/presentation/graphql/commu
   controllers: [
     CommunitiesController,
     CommunityCausesController,
-    CommunityEventsController,
+    CommunitiesGrpcController,
+    CommunityProposalAcceptedConsumer,
     MembershipRequestsController,
     CommunityMembersController,
   ],

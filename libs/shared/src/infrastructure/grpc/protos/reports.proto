@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package reports;
+
+service ReportsService {
+  rpc ListUsers (Pagination) returns (ReportUsersPage);
+  rpc GetUserContributions (UserId) returns (UserCollaborationHistory);
+}
+
+enum UserHistoryItemType {
+  USER_HISTORY_ITEM_TYPE_UNSPECIFIED = 0;
+  USER_HISTORY_ITEM_TYPE_MEMBERSHIP = 1;
+  USER_HISTORY_ITEM_TYPE_SUPPORT = 2;
+  USER_HISTORY_ITEM_TYPE_DONATION = 3;
+  USER_HISTORY_ITEM_TYPE_VOLUNTEERING = 4;
+}
+message DonationDetails {
+  double amount = 1;
+}
+message VolunteeringDetails {
+  string end = 1;
+}
+message MembershipDetails {}
+message SupportDetails {}
+message UserHistoryItem {
+  UserHistoryItemType type = 1;
+  string subject = 2;
+  optional string causeId = 3;
+  string date = 4;
+  oneof details {
+    MembershipDetails membership = 5;
+    SupportDetails support = 6;
+    DonationDetails donation = 7;
+    VolunteeringDetails volunteering = 8;
+  }
+}
+message Pagination {
+  optional int32 page = 1;
+  optional string search = 2;
+}
+message ReportUser {
+  string id = 1;
+  string name = 2;
+  repeated string communities = 3;
+}
+message ReportUsersPage {
+  repeated ReportUser users = 1;
+  int32 totalPages = 2;
+}
+message UserId {
+  string id = 1;
+}
+message UserCollaborationHistory {
+  repeated UserHistoryItem items = 1;
+}

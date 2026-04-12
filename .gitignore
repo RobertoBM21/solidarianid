@@ -5,6 +5,8 @@
 
 **/admin/src/public/**.css*
 
+**/grpc/stubs/**
+
 # Logs
 logs
 *.log

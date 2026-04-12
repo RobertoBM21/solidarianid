@@ -27,6 +27,7 @@ import { CauseSupportRepository } from './domain/repositories/cause-support.repo
 import { FundingActionRepository } from './domain/repositories/funding-action.repository';
 import { CommunitiesIntegrationAdapter } from './infrastructure/communities-integration.adapter';
 import { causeSupportPubSubProvider } from './infrastructure/graphql/pubsub.provider';
+import { InitiativesGrpcController } from './infrastructure/grpc/initiatives-grpc.controller';
 import { IdentityIntegrationAdapter } from './infrastructure/identity-integration.adapter';
 import { ActionDbEntity } from './infrastructure/persistence/entities/action.db-entity';
 import { AnonymousUserDbEntity } from './infrastructure/persistence/entities/anonymous-user.db-entity';
@@ -43,7 +44,6 @@ import { FundingActionRepositoryImpl } from './infrastructure/persistence/reposi
 import { ActionsController } from './infrastructure/presentation/controllers/actions.controller';
 import { CauseSupportsController } from './infrastructure/presentation/controllers/cause-supports.controller';
 import { CauseController } from './infrastructure/presentation/controllers/cause.controller';
-import { InitiativesEventsController } from './infrastructure/presentation/controllers/initiatives-events.controller';
 import { CauseSupportsResolver } from './infrastructure/presentation/graphql/cause-supports.resolver';
 
 @Module({
@@ -142,7 +142,7 @@ import { CauseSupportsResolver } from './infrastructure/presentation/graphql/cau
     CauseController,
     CauseSupportsController,
     ActionsController,
-    InitiativesEventsController,
+    InitiativesGrpcController,
   ],
 })
 export class InitiativesModule {}

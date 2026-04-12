@@ -1,75 +1,60 @@
-import {
-  DomainEventError,
-  DomainEventsPort,
-  Either,
-  left,
-  right,
-} from '@app/shared/domain';
-import {
-  CollaborationStatisticsData,
-  GetCollaborationStatisticsQuery,
-} from '@app/shared/domain/queries/get-collaboration-statistics.query';
-import {
-  CommunitiesStatisticsData,
-  GetCommunitiesStatisticsQuery,
-} from '@app/shared/domain/queries/get-communities-statistics.query';
-import {
-  CauseStatisticsRow,
-  GetInitiativesStatisticsQuery,
-  InitiativesStatisticsData,
-} from '@app/shared/domain/queries/get-initiatives-statistics.query';
-import { Injectable } from '@nestjs/common';
+import { DomainEventError, Either, left, right } from '@app/shared/domain';
+import { CauseStatisticsRow } from '@app/shared/domain/queries/get-initiatives-statistics.query';
+import { Injectable, Logger } from '@nestjs/common';
 import { CommunityStatistics, StatisticsDto } from '../dtos/statistics.dto';
+import {
+  CoreCollaborationStatisticsData as CollaborationStatisticsData,
+  CoreCommunitiesStatisticsData as CommunitiesStatisticsData,
+  CoreInitiativesStatisticsData as InitiativesStatisticsData,
+  CoreStatisticsPort,
+} from '../ports/core-statistics.port';
 import { StatisticsPort } from '../ports/statistics.port';
 
 @Injectable()
 export class StatisticsService implements StatisticsPort {
-  constructor(private readonly domainEvents: DomainEventsPort) {}
+  private readonly logger = new Logger(StatisticsService.name);
+
+  constructor(private readonly coreStatisticsService: CoreStatisticsPort) {}
 
   async getGlobalStatistics(): Promise<
     Either<DomainEventError, StatisticsDto>
   > {
-    const [communitiesOrError, initiativesOrError, collaborationOrError] =
-      await Promise.all([
-        this.domainEvents.query<CommunitiesStatisticsData>(
-          new GetCommunitiesStatisticsQuery(),
-        ),
-        this.domainEvents.query<InitiativesStatisticsData>(
-          new GetInitiativesStatisticsQuery(),
-        ),
-        this.domainEvents.query<CollaborationStatisticsData>(
-          new GetCollaborationStatisticsQuery(),
-        ),
-      ]);
-    if (communitiesOrError.isLeft()) {
-      return left(communitiesOrError.value);
-    }
-    if (initiativesOrError.isLeft()) {
-      return left(initiativesOrError.value);
-    }
-    if (collaborationOrError.isLeft()) {
-      return left(collaborationOrError.value);
+    let communitiesData: CommunitiesStatisticsData;
+    let initiativesData: InitiativesStatisticsData;
+    let collaborationData: CollaborationStatisticsData;
+
+    try {
+      this.logger.debug('Fetching global statistics from gRPC service...');
+      [communitiesData, initiativesData, collaborationData] = await Promise.all(
+        [
+          this.coreStatisticsService.getCommunitiesStatistics(),
+          this.coreStatisticsService.getInitiativesStatistics(),
+          this.coreStatisticsService.getCollaborationStatistics(),
+        ],
+      );
+    } catch (error) {
+      this.logger.error('Failed to fetch statistics from gRPC service:', error);
+      const message =
+        error instanceof Error ? error.message : 'Failed to fetch statistics';
+      return left(new DomainEventError(message));
     }
 
     const totals: StatisticsDto['totals'] = {
-      causes: initiativesOrError.value.totalCauses,
-      communities: communitiesOrError.value.data.length,
-      donations: collaborationOrError.value.totalDonationsMoney,
-      supports: initiativesOrError.value.totalSupports,
+      causes: initiativesData.totalCauses,
+      communities: communitiesData.data.length,
+      donations: collaborationData.totalDonationsMoney,
+      supports: initiativesData.totalSupports,
     };
 
     const odsCounts: Record<number, number> = {};
-    for (const odsCount of initiativesOrError.value.odsCount) {
+    for (const odsCount of initiativesData.odsCount) {
       odsCounts[odsCount.ods] = odsCount.count;
     }
 
     const dto = new StatisticsDto(
       totals,
-      this.buildCommunityStatistics(
-        communitiesOrError.value,
-        initiativesOrError.value,
-      ),
-      initiativesOrError.value.activity,
+      this.buildCommunityStatistics(communitiesData, initiativesData),
+      initiativesData.activity,
       odsCounts,
     );
     return right(dto);

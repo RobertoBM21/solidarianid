@@ -35,6 +35,10 @@ describe('MembershipRequestAcceptedHandler', () => {
     jest.clearAllMocks();
   });
 
+  it('should be defined', () => {
+    expect(handler).toBeDefined();
+  });
+
   it('should save new member when MembershipRequestAcceptedEvent is handled', async () => {
     const communityId = UniqueEntityID.create().toString();
     const userId = UniqueEntityID.create().toString();

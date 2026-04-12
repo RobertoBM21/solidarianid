@@ -13,14 +13,14 @@ import { DonationRepository } from './domain/repositories/donation.repository';
 import { VolunteerLogRepository } from './domain/repositories/volunteer-log.repository';
 import { StripeAdapter } from './infrastructure/adapters/stripe.adapter';
 import stripeConfig from './infrastructure/config/stripe.config';
+import { CollaborationGrpcController } from './infrastructure/grpc/collaboration-grpc.controller';
+import { DonationsGrpcController } from './infrastructure/grpc/donations-grpc.controller';
 import { CollaborationHistoryRetrieverAdapter } from './infrastructure/persistence/adapters/collaboration-history-retriever.adapter';
 import { DonationDbEntity } from './infrastructure/persistence/entities/donation.db-entity';
 import { VolunteerLogDbEntity } from './infrastructure/persistence/entities/volunteer-log.db-entity';
 import { DonationRepositoryImpl } from './infrastructure/persistence/repositories/donation.repository.impl';
 import { VolunteerLogRepositoryImpl } from './infrastructure/persistence/repositories/volunteer-log.repository.impl';
-import { CollaborationEventsController } from './infrastructure/presentation/controllers/collaboration-events.controller';
 import { CollaborationController } from './infrastructure/presentation/controllers/collaboration.controller';
-import { DonationsEventsController } from './infrastructure/presentation/controllers/donations-events.controller';
 import { DonationsController } from './infrastructure/presentation/controllers/donations.controller';
 import { VolunteerLogsController } from './infrastructure/presentation/controllers/volunteer-logs.controller';
 
@@ -68,9 +68,9 @@ import { VolunteerLogsController } from './infrastructure/presentation/controlle
   ],
   controllers: [
     DonationsController,
-    DonationsEventsController,
+    DonationsGrpcController,
     VolunteerLogsController,
-    CollaborationEventsController,
+    CollaborationGrpcController,
     CollaborationController,
   ],
 })

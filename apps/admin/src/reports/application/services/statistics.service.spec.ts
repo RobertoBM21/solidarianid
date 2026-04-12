@@ -1,25 +1,23 @@
-import { DomainEventsPort, left, right } from '@app/shared/domain';
-import {
-  CollaborationStatisticsData,
-  GetCollaborationStatisticsQuery,
-} from '@app/shared/domain/queries/get-collaboration-statistics.query';
-import {
-  CommunitiesStatisticsData,
-  GetCommunitiesStatisticsQuery,
-} from '@app/shared/domain/queries/get-communities-statistics.query';
-import {
-  GetInitiativesStatisticsQuery,
-  InitiativesStatisticsData,
-} from '@app/shared/domain/queries/get-initiatives-statistics.query';
+import { Logger } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { StatisticsDto } from '../dtos/statistics.dto';
+import {
+  CoreCollaborationStatisticsData as CollaborationStatisticsData,
+  CoreCommunitiesStatisticsData as CommunitiesStatisticsData,
+  CoreStatisticsPort,
+  CoreInitiativesStatisticsData as InitiativesStatisticsData,
+} from '../ports/core-statistics.port';
 import { StatisticsService } from './statistics.service';
 
 describe('StatisticsService', () => {
   let service: StatisticsService;
 
-  const mockDomainEventsPort = {
-    query: jest.fn(),
+  jest.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
+
+  const mockCoreStatisticsGateway: jest.Mocked<CoreStatisticsPort> = {
+    getCommunitiesStatistics: jest.fn(),
+    getInitiativesStatistics: jest.fn(),
+    getCollaborationStatistics: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -27,8 +25,8 @@ describe('StatisticsService', () => {
       providers: [
         StatisticsService,
         {
-          provide: DomainEventsPort,
-          useValue: mockDomainEventsPort,
+          provide: CoreStatisticsPort,
+          useValue: mockCoreStatisticsGateway,
         },
       ],
     }).compile();
@@ -73,18 +71,15 @@ describe('StatisticsService', () => {
         totalDonationsMoney: 1000,
       };
 
-      mockDomainEventsPort.query.mockImplementation((query) => {
-        if (query instanceof GetCommunitiesStatisticsQuery) {
-          return Promise.resolve(right(communitiesData));
-        }
-        if (query instanceof GetInitiativesStatisticsQuery) {
-          return Promise.resolve(right(initiativesData));
-        }
-        if (query instanceof GetCollaborationStatisticsQuery) {
-          return Promise.resolve(right(collaborationData));
-        }
-        return Promise.reject(new Error('Unknown query'));
-      });
+      mockCoreStatisticsGateway.getCommunitiesStatistics.mockResolvedValue(
+        communitiesData,
+      );
+      mockCoreStatisticsGateway.getInitiativesStatistics.mockResolvedValue(
+        initiativesData,
+      );
+      mockCoreStatisticsGateway.getCollaborationStatistics.mockResolvedValue(
+        collaborationData,
+      );
 
       const result = await service.getGlobalStatistics();
 
@@ -123,62 +118,65 @@ describe('StatisticsService', () => {
     });
 
     it('should return error if communities query fails', async () => {
-      mockDomainEventsPort.query.mockImplementation((query) => {
-        if (query instanceof GetCommunitiesStatisticsQuery) {
-          return Promise.resolve(left(new Error('Comm Fail')));
-        }
-        return Promise.resolve(right({}));
+      mockCoreStatisticsGateway.getCommunitiesStatistics.mockRejectedValue(
+        new Error('Comm Fail'),
+      );
+      mockCoreStatisticsGateway.getInitiativesStatistics.mockResolvedValue({
+        odsCount: [],
+        activity: [],
+        causes: [],
+        totalCauses: 0,
+        totalSupports: 0,
+      });
+      mockCoreStatisticsGateway.getCollaborationStatistics.mockResolvedValue({
+        totalDonationsMoney: 0,
       });
 
       const result = await service.getGlobalStatistics();
       expect(result.isLeft()).toBeTruthy();
-      expect((result.value as Error).message).toBe('Comm Fail');
+      if (result.isLeft()) {
+        expect(result.value.message).toBe('Comm Fail');
+      }
     });
 
     it('should return error if initiatives query fails', async () => {
-      mockDomainEventsPort.query.mockImplementation((query) => {
-        if (query instanceof GetCommunitiesStatisticsQuery) {
-          return Promise.resolve(right({ data: [] }));
-        }
-        if (query instanceof GetInitiativesStatisticsQuery) {
-          return Promise.resolve(left(new Error('Init Fail')));
-        }
-        if (query instanceof GetCollaborationStatisticsQuery) {
-          return Promise.resolve(right({ totalDonationsMoney: 0 }));
-        }
-        return Promise.resolve(right({}));
+      mockCoreStatisticsGateway.getCommunitiesStatistics.mockResolvedValue({
+        data: [],
+      });
+      mockCoreStatisticsGateway.getInitiativesStatistics.mockRejectedValue(
+        new Error('Init Fail'),
+      );
+      mockCoreStatisticsGateway.getCollaborationStatistics.mockResolvedValue({
+        totalDonationsMoney: 0,
       });
 
       const result = await service.getGlobalStatistics();
       expect(result.isLeft()).toBeTruthy();
-      expect((result.value as Error).message).toBe('Init Fail');
+      if (result.isLeft()) {
+        expect(result.value.message).toBe('Init Fail');
+      }
     });
 
     it('should return error if collaboration query fails', async () => {
-      mockDomainEventsPort.query.mockImplementation((query) => {
-        if (query instanceof GetCommunitiesStatisticsQuery) {
-          return Promise.resolve(right({ data: [] }));
-        }
-        if (query instanceof GetInitiativesStatisticsQuery) {
-          return Promise.resolve(
-            right({
-              odsCount: [],
-              activity: [],
-              causes: [],
-              totalCauses: 0,
-              totalSupports: 0,
-            }),
-          );
-        }
-        if (query instanceof GetCollaborationStatisticsQuery) {
-          return Promise.resolve(left(new Error('Collab Fail')));
-        }
-        return Promise.resolve(right({}));
+      mockCoreStatisticsGateway.getCommunitiesStatistics.mockResolvedValue({
+        data: [],
       });
+      mockCoreStatisticsGateway.getInitiativesStatistics.mockResolvedValue({
+        odsCount: [],
+        activity: [],
+        causes: [],
+        totalCauses: 0,
+        totalSupports: 0,
+      });
+      mockCoreStatisticsGateway.getCollaborationStatistics.mockRejectedValue(
+        new Error('Collab Fail'),
+      );
 
       const result = await service.getGlobalStatistics();
       expect(result.isLeft()).toBeTruthy();
-      expect((result.value as Error).message).toBe('Collab Fail');
+      if (result.isLeft()) {
+        expect(result.value.message).toBe('Collab Fail');
+      }
     });
   });
 });

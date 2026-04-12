@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { DonationRepository } from '../../../domain/repositories/donation.repository';
-import { DonationsEventsController } from './donations-events.controller';
+import { DonationRepository } from '../../domain/repositories/donation.repository';
+import { DonationsGrpcController } from './donations-grpc.controller';
 
-describe('DonationsEventsController', () => {
-  let controller: DonationsEventsController;
+describe('DonationsGrpcEventsController', () => {
+  let controller: DonationsGrpcController;
 
   const mockDonationRepository = {
     getTotalDonationsAmount: jest.fn(),
@@ -12,7 +12,7 @@ describe('DonationsEventsController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        DonationsEventsController,
+        DonationsGrpcController,
         {
           provide: DonationRepository,
           useValue: mockDonationRepository,
@@ -20,9 +20,7 @@ describe('DonationsEventsController', () => {
       ],
     }).compile();
 
-    controller = module.get<DonationsEventsController>(
-      DonationsEventsController,
-    );
+    controller = module.get<DonationsGrpcController>(DonationsGrpcController);
   });
 
   afterEach(() => {

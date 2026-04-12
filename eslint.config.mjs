@@ -21,6 +21,7 @@ export default [
       '.next',
       '**/.next',
       '**/*.d.ts',
+      '**/grpc/stubs/**',
     ],
   },
   eslint.configs.recommended,
