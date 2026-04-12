@@ -39,7 +39,10 @@ export default async function CommunityManagementPage({
             </p>
           </div>
 
-          <Link href={`/communities/${community.id}`} className="btn btn-outline-primary">
+          <Link
+            href={`/communities/${community.id}`}
+            className="btn btn-outline-primary"
+          >
             Volver al detalle
           </Link>
         </div>
@@ -48,7 +51,9 @@ export default async function CommunityManagementPage({
           <Col md={5}>
             <Card className="h-100 border-0 shadow-sm">
               <CardBody>
-                <CardTitle className="text-primary">Información de la comunidad</CardTitle>
+                <CardTitle className="text-primary">
+                  Información de la comunidad
+                </CardTitle>
                 <CardText className="mb-2 text-muted">
                   <strong>Nombre:</strong> {community.name}
                 </CardText>
@@ -72,7 +77,9 @@ export default async function CommunityManagementPage({
           <Col md={7}>
             <Card className="h-100 border-0 shadow-sm">
               <CardBody>
-                <CardTitle className="text-primary">Gestión de miembros</CardTitle>
+                <CardTitle className="text-primary">
+                  Gestión de miembros
+                </CardTitle>
                 <Table striped bordered hover responsive className="mb-0">
                   <thead>
                     <tr>
@@ -86,10 +93,16 @@ export default async function CommunityManagementPage({
                       <tr key={member.id}>
                         <td>{member.userId}</td>
                         <td>
-                          {member.role === 'admin' ? 'Administrador' : 'Miembro'}
+                          {member.role === 'admin'
+                            ? 'Administrador'
+                            : 'Miembro'}
                         </td>
                         <td className="d-flex gap-2">
-                          <Button size="sm" variant="outline-primary" disabled={member.role === 'admin'}>
+                          <Button
+                            size="sm"
+                            variant="outline-primary"
+                            disabled={member.role === 'admin'}
+                          >
                             Promover
                           </Button>
                           <Button size="sm" variant="outline-danger" disabled>

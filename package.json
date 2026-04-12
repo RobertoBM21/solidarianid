@@ -36,6 +36,7 @@
     "test:mutation": "stryker run"
   },
   "dependencies": {
+    "@apollo/client": "^4.1.7",
     "@apollo/server": "^5.5.0",
     "@as-integrations/express5": "^1.1.2",
     "@keyv/redis": "^5.1.5",

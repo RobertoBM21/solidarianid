@@ -8,6 +8,7 @@ import {
 import { GraphQLModule } from '@nestjs/graphql';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { Test, TestingModule } from '@nestjs/testing';
+import { join } from 'path';
 import request from 'supertest';
 import {
   CauseDto,
@@ -73,7 +74,7 @@ describe('GraphQL resolvers', () => {
       imports: [
         GraphQLModule.forRoot<ApolloDriverConfig>({
           driver: ApolloDriver,
-          autoSchemaFile: true,
+          autoSchemaFile: join(process.cwd(), 'apps/core/src/schema.gql'),
           subscriptions: { 'graphql-ws': true },
         }),
         AuthMiddlewareModule,

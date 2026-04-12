@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
@@ -11,32 +11,71 @@ import Form from 'react-bootstrap/Form';
 import FormControl from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
+import { createCommunityProposal } from '../../../services/communities.service';
 
 const initialForm = {
   name: '',
   description: '',
 };
 
+const initialFieldErrors = {
+  name: '',
+  description: '',
+};
+
 export default function CreateCommunityPage() {
   const [formData, setFormData] = useState(initialForm);
+  const [fieldErrors, setFieldErrors] = useState(initialFieldErrors);
   const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
 
   function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const { name, value } = event.target;
+
     setFormData({
       ...formData,
-      [event.target.name]: event.target.value,
+      [name]: value,
+    });
+
+    setFieldErrors({
+      ...fieldErrors,
+      [name]: '',
     });
   }
 
-  function handleSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!formData.name.trim() || !formData.description.trim()) {
+    const nextFieldErrors = {
+      name: formData.name.trim() ? '' : 'El nombre es obligatorio.',
+      description: formData.description.trim()
+        ? ''
+        : 'La descripción es obligatoria.',
+    };
+
+    setFieldErrors(nextFieldErrors);
+
+    if (nextFieldErrors.name || nextFieldErrors.description) {
       return;
     }
 
-    setMessage(`Se ha registrado la propuesta de comunidad "${formData.name}".`);
-    setFormData(initialForm);
+    setMessage('');
+    setError('');
+
+    try {
+      const proposalResponse = await createCommunityProposal(formData);
+      setMessage(
+        `Se ha registrado la propuesta de comunidad. ID de propuesta: ${proposalResponse.proposalId ?? ''}`,
+      );
+      setFormData(initialForm);
+      setFieldErrors(initialFieldErrors);
+    } catch (submissionError) {
+      setError(
+        submissionError instanceof Error
+          ? submissionError.message
+          : 'Error al enviar la propuesta.',
+      );
+    }
   }
 
   return (
@@ -46,10 +85,15 @@ export default function CreateCommunityPage() {
           <CardBody>
             <CardTitle className="text-primary">Proponer comunidad</CardTitle>
             <p className="text-muted">
-              Completa este formulario para registrar una nueva propuesta de comunidad.
+              Completa este formulario para registrar una nueva propuesta de
+              comunidad.
             </p>
 
-            <Form onSubmit={handleSubmit}>
+            <Form
+              onSubmit={(event) => {
+                void handleSubmit(event);
+              }}
+            >
               <FormGroup className="mb-3">
                 <FormLabel>Nombre</FormLabel>
                 <FormControl
@@ -57,7 +101,14 @@ export default function CreateCommunityPage() {
                   value={formData.name}
                   onChange={handleChange}
                   placeholder="Nombre de la comunidad"
+                  required
+                  isInvalid={Boolean(fieldErrors.name)}
                 />
+                {fieldErrors.name ? (
+                  <div className="invalid-feedback d-block">
+                    {fieldErrors.name}
+                  </div>
+                ) : null}
               </FormGroup>
 
               <FormGroup className="mb-3">
@@ -67,7 +118,14 @@ export default function CreateCommunityPage() {
                   value={formData.description}
                   onChange={handleChange}
                   placeholder="Descripción breve"
+                  required
+                  isInvalid={Boolean(fieldErrors.description)}
                 />
+                {fieldErrors.description ? (
+                  <div className="invalid-feedback d-block">
+                    {fieldErrors.description}
+                  </div>
+                ) : null}
               </FormGroup>
 
               <Button type="submit" variant="primary">
@@ -78,6 +136,12 @@ export default function CreateCommunityPage() {
             {message ? (
               <Alert variant="success" className="mt-3 mb-0">
                 {message}
+              </Alert>
+            ) : null}
+
+            {error ? (
+              <Alert variant="danger" className="mt-3 mb-0">
+                {error}
               </Alert>
             ) : null}
           </CardBody>

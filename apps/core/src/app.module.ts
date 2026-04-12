@@ -5,6 +5,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { ConfigModule, type ConfigType } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
+import { join } from 'path';
 import { CollaborationModule } from './collaboration/collaboration.module';
 import { CommunitiesModule } from './communities/communities.module';
 import { IdentityModule } from './identity/identity.module';
@@ -23,7 +24,7 @@ import { InitiativesModule } from './initiatives/initiatives.module';
 
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
-      autoSchemaFile: true,
+      autoSchemaFile: join(process.cwd(), 'apps/core/src/schema.gql'),
       playground: true,
       subscriptions: {
         'graphql-ws': true,

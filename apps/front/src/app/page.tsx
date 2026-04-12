@@ -8,6 +8,8 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import { getLatestCommunities } from '../services/communities.service';
 
+export const dynamic = 'force-dynamic';
+
 const featureCards = [
   {
     title: 'Comunidad global',

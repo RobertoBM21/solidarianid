@@ -8,6 +8,8 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import { getCommunities } from '../../services/communities.service';
 
+export const dynamic = 'force-dynamic';
+
 export default async function CommunitiesPage() {
   const communities = await getCommunities();
 

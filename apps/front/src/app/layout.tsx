@@ -1,10 +1,12 @@
+import type { Metadata } from 'next';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Footer from '../components/layout/Footer';
 import Navbar from '../components/layout/Navbar';
+import AppApolloProvider from '../components/apollo/AppApolloProvider';
 import RegisterServiceWorker from '../components/pwa/RegisterServiceWorker';
 import './global.css';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'SolidarianID',
   description: 'Frontend general de SolidarianID',
 };
@@ -37,10 +39,12 @@ export default function RootLayout({
         />
       </head>
       <body className="d-flex flex-column min-vh-100">
-        <RegisterServiceWorker />
-        <Navbar />
-        {children}
-        <Footer />
+        <AppApolloProvider>
+          <RegisterServiceWorker />
+          <Navbar />
+          {children}
+          <Footer />
+        </AppApolloProvider>
       </body>
     </html>
   );
