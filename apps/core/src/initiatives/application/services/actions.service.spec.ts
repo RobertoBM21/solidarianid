@@ -1,9 +1,9 @@
 import { left, right, UniqueEntityID } from '@app/shared/domain';
+import { DomainEventsPort } from '@app/shared/domain/ports/domain-events.port';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserIsNotAdminError } from '../../../communities/domain/community.aggregate';
 import { CauseAggr } from '../../domain/aggregates/cause.aggregate';
 import { CommunityAuthorizationPort } from '../../domain/ports/community-authz.port';
-import { ActionRepository } from '../../domain/repositories/action.repository';
 import {
   CauseAggrRepository,
   CauseNotFoundError,
@@ -14,8 +14,8 @@ import { ActionsService } from './actions.service';
 describe('ActionsService', () => {
   let service: ActionsService;
 
-  const mockActionRepository: jest.Mocked<Pick<ActionRepository, 'save'>> = {
-    save: jest.fn(),
+  const mockDomainEvents: jest.Mocked<Pick<DomainEventsPort, 'dispatch'>> = {
+    dispatch: jest.fn(),
   };
 
   const mockCauseRepository: jest.Mocked<
@@ -32,14 +32,18 @@ describe('ActionsService', () => {
   const causeId = UniqueEntityID.create();
   const requesterId = UniqueEntityID.create();
 
+  const makeCauseAggr = (closed = false) =>
+    CauseAggr.create({
+      id: causeId.toString(),
+      title: 'Test Cause',
+      communityId: communityId.toString(),
+      closed,
+    }).value as CauseAggr;
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ActionsService,
-        {
-          provide: ActionRepository,
-          useValue: mockActionRepository,
-        },
         {
           provide: CauseAggrRepository,
           useValue: mockCauseRepository,
@@ -47,6 +51,10 @@ describe('ActionsService', () => {
         {
           provide: CommunityAuthorizationPort,
           useValue: mockCommunityAuthzPort,
+        },
+        {
+          provide: DomainEventsPort,
+          useValue: mockDomainEvents,
         },
       ],
     }).compile();
@@ -56,14 +64,11 @@ describe('ActionsService', () => {
   });
 
   it('should create a funding action when requester is admin', async () => {
-    const cause = CauseAggr.create({
-      id: causeId.toString(),
-      communityId: communityId.toString(),
-    });
+    const cause = makeCauseAggr();
 
     mockCauseRepository.findById.mockResolvedValue(right(cause));
     mockCommunityAuthzPort.canManageCommunity.mockResolvedValue(true);
-    mockActionRepository.save.mockResolvedValue(undefined);
+    mockDomainEvents.dispatch.mockResolvedValue(undefined);
 
     const result = await service.createFundingAction(causeId, requesterId, {
       title: 'Buy supplies',
@@ -78,7 +83,7 @@ describe('ActionsService', () => {
       requesterId.toString(),
       communityId.toString(),
     );
-    expect(mockActionRepository.save).toHaveBeenCalledTimes(1);
+    expect(mockDomainEvents.dispatch).toHaveBeenCalledWith(cause);
   });
 
   it('should fail when cause does not exist', async () => {
@@ -100,11 +105,7 @@ describe('ActionsService', () => {
   });
 
   it('should fail when cause is closed', async () => {
-    const cause = CauseAggr.create({
-      id: causeId.toString(),
-      closed: true,
-      communityId: communityId.toString(),
-    });
+    const cause = makeCauseAggr(true);
 
     mockCauseRepository.findById.mockResolvedValue(right(cause));
     mockCommunityAuthzPort.canManageCommunity.mockResolvedValue(true);
@@ -119,14 +120,11 @@ describe('ActionsService', () => {
     expect(result.isLeft()).toBe(true);
     expect(result.value).toBeInstanceOf(InitiativeAlreadyClosedError);
     expect(mockCauseRepository.findById).toHaveBeenCalledWith(causeId);
-    expect(mockCommunityAuthzPort.canManageCommunity).not.toHaveBeenCalled();
+    expect(mockCommunityAuthzPort.canManageCommunity).toHaveBeenCalled();
   });
 
   it('should fail when requester is not admin', async () => {
-    const cause = CauseAggr.create({
-      id: causeId.toString(),
-      communityId: communityId.toString(),
-    });
+    const cause = makeCauseAggr();
 
     mockCommunityAuthzPort.canManageCommunity.mockResolvedValue(false);
     mockCauseRepository.findById.mockResolvedValue(right(cause));

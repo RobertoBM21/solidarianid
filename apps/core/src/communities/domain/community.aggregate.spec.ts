@@ -79,6 +79,7 @@ describe('Community Aggregate', () => {
 
       const event = events[0] as CauseCreatedEvent;
       expect(event.causeId).toBe(cause.id.toString());
+      expect(event.causeTitle).toBe(cause.title);
       expect(event.communityId).toBe(community.id.toString());
     });
 

@@ -4,11 +4,14 @@ import { CommunitiesModule } from '../communities/communities.module';
 import { IdentityModule } from '../identity/identity.module';
 import { CauseClosedHandler } from './application/handlers/cause-closed.handler';
 import { CauseCreatedHandler } from './application/handlers/cause-created.handler';
+import { CauseSupportRegisteredHandler } from './application/handlers/cause-support-registered.handler';
 import { DonationCreatedHandler } from './application/handlers/donation-created.handler';
+import { FundingActionCreatedHandler } from './application/handlers/funding-action-created.handler';
 import { GetDonationIntentionHandler } from './application/handlers/get-donation-intention.handler';
 import { GetMySupportsHandler } from './application/handlers/get-my-supports.handler';
-import { IsCauseSupportedByUserHandler } from './application/handlers/is-cause-supported-by-user.handler';
+import { VolunteeringActionCreatedHandler } from './application/handlers/volunteering-action-created.handler';
 import { ActionsPort } from './application/ports/actions.port';
+import { CauseDataGetterPort } from './application/ports/cause-data-getter.port';
 import { CauseSupportsPort } from './application/ports/cause-supports.port';
 import { CausesPort } from './application/ports/causes.port';
 import { ActionsService } from './application/services/actions.service';
@@ -92,14 +95,20 @@ import { CauseSupportsResolver } from './infrastructure/presentation/graphql/cau
       provide: CommunityAuthorizationPort,
       useExisting: CommunitiesIntegrationAdapter,
     },
+    {
+      provide: CauseDataGetterPort,
+      useExisting: CommunitiesIntegrationAdapter,
+    },
 
     // Handlers
     CauseCreatedHandler,
     CauseClosedHandler,
+    CauseSupportRegisteredHandler,
+    VolunteeringActionCreatedHandler,
+    FundingActionCreatedHandler,
     DonationCreatedHandler,
     GetDonationIntentionHandler,
     GetMySupportsHandler,
-    IsCauseSupportedByUserHandler,
 
     // Services / Ports
     CausesService,

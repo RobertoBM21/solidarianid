@@ -44,9 +44,10 @@ describe('CauseClosedHandler', () => {
 
     const causeAggr = CauseAggr.create({
       id: causeId.toString(),
+      title: 'Test Cause',
       closed: false,
       communityId: communityId.toString(),
-    });
+    }).value as CauseAggr;
 
     mockCauseAggrRepository.findById.mockResolvedValue(right(causeAggr));
     mockCauseAggrRepository.save.mockResolvedValue();

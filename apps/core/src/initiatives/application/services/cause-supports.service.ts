@@ -9,7 +9,6 @@ import { Injectable } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 import { GetUserExistsQuery } from '../../../identity/application/queries/get-user-exists.query';
 import { UserNotFoundError } from '../../../identity/domain/repositories/user.repository';
-import { CauseSupport } from '../../domain/aggregates/cause-support.aggregate';
 import { AnonymousSupporterRepository } from '../../domain/repositories/anonymous-supporter.repository';
 import { CauseAggrRepository } from '../../domain/repositories/cause-aggr.repository';
 import {
@@ -92,13 +91,13 @@ export class CauseSupportsService extends CauseSupportsPort {
       return left(new AlreadySupportingError());
     }
 
-    const supportOrError = CauseSupport.create({ causeId, supporter });
-    if (supportOrError.isLeft()) {
-      return left(supportOrError.value);
+    const causeAggr = causeResult.value;
+    const registerOrError = causeAggr.registerSupport(supporter);
+    if (registerOrError.isLeft()) {
+      return left(registerOrError.value);
     }
 
-    await this.causeSupportRepository.save(supportOrError.value);
-    await this.domainEvents.dispatch(supportOrError.value);
+    await this.domainEvents.dispatch(causeAggr);
     return right(undefined);
   }
 

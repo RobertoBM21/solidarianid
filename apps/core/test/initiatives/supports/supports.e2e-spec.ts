@@ -3,8 +3,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { DataSource } from 'typeorm';
 import { CoreAppModule } from '../../../src/app.module';
+import { CauseSupportDbEntity } from '../../../src/initiatives/infrastructure/persistence/entities/cause-support.db-entity';
 import { CommunityTestFactory } from '../../communities/community.test-factory';
-import { clearDatabase } from '../../db-test-utils';
+import { clearDatabase, waitFor } from '../../db-test-utils';
 import { UserTestFactory } from '../../identity/user.test-factory';
 import { CauseTestFactory } from '../causes/cause.test-factory';
 
@@ -65,12 +66,31 @@ describe('Supports integration tests', () => {
     };
   };
 
+  const waitForUserSupportPersisted = async () => {
+    await waitFor(async () => {
+      const res = await request(app.getHttpServer())
+        .get(`/causes/${idCause}`)
+        .set('Authorization', idUser);
+      return res.body.supportedByUser === true;
+    });
+  };
+
+  const waitForAnonymousSupportPersisted = async () => {
+    await waitFor(async () => {
+      const count = await dataSource
+        .getRepository(CauseSupportDbEntity)
+        .countBy({ causeId: idCause });
+      return count > 0;
+    });
+  };
+
   it('should create a user support successfully', async () => {
     await request(app.getHttpServer())
       .post(`/causes/${idCause}/supports`)
       .set('Authorization', idUser)
       .send({})
       .expect(201);
+    await waitForUserSupportPersisted();
   });
 
   it('should create an anonymous support successfully', async () => {
@@ -79,6 +99,7 @@ describe('Supports integration tests', () => {
       .post(`/causes/${idCause}/supports/create-anonymous`)
       .send(supportData)
       .expect(201);
+    await waitForAnonymousSupportPersisted();
   });
 
   it('should fail to create a user support without authentication', async () => {

@@ -112,9 +112,17 @@ export class Community extends AggregateRoot<CommunityProps> {
     }
     this.props.causes = updatedCauses.value;
     this.addDomainEvent(
-      new CauseCreatedEvent(cause.id.toString(), this.id.toString()),
+      new CauseCreatedEvent(
+        cause.id.toString(),
+        cause.title,
+        this.id.toString(),
+      ),
     );
     return right(cause);
+  }
+
+  getCause(causeId: UniqueEntityID): Cause | undefined {
+    return this.props.causes.getCause(causeId);
   }
 
   closeCause(

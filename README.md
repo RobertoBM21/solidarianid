@@ -2,16 +2,6 @@
 
 > Grupo 2: Roberto Burruezo, Raúl González, Paula Sempere, Ángel Pérez
 
-## Base de datos
-
-Las consultas principales del sistema se han extraído en archivos SQL ubicados en `database/queries/`. El archivo `database/init.sql` prepara el esquema e inserta datos de prueba.
-
-Es posible ejecutar las consultas de forma sencilla mediante el "Query Explorer" (necesario Docker):
-
-```bash
-./scripts/start-queries-explorer.sh
-```
-
 ## Arquitectura
 
 El proyecto se divide en múltiples componentes:

@@ -9,7 +9,7 @@ import {
   VolunteeringActionApiDto,
 } from '../../../src/initiatives/infrastructure/presentation/dtos/action.api-dto';
 import { CommunityTestFactory } from '../../communities/community.test-factory';
-import { clearDatabase } from '../../db-test-utils';
+import { clearDatabase, waitFor } from '../../db-test-utils';
 import { CauseTestFactory } from '../causes/cause.test-factory';
 
 describe('Actions integration tests', () => {
@@ -145,9 +145,20 @@ describe('Actions integration tests', () => {
     return res;
   };
 
+  const waitForActionPersisted = async (actionId: string) => {
+    await waitFor(async () => {
+      const res = await request(app.getHttpServer())
+        .get(`/causes/${idCause}`)
+        .set('Authorization', userId);
+      const actions = res.body.actions ?? [];
+      return actions.some((a: { id: string }) => a.id === actionId);
+    });
+  };
+
   it('should create a funding action successfully', async () => {
     const actionData = buildFundingActionData();
-    await createFundingActionAndExpectSuccess(actionData);
+    const res = await createFundingActionAndExpectSuccess(actionData);
+    await waitForActionPersisted(res.body.id as string);
   });
 
   it('should fail to create a funding action with empty title', async () => {
@@ -174,7 +185,8 @@ describe('Actions integration tests', () => {
 
   it('should create a volunteering action successfully', async () => {
     const actionData = buildVolunteeringActionData();
-    await createVolunteeringActionAndExpectSuccess(actionData);
+    const res = await createVolunteeringActionAndExpectSuccess(actionData);
+    await waitForActionPersisted(res.body.id as string);
   });
 
   it('should fail to create a volunteering action with empty title', async () => {

@@ -37,6 +37,14 @@ describe('CauseSupportsService', () => {
   const causeId = UniqueEntityID.create().toString();
   const userId = UniqueEntityID.create().toString();
 
+  const makeCauseAggr = (closed = false) =>
+    CauseAggr.create({
+      id: causeId,
+      title: 'Test Cause',
+      communityId: communityId,
+      closed,
+    }).value as CauseAggr;
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -70,17 +78,13 @@ describe('CauseSupportsService', () => {
 
   describe('registerSupportForUser', () => {
     it('should register support for a registered user', async () => {
-      const cause = CauseAggr.create({
-        id: causeId,
-        communityId,
-      });
+      const cause = makeCauseAggr();
 
       mockCauseRepository.findById.mockResolvedValue(right(cause));
       mockQueryBus.execute.mockResolvedValue(true);
       mockCauseSupportRepository.existsForSupporterAndCause.mockResolvedValue(
         false,
       );
-      mockCauseSupportRepository.save.mockResolvedValue(undefined);
       mockDomainEvents.dispatch.mockResolvedValue(undefined);
 
       const result = await service.registerSupportForUser({
@@ -92,7 +96,7 @@ describe('CauseSupportsService', () => {
       expect(mockQueryBus.execute).toHaveBeenCalledWith(
         new GetUserExistsQuery(UniqueEntityID.create(userId)),
       );
-      expect(mockCauseSupportRepository.save).toHaveBeenCalled();
+      expect(mockDomainEvents.dispatch).toHaveBeenCalledWith(cause);
     });
 
     it('should return error when cause not found for user', async () => {
@@ -106,10 +110,8 @@ describe('CauseSupportsService', () => {
     });
 
     it('should return error when user does not exist', async () => {
-      const cause = CauseAggr.create({
-        id: causeId,
-        communityId,
-      });
+      const cause = makeCauseAggr();
+
       mockCauseRepository.findById.mockResolvedValue(right(cause));
       mockQueryBus.execute.mockResolvedValue(false);
 
@@ -119,10 +121,8 @@ describe('CauseSupportsService', () => {
     });
 
     it('should return error when already supporting (user)', async () => {
-      const cause = CauseAggr.create({
-        id: causeId,
-        communityId,
-      });
+      const cause = makeCauseAggr();
+
       mockCauseRepository.findById.mockResolvedValue(right(cause));
       mockQueryBus.execute.mockResolvedValue(true);
       mockCauseSupportRepository.existsForSupporterAndCause.mockResolvedValue(
@@ -137,10 +137,7 @@ describe('CauseSupportsService', () => {
 
   describe('registerSupportForAnonymous', () => {
     it('should register support for an anonymous supporter', async () => {
-      const cause = CauseAggr.create({
-        id: causeId,
-        communityId,
-      });
+      const cause = makeCauseAggr();
 
       mockCauseRepository.findById.mockResolvedValue(right(cause));
       mockAnonymousSupporters.getOrCreate.mockResolvedValue(
@@ -149,7 +146,6 @@ describe('CauseSupportsService', () => {
       mockCauseSupportRepository.existsForSupporterAndCause.mockResolvedValue(
         false,
       );
-      mockCauseSupportRepository.save.mockResolvedValue(undefined);
       mockDomainEvents.dispatch.mockResolvedValue(undefined);
 
       const result = await service.registerSupportForAnonymous({
@@ -161,14 +157,12 @@ describe('CauseSupportsService', () => {
       });
 
       expect(result.isRight()).toBe(true);
-      expect(mockCauseSupportRepository.save).toHaveBeenCalled();
+      expect(mockDomainEvents.dispatch).toHaveBeenCalledWith(cause);
     });
 
     it('should return error when anonymous supporter creation fails', async () => {
-      const cause = CauseAggr.create({
-        id: causeId,
-        communityId,
-      });
+      const cause = makeCauseAggr();
+
       mockCauseRepository.findById.mockResolvedValue(right(cause));
       mockAnonymousSupporters.getOrCreate.mockResolvedValue(left(new Error()));
 
@@ -184,10 +178,8 @@ describe('CauseSupportsService', () => {
     });
 
     it('should return error when already supporting (anonymous)', async () => {
-      const cause = CauseAggr.create({
-        id: causeId,
-        communityId,
-      });
+      const cause = makeCauseAggr();
+
       mockCauseRepository.findById.mockResolvedValue(right(cause));
       mockAnonymousSupporters.getOrCreate.mockResolvedValue(
         right(UniqueEntityID.create()),
@@ -210,10 +202,7 @@ describe('CauseSupportsService', () => {
 
   describe('cancelSupport', () => {
     it('should cancel support for user', async () => {
-      const cause = CauseAggr.create({
-        id: causeId,
-        communityId,
-      });
+      const cause = makeCauseAggr();
 
       mockCauseRepository.findById.mockResolvedValue(right(cause));
       mockCauseSupportRepository.removeByUserAndCause.mockResolvedValue(
@@ -229,10 +218,7 @@ describe('CauseSupportsService', () => {
     });
 
     it('should return error when support not found on cancel', async () => {
-      const cause = CauseAggr.create({
-        id: causeId,
-        communityId,
-      });
+      const cause = makeCauseAggr();
 
       mockCauseRepository.findById.mockResolvedValue(right(cause));
       mockCauseSupportRepository.removeByUserAndCause.mockResolvedValue(

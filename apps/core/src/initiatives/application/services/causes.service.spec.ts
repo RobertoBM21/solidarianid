@@ -1,5 +1,4 @@
 import { left, right, UniqueEntityID } from '@app/shared/domain';
-import { QueryBus } from '@nestjs/cqrs';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CauseAggr } from '../../domain/aggregates/cause.aggregate';
 import { ActionRepository } from '../../domain/repositories/action.repository';
@@ -7,32 +6,40 @@ import {
   CauseAggrRepository,
   CauseNotFoundError,
 } from '../../domain/repositories/cause-aggr.repository';
-import { IsCauseSupportedByUserQuery } from '../queries/is-cause-supported-by-user.query';
+import { CauseSupportRepository } from '../../domain/repositories/cause-support.repository';
+import { UserSupporter } from '../../domain/value-objects/supporter.vo';
+import { CauseDataGetterPort } from '../ports/cause-data-getter.port';
 import { CausesService } from './causes.service';
 
 describe('CausesService', () => {
   let service: CausesService;
 
-  const mockCauseRepository = {
-    save: jest.fn(),
+  const mockCauseRepository: jest.Mocked<
+    Pick<CauseAggrRepository, 'findById'>
+  > = {
     findById: jest.fn(),
-    findByIdAndCommunity: jest.fn(),
-    remove: jest.fn(),
   };
 
-  const mockActionRepository = {
-    save: jest.fn(),
-    findById: jest.fn(),
-    remove: jest.fn(),
+  const mockActionRepository: jest.Mocked<
+    Pick<ActionRepository, 'listByCause'>
+  > = {
     listByCause: jest.fn(),
   };
 
-  const mockQueryBus = {
-    execute: jest.fn(),
+  const mockSupportRepository: jest.Mocked<
+    Pick<CauseSupportRepository, 'existsForSupporterAndCause'>
+  > = {
+    existsForSupporterAndCause: jest.fn(),
   };
 
-  const communityId = UniqueEntityID.create().toString();
-  const causeId = UniqueEntityID.create().toString();
+  const mockCauseDataGetter: jest.Mocked<
+    Pick<CauseDataGetterPort, 'getCauseData'>
+  > = {
+    getCauseData: jest.fn(),
+  };
+
+  const communityId = UniqueEntityID.create();
+  const causeId = UniqueEntityID.create();
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -43,12 +50,16 @@ describe('CausesService', () => {
           useValue: mockCauseRepository,
         },
         {
-          provide: QueryBus,
-          useValue: mockQueryBus,
-        },
-        {
           provide: ActionRepository,
           useValue: mockActionRepository,
+        },
+        {
+          provide: CauseSupportRepository,
+          useValue: mockSupportRepository,
+        },
+        {
+          provide: CauseDataGetterPort,
+          useValue: mockCauseDataGetter,
         },
       ],
     }).compile();
@@ -63,14 +74,23 @@ describe('CausesService', () => {
   describe('getCause', () => {
     it('should get a cause by id', async () => {
       const cause = CauseAggr.create({
-        id: causeId,
-        communityId,
+        id: causeId.toString(),
+        title: 'Test Cause',
+        communityId: communityId.toString(),
         closed: false,
-      });
+      }).value as CauseAggr;
 
       mockCauseRepository.findById.mockResolvedValue(right(cause));
-      mockQueryBus.execute.mockResolvedValue(true);
+      mockSupportRepository.existsForSupporterAndCause.mockResolvedValue(true);
       mockActionRepository.listByCause.mockResolvedValue([]);
+      mockCauseDataGetter.getCauseData.mockResolvedValue({
+        title: cause.title,
+        description: 'Test Description',
+        duration: '1 month',
+        closed: false,
+        createdAt: new Date(),
+        ods: 1,
+      });
 
       const result = await service.getCause(
         cause.id.toString(),
@@ -81,10 +101,19 @@ describe('CausesService', () => {
       if (result.isRight()) {
         expect(result.value.id).toBe(cause.id.toString());
       }
-      expect(mockQueryBus.execute).toHaveBeenCalledWith(
-        expect.any(IsCauseSupportedByUserQuery),
+
+      expect(mockCauseRepository.findById).toHaveBeenCalledWith(causeId);
+      expect(
+        mockSupportRepository.existsForSupporterAndCause,
+      ).toHaveBeenCalledWith(
+        expect.any(UserSupporter),
+        UniqueEntityID.create(cause.id.toString()),
       );
       expect(mockActionRepository.listByCause).toHaveBeenCalledTimes(1);
+      expect(mockCauseDataGetter.getCauseData).toHaveBeenCalledWith(
+        cause.communityId.toString(),
+        cause.id.toString(),
+      );
     });
 
     it('should fail when a cause is not found', async () => {
@@ -94,7 +123,7 @@ describe('CausesService', () => {
         left(new CauseNotFoundError(missingId)),
       );
 
-      const result = await service.getCause(communityId, missingId);
+      const result = await service.getCause(communityId.toString(), missingId);
 
       expect(result.isLeft()).toBe(true);
     });

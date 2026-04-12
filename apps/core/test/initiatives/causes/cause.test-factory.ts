@@ -24,6 +24,7 @@ export class CauseTestFactory {
 
     const aggrData = this.aggrRepository.create({
       id: causeData.id,
+      title: causeData.title,
       communityId: causeData.communityId,
     });
 

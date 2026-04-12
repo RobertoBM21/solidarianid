@@ -1,15 +1,15 @@
-import { Either, left, right, UniqueEntityID } from '@app/shared/domain';
+import {
+  DomainEventsPort,
+  Either,
+  left,
+  right,
+  UniqueEntityID,
+} from '@app/shared/domain';
 import { Injectable } from '@nestjs/common';
 import { UserIsNotAdminError } from '../../../communities/domain/community.aggregate';
-import {
-  FundingAction,
-  VolunteeringAction,
-} from '../../domain/aggregates/action.aggregate';
 import { CauseAggr } from '../../domain/aggregates/cause.aggregate';
 import { CommunityAuthorizationPort } from '../../domain/ports/community-authz.port';
-import { ActionRepository } from '../../domain/repositories/action.repository';
 import { CauseAggrRepository } from '../../domain/repositories/cause-aggr.repository';
-import { InitiativeAlreadyClosedError } from '../../domain/value-objects/initiative-status.vo';
 import {
   FundingActionOutDto,
   VolunteeringActionOutDto,
@@ -26,9 +26,9 @@ import {
 @Injectable()
 export class ActionsService extends ActionsPort {
   constructor(
-    private readonly actionRepository: ActionRepository,
     private readonly causeAggrRepository: CauseAggrRepository,
     private readonly communityAuthzPort: CommunityAuthorizationPort,
+    private readonly domainEvents: DomainEventsPort,
   ) {
     super();
   }
@@ -46,19 +46,17 @@ export class ActionsService extends ActionsPort {
       return left(causeOrError.value);
     }
     const cause = causeOrError.value;
-    const actionOrError = FundingAction.create({
+    const actionOrError = cause.createFundingAction({
       title: data.title,
       description: data.description,
       objectives: data.objectives,
       targetAmount: data.targetAmount,
-      causeId: cause.id.toString(),
     });
     if (actionOrError.isLeft()) {
       return left(actionOrError.value);
     }
-    const action = actionOrError.value;
-    await this.actionRepository.save(action);
-    return right(new FundingActionOutDto(action));
+    await this.domainEvents.dispatch(cause);
+    return right(new FundingActionOutDto(actionOrError.value));
   }
 
   async createVolunteeringAction(
@@ -74,20 +72,18 @@ export class ActionsService extends ActionsPort {
       return left(causeOrError.value);
     }
     const cause = causeOrError.value;
-    const actionOrError = VolunteeringAction.create({
+    const actionOrError = cause.createVolunteeringAction({
       title: data.title,
       description: data.description,
       objectives: data.objectives,
       start: data.start,
       end: data.end,
-      causeId: cause.id.toString(),
     });
     if (actionOrError.isLeft()) {
       return left(actionOrError.value);
     }
-    const action = actionOrError.value;
-    await this.actionRepository.save(action);
-    return right(new VolunteeringActionOutDto(action));
+    await this.domainEvents.dispatch(cause);
+    return right(new VolunteeringActionOutDto(actionOrError.value));
   }
 
   private async getCauseAggrIfCanCreateActions(
@@ -99,9 +95,6 @@ export class ActionsService extends ActionsPort {
       return left(causeOrError.value);
     }
     const cause = causeOrError.value;
-    if (cause.closed) {
-      return left(new InitiativeAlreadyClosedError());
-    }
     const canManageCommunity = await this.communityAuthzPort.canManageCommunity(
       userId.toString(),
       cause.communityId.toString(),
