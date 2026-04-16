@@ -9,6 +9,7 @@ import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Table from 'react-bootstrap/Table';
+import { getSessionOrRedirect } from '../../../../lib/auth/get-session-or-redirect';
 import {
   getCommunityById,
   getCommunityMembers,
@@ -19,6 +20,8 @@ export default async function CommunityManagementPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const session = await getSessionOrRedirect();
+
   const { id } = await params;
   const community = await getCommunityById(id);
 

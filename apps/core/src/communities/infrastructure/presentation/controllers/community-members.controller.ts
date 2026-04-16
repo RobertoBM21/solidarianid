@@ -10,7 +10,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ApiOkResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { AuthId } from '../../../../identity/infrastructure/decorators/auth-id.decorator';
 import { AuthGuard } from '../../../../identity/infrastructure/guards/auth.guard';
 import { CommunityMembersPort } from '../../../application/ports/community-members.port';
@@ -24,7 +24,7 @@ import { CommunityMemberDto } from '../dtos/community-member.dto';
 
 @Controller()
 @ApiTags('communities')
-@ApiSecurity('userId')
+@ApiBearerAuth()
 @UseGuards(AuthGuard)
 export class CommunityMembersController {
   constructor(private readonly membersPort: CommunityMembersPort) {}

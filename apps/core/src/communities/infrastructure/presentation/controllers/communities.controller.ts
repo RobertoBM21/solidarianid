@@ -12,11 +12,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiCreatedResponse,
   ApiOkResponse,
   ApiQuery,
-  ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthId } from '../../../../identity/infrastructure/decorators/auth-id.decorator';
@@ -29,7 +29,6 @@ import { ProposeCommunityDto } from '../dtos/propose-community.dto';
 
 @Controller('communities')
 @ApiTags('communities')
-@ApiSecurity('userId')
 export class CommunitiesController {
   private readonly logger = new Logger(CommunitiesController.name);
 
@@ -53,6 +52,7 @@ export class CommunitiesController {
   }
 
   @Post()
+  @ApiBearerAuth()
   @ApiBody({ type: ProposeCommunityDto })
   @ApiCreatedResponse({
     description: 'Community proposal created successfully',

@@ -11,10 +11,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiCreatedResponse,
   ApiOkResponse,
-  ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
 import { ok } from 'assert';
@@ -47,7 +47,7 @@ export class DonationsController {
     description: 'Donation created successfully',
     type: PaymentDto,
   })
-  @ApiSecurity('userId')
+  @ApiBearerAuth()
   async createDonation(
     @Body() createDonationDto: CreateDonationDto,
     @AuthId() userId: string,

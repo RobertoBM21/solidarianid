@@ -7,7 +7,7 @@ import {
   Param,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { ApiOkResponse, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { AuthId } from '../../../../identity/infrastructure/decorators/auth-id.decorator';
 import { CausesPort } from '../../../application/ports/causes.port';
 import { CauseNotFoundError } from '../../../domain/repositories/cause-aggr.repository';
@@ -23,7 +23,6 @@ export class CauseController {
     description: 'Cause detail',
     type: CauseApiDto,
   })
-  @ApiSecurity('userId')
   async detail(
     @Param('causeId', ParseUUIDPipe) causeId: string,
     @AuthId({ optional: true }) userId?: string,

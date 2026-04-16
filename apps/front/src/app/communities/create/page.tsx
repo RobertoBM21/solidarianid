@@ -11,6 +11,7 @@ import Form from 'react-bootstrap/Form';
 import FormControl from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
+import { useFetchClient } from '../../../lib/http/use-fetch-client';
 import { createCommunityProposal } from '../../../services/communities.service';
 
 const initialForm = {
@@ -24,6 +25,7 @@ const initialFieldErrors = {
 };
 
 export default function CreateCommunityPage() {
+  const fetchClient = useFetchClient();
   const [formData, setFormData] = useState(initialForm);
   const [fieldErrors, setFieldErrors] = useState(initialFieldErrors);
   const [message, setMessage] = useState('');
@@ -63,7 +65,10 @@ export default function CreateCommunityPage() {
     setError('');
 
     try {
-      const proposalResponse = await createCommunityProposal(formData);
+      const proposalResponse = await createCommunityProposal(
+        formData,
+        fetchClient,
+      );
       setMessage(
         `Se ha registrado la propuesta de comunidad. ID de propuesta: ${proposalResponse.proposalId ?? ''}`,
       );

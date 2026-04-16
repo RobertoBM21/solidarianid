@@ -9,10 +9,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiCreatedResponse,
   ApiOkResponse,
-  ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthId } from '../../../../identity/infrastructure/decorators/auth-id.decorator';
@@ -24,7 +24,7 @@ import { VolunteerLogNotFoundError } from '../../../domain/repositories/voluntee
 
 @Controller('volunteer-logs')
 @ApiTags('collaboration')
-@ApiSecurity('userId')
+@ApiBearerAuth()
 @UseGuards(AuthGuard)
 export class VolunteerLogsController {
   constructor(private readonly volunteerLogPort: VolunteerLogPort) {}

@@ -10,10 +10,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiCreatedResponse,
   ApiOkResponse,
-  ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthId } from '../../../../identity/infrastructure/decorators/auth-id.decorator';
@@ -30,7 +30,7 @@ export class CauseSupportsController {
   @Post()
   @UseGuards(AuthGuard)
   @ApiCreatedResponse({ description: 'Support registered' })
-  @ApiSecurity('userId')
+  @ApiBearerAuth()
   async supportRegistered(
     @Param('causeId', ParseUUIDPipe) causeId: string,
     @AuthId() userId: string,
@@ -76,7 +76,7 @@ export class CauseSupportsController {
   @Delete()
   @UseGuards(AuthGuard)
   @ApiOkResponse({ description: 'Support cancelled' })
-  @ApiSecurity('userId')
+  @ApiBearerAuth()
   async cancelSupport(
     @Param('causeId', ParseUUIDPipe) causeId: string,
     @AuthId() userId: string,

@@ -2,6 +2,7 @@
 import CardBody from 'react-bootstrap/CardBody';
 import Container from 'react-bootstrap/Container';
 import Table from 'react-bootstrap/Table';
+import { getSessionOrRedirect } from '../../../lib/auth/get-session-or-redirect';
 import { getProfileHistory } from '../../../services/profile.service';
 
 function getHistoryTypeLabel(
@@ -20,6 +21,8 @@ function getHistoryTypeLabel(
 }
 
 export default async function ProfileHistoryPage() {
+  const session = await getSessionOrRedirect();
+
   const profileHistory = await getProfileHistory();
 
   return (

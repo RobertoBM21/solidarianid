@@ -1,81 +1,56 @@
-﻿import type {
-  HistoryItem,
-  ProfileMembershipItem,
-  ProfileProposal,
-  ProfileView,
-} from '../models/profile.models';
+﻿import { fetchServer } from '../lib/http/fetch-server';
+import type { HistoryItem, ProfileView } from '../models/profile.models';
+import { getCommunities } from './communities.service';
 
-const COMMUNITY_1_ID = '11111111-1111-1111-1111-111111111111';
-const COMMUNITY_2_ID = '22222222-2222-2222-2222-222222222222';
-const COMMUNITY_3_ID = '33333333-3333-3333-3333-333333333333';
+interface MembershipRequestResponse {
+  id: string;
+  userId: string;
+  communityId: string;
+  status: 'pending' | 'accepted' | 'rejected';
+  createdAt: string;
+}
 
-const USER_1_ID = '99999999-9999-9999-9999-999999999991';
+interface CollaborationsResponse {
+  items: HistoryItem[];
+}
 
-const memberships: ProfileMembershipItem[] = [
-  {
-    id: 'dddddddd-dddd-dddd-dddd-dddddddddd01',
-    communityId: COMMUNITY_1_ID,
-    communityName: 'Manos por la Educación',
-    status: 'admin',
-  },
-  {
-    id: 'dddddddd-dddd-dddd-dddd-dddddddddd02',
-    communityId: COMMUNITY_3_ID,
-    communityName: 'Voluntariado Verde',
-    status: 'member',
-  },
-  {
-    id: '88888888-8888-8888-8888-888888888881',
-    communityId: COMMUNITY_2_ID,
-    communityName: 'Red Salud Solidaria',
-    status: 'pending',
-  },
-];
+export async function getProfileView(sessionUser: {
+  id: string;
+  email: string;
+}): Promise<ProfileView> {
+  const [requestsRes, communities] = await Promise.all([
+    fetchServer('/membership-requests/mine'),
+    getCommunities(),
+  ]);
 
-const proposals: ProfileProposal[] = [
-  {
-    id: 'aaaa9999-9999-9999-9999-999999999999',
-    title: 'Comunidad de apoyo digital',
-    status: 'pending',
-  },
-];
+  const communityNames = new Map(communities.map((c) => [c.id, c.name]));
 
-const profileView: ProfileView = {
-  id: USER_1_ID,
-  name: 'Ángel Pérez',
-  email: 'angel.perez@solidarianid.test',
-  phone: '600123123',
-  city: 'Murcia',
-  country: 'España',
-  memberships,
-  proposals,
-};
+  let memberships: ProfileView['memberships'] = [];
+  if (requestsRes.ok) {
+    const data: unknown = await requestsRes.json();
+    const requests = data as MembershipRequestResponse[];
+    memberships = requests.map((req) => ({
+      id: req.id,
+      communityId: req.communityId,
+      communityName: communityNames.get(req.communityId) ?? req.communityId,
+      status: req.status,
+    }));
+  }
 
-const history: HistoryItem[] = [
-  {
-    type: 'support',
-    subject: 'Apoyo registrado en Refuerzo escolar para primaria',
-    causeId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1',
-    date: '2026-03-20T10:00:00.000Z',
-  },
-  {
-    type: 'membership',
-    subject: 'Alta en Manos por la Educación',
-    date: '2026-03-24T10:00:00.000Z',
-  },
-  {
-    type: 'volunteering',
-    subject: 'Participación en Jornada de limpieza',
-    causeId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa4',
-    date: '2026-03-29T08:00:00.000Z',
-    end: '2026-03-29T14:00:00.000Z',
-  },
-];
-
-export async function getProfileView(): Promise<ProfileView> {
-  return await Promise.resolve(profileView);
+  return {
+    id: sessionUser.id,
+    email: sessionUser.email,
+    memberships,
+    proposals: [],
+  };
 }
 
 export async function getProfileHistory(): Promise<HistoryItem[]> {
-  return await Promise.resolve(history);
+  const res = await fetchServer('/my-collaborations');
+
+  if (!res.ok) return [];
+
+  const data: unknown = await res.json();
+  const body = data as CollaborationsResponse;
+  return body.items;
 }

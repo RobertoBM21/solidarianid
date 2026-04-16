@@ -1,5 +1,10 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
-import { ApiOkResponse, ApiQuery, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AuthId } from '../../../../identity/infrastructure/decorators/auth-id.decorator';
 import { AuthGuard } from '../../../../identity/infrastructure/guards/auth.guard';
 import { MyCollaborationsDto } from '../../../application/dtos/my-collaborations.dto';
@@ -8,7 +13,7 @@ import { CollaborationHistoryPort } from '../../../application/ports/collaborati
 @Controller()
 @UseGuards(AuthGuard)
 @ApiTags('collaboration')
-@ApiSecurity('userId')
+@ApiBearerAuth()
 export class CollaborationController {
   constructor(
     private readonly collaborationHistoryPort: CollaborationHistoryPort,

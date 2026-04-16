@@ -9,6 +9,7 @@ import Container from 'react-bootstrap/Container';
 import ListGroup from 'react-bootstrap/ListGroup';
 import ListGroupItem from 'react-bootstrap/ListGroupItem';
 import Row from 'react-bootstrap/Row';
+import { getSessionOrRedirect } from '../../lib/auth/get-session-or-redirect';
 import type { ProfileMembershipStatus } from '../../models/profile.models';
 import { getProfileView } from '../../services/profile.service';
 
@@ -42,7 +43,12 @@ function getMembershipBadgeVariant(status: ProfileMembershipStatus) {
 }
 
 export default async function ProfilePage() {
-  const profile = await getProfileView();
+  const session = await getSessionOrRedirect();
+
+  const profile = await getProfileView({
+    id: session.user.id,
+    email: session.user.email,
+  });
 
   return (
     <main>
@@ -60,19 +66,27 @@ export default async function ProfilePage() {
 
         <Card className="mb-4 border-0 shadow-sm">
           <CardBody>
-            <CardTitle className="text-primary">{profile.name}</CardTitle>
+            {profile.name && (
+              <CardTitle className="text-primary">{profile.name}</CardTitle>
+            )}
             <CardText className="mb-2 text-muted">
               <strong>Correo:</strong> {profile.email}
             </CardText>
-            <CardText className="mb-2 text-muted">
-              <strong>Teléfono:</strong> {profile.phone}
-            </CardText>
-            <CardText className="mb-2 text-muted">
-              <strong>Ciudad:</strong> {profile.city}
-            </CardText>
-            <CardText className="mb-0 text-muted">
-              <strong>País:</strong> {profile.country}
-            </CardText>
+            {profile.phone && (
+              <CardText className="mb-2 text-muted">
+                <strong>Teléfono:</strong> {profile.phone}
+              </CardText>
+            )}
+            {profile.city && (
+              <CardText className="mb-2 text-muted">
+                <strong>Ciudad:</strong> {profile.city}
+              </CardText>
+            )}
+            {profile.country && (
+              <CardText className="mb-0 text-muted">
+                <strong>País:</strong> {profile.country}
+              </CardText>
+            )}
           </CardBody>
         </Card>
 
@@ -80,7 +94,9 @@ export default async function ProfilePage() {
           <Col md={6}>
             <Card className="h-100 border-0 shadow-sm">
               <CardBody>
-                <CardTitle className="text-primary">Mis membresías y solicitudes</CardTitle>
+                <CardTitle className="text-primary">
+                  Mis membresías y solicitudes
+                </CardTitle>
                 <ListGroup variant="flush">
                   {profile.memberships.map((membership) => (
                     <ListGroupItem
@@ -101,7 +117,9 @@ export default async function ProfilePage() {
           <Col md={6}>
             <Card className="h-100 border-0 shadow-sm">
               <CardBody>
-                <CardTitle className="text-primary">Mis propuestas de comunidad</CardTitle>
+                <CardTitle className="text-primary">
+                  Mis propuestas de comunidad
+                </CardTitle>
                 <ListGroup variant="flush">
                   {profile.proposals.map((proposal) => (
                     <ListGroupItem
@@ -110,7 +128,9 @@ export default async function ProfilePage() {
                     >
                       <span>{proposal.title}</span>
                       <Badge bg="secondary">
-                        {proposal.status === 'pending' ? 'Pendiente' : proposal.status}
+                        {proposal.status === 'pending'
+                          ? 'Pendiente'
+                          : proposal.status}
                       </Badge>
                     </ListGroupItem>
                   ))}

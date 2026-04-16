@@ -11,10 +11,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiCreatedResponse,
   ApiOkResponse,
-  ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthId } from '../../../../identity/infrastructure/decorators/auth-id.decorator';
@@ -27,7 +27,7 @@ import { InvalidCausesListError } from '../../../domain/value-objects/causes-lis
 
 @Controller('communities/:communityId/causes')
 @ApiTags('communities')
-@ApiSecurity('userId')
+@ApiBearerAuth()
 export class CommunityCausesController {
   constructor(private readonly communitiesPort: CommunitiesPort) {}
 
@@ -38,7 +38,7 @@ export class CommunityCausesController {
     description: 'Cause created successfully',
     type: CauseDto,
   })
-  @ApiSecurity('userId')
+  @ApiBearerAuth()
   async create(
     @Param('communityId', ParseUUIDPipe) communityId: string,
     @Body() dto: CreateCauseDto,
@@ -66,7 +66,7 @@ export class CommunityCausesController {
   @ApiOkResponse({
     description: 'Cause closed successfully',
   })
-  @ApiSecurity('userId')
+  @ApiBearerAuth()
   async close(
     @Param('communityId', ParseUUIDPipe) communityId: string,
     @Param('causeId', ParseUUIDPipe) causeId: string,

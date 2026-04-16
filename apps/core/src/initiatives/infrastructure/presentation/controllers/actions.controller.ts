@@ -12,9 +12,9 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiCreatedResponse,
-  ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
 import { UserIsNotAdminError } from '../../../../communities/domain/community.aggregate';
@@ -50,7 +50,7 @@ export class ActionsController {
     description: 'Action created successfully',
     type: FundingActionApiDto,
   })
-  @ApiSecurity('userId')
+  @ApiBearerAuth()
   async createFunding(
     @Param('causeId', ParseUUIDPipe) causeId: string,
     @Body() dto: CreateFundingActionDto,
@@ -71,7 +71,7 @@ export class ActionsController {
     description: 'Action created successfully',
     type: VolunteeringActionApiDto,
   })
-  @ApiSecurity('userId')
+  @ApiBearerAuth()
   async createVolunteering(
     @Param('causeId', ParseUUIDPipe) causeId: string,
     @Body() dto: CreateVolunteeringActionDto,

@@ -11,15 +11,15 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiCreatedResponse,
   ApiOkResponse,
-  ApiSecurity,
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthId } from '../../../../identity/infrastructure/decorators/auth-id.decorator';
 import { AuthGuard } from '../../../../identity/infrastructure/guards/auth.guard';
-import { UserIsNotAdminError } from '../../../domain/community.aggregate';
 import { MembershipRequestsPort } from '../../../application/ports/membership-requests.port';
+import { UserIsNotAdminError } from '../../../domain/community.aggregate';
 import { CommunityNotFoundError } from '../../../domain/repositories/community.repository';
 import { MembershipRequestNotFoundError } from '../../../domain/repositories/membership-request.repository';
 import { MembershipRequestDto } from '../dtos/membership-request.dto';
@@ -27,7 +27,7 @@ import { ReviewMembershipRequestDto } from '../dtos/review-membership-request.dt
 
 @Controller()
 @ApiTags('memberships')
-@ApiSecurity('userId')
+@ApiBearerAuth()
 @UseGuards(AuthGuard)
 export class MembershipRequestsController {
   constructor(private readonly membershipPort: MembershipRequestsPort) {}

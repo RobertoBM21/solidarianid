@@ -1,8 +1,9 @@
-import type { Metadata } from 'next';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import type { Metadata } from 'next';
+import AppApolloProvider from '../components/apollo/AppApolloProvider';
 import Footer from '../components/layout/Footer';
 import Navbar from '../components/layout/Navbar';
-import AppApolloProvider from '../components/apollo/AppApolloProvider';
+import SessionProvider from '../components/providers/SessionProvider';
 import RegisterServiceWorker from '../components/pwa/RegisterServiceWorker';
 import './global.css';
 
@@ -39,12 +40,14 @@ export default function RootLayout({
         />
       </head>
       <body className="d-flex flex-column min-vh-100">
-        <AppApolloProvider>
-          <RegisterServiceWorker />
-          <Navbar />
-          {children}
-          <Footer />
-        </AppApolloProvider>
+        <SessionProvider>
+          <AppApolloProvider>
+            <RegisterServiceWorker />
+            <Navbar />
+            {children}
+            <Footer />
+          </AppApolloProvider>
+        </SessionProvider>
       </body>
     </html>
   );
