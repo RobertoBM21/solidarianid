@@ -7,8 +7,6 @@ import { CauseCreatedHandler } from './application/handlers/cause-created.handle
 import { CauseSupportRegisteredHandler } from './application/handlers/cause-support-registered.handler';
 import { DonationCreatedHandler } from './application/handlers/donation-created.handler';
 import { FundingActionCreatedHandler } from './application/handlers/funding-action-created.handler';
-import { GetDonationIntentionHandler } from './application/handlers/get-donation-intention.handler';
-import { GetMySupportsHandler } from './application/handlers/get-my-supports.handler';
 import { VolunteeringActionCreatedHandler } from './application/handlers/volunteering-action-created.handler';
 import { ActionsPort } from './application/ports/actions.port';
 import { CauseDataGetterPort } from './application/ports/cause-data-getter.port';
@@ -45,6 +43,7 @@ import { ActionsController } from './infrastructure/presentation/controllers/act
 import { CauseSupportsController } from './infrastructure/presentation/controllers/cause-supports.controller';
 import { CauseController } from './infrastructure/presentation/controllers/cause.controller';
 import { CauseSupportsResolver } from './infrastructure/presentation/graphql/cause-supports.resolver';
+import { InitiativesIntegrationService } from './infrastructure/initiatives-integration.service';
 
 @Module({
   imports: [
@@ -115,8 +114,6 @@ import { CauseSupportsResolver } from './infrastructure/presentation/graphql/cau
     VolunteeringActionCreatedHandler,
     FundingActionCreatedHandler,
     DonationCreatedHandler,
-    GetDonationIntentionHandler,
-    GetMySupportsHandler,
 
     // Services / Ports
     CausesService,
@@ -134,10 +131,12 @@ import { CauseSupportsResolver } from './infrastructure/presentation/graphql/cau
       provide: ActionsPort,
       useExisting: ActionsService,
     },
+    InitiativesIntegrationService,
 
     causeSupportPubSubProvider,
     CauseSupportsResolver,
   ],
+  exports: [InitiativesIntegrationService],
   controllers: [
     CauseController,
     CauseSupportsController,

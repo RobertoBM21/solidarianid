@@ -99,6 +99,29 @@ export class CommunityMemberRepositoryImpl extends CommunityMemberRepository {
     return communityNamesPerUser;
   }
 
+  async getUserMemberships(userId: string): Promise<
+    {
+      communityName: string;
+      joinedAt: Date;
+    }[]
+  > {
+    const entities = await this.em.find(CommunityMemberDbEntity, {
+      where: { userId },
+      relations: {
+        community: true,
+      },
+      select: {
+        community: { name: true },
+        createdAt: true,
+      },
+    });
+
+    return entities.map((entity) => ({
+      communityName: entity.community.name,
+      joinedAt: entity.createdAt,
+    }));
+  }
+
   private mapToDomain(entity: CommunityMemberDbEntity): CommunityMember {
     const communityMemberOrError = CommunityMember.create(
       {

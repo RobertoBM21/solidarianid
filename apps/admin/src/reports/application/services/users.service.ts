@@ -1,4 +1,4 @@
-import { UserCollaborationHistory } from '@app/shared/domain/queries/get-my-collaborations.query';
+import { UserCollaborationHistory } from '@app/shared/application/dtos/my-collaborations.dto';
 import { Injectable } from '@nestjs/common';
 import { ReportUserDto } from '../dtos/report-user.dto';
 import { CoreReportsPort } from '../ports/core-reports.port';

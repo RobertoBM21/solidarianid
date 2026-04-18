@@ -6,12 +6,15 @@ import type { StringValue } from 'ms';
 import { CoreAuthClientPort } from './application/ports/core-auth-client.port';
 import { GatewayAuthPort } from './application/ports/gateway-auth.port';
 import { GatewayAuthService } from './application/services/gateway-auth.service';
-import { CoreAuthHttpAdapter } from './infrastructure/adapters/core-auth-http.adapter';
 import authConfig from './infrastructure/config/auth.config';
 import { GatewayAuthController } from './infrastructure/presentation/controllers/auth.controller';
 import { GoogleStrategy } from './infrastructure/strategies/google.strategy';
 import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
 import { LocalStrategy } from './infrastructure/strategies/local.strategy';
+import { ClientsModule } from '@nestjs/microservices';
+import { buildGrpcConfig } from '@app/shared/infrastructure/grpc/grpc-config.builder';
+import { GrpcPackages } from '@app/shared/infrastructure/grpc/grpc-packages';
+import { CoreAuthGrpcAdapter } from './infrastructure/adapters/core-auth-grpc.adapter';
 
 @Module({
   imports: [
@@ -27,18 +30,19 @@ import { LocalStrategy } from './infrastructure/strategies/local.strategy';
         },
       }),
     }),
+    ClientsModule.register([buildGrpcConfig(GrpcPackages.Auth)]),
   ],
   controllers: [GatewayAuthController],
   providers: [
     GatewayAuthService,
-    CoreAuthHttpAdapter,
+    CoreAuthGrpcAdapter,
     {
       provide: GatewayAuthPort,
       useExisting: GatewayAuthService,
     },
     {
       provide: CoreAuthClientPort,
-      useExisting: CoreAuthHttpAdapter,
+      useExisting: CoreAuthGrpcAdapter,
     },
     LocalStrategy,
     GoogleStrategy,

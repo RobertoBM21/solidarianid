@@ -7,7 +7,7 @@ import {
 } from '@nestjs/swagger';
 import { AuthId } from '../../../../identity/infrastructure/decorators/auth-id.decorator';
 import { AuthGuard } from '../../../../identity/infrastructure/guards/auth.guard';
-import { MyCollaborationsDto } from '../../../application/dtos/my-collaborations.dto';
+import { MyCollaborationsDto } from '@app/shared/application/dtos/my-collaborations.dto';
 import { CollaborationHistoryPort } from '../../../application/ports/collaboration-history.port';
 
 @Controller()

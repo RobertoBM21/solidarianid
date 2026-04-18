@@ -1,10 +1,10 @@
-import { UserVolunteeringHistoryItem } from '@app/shared/domain/queries/get-my-collaborations.query';
+import { UserVolunteeringHistoryItem } from '@app/shared/application/dtos/my-collaborations.dto';
 import { Injectable } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
 import {
   UserDonationHistoryItemDto,
   UserVolunteeringHistoryItemDto,
-} from '../../../application/dtos/my-collaborations.dto';
+} from '@app/shared/application/dtos/my-collaborations.dto';
 import { CollaborationHistoryRetrieverPort } from '../../../domain/ports/collaboration-history-retriever.port';
 import { DonationDbEntity } from '../entities/donation.db-entity';
 import { VolunteerLogDbEntity } from '../entities/volunteer-log.db-entity';

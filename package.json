@@ -34,7 +34,7 @@
     "cy:open": "cypress open",
     "test:cypress": "cypress run",
     "test:mutation": "stryker run",
-    "proto:gen": "npx protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./libs/shared/src/infrastructure/grpc/stubs --ts_proto_opt=nestJs=true -I=./libs/shared/src/infrastructure/grpc/protos ./libs/shared/src/infrastructure/grpc/protos/*.proto"
+    "proto:gen": "npx protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./libs/shared/src/infrastructure/grpc/stubs --ts_proto_opt=nestJs=true -I=./grpc/protos ./grpc/protos/*.proto"
   },
   "dependencies": {
     "@apollo/client": "^4.1.7",

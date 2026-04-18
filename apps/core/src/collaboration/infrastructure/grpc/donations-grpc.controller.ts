@@ -1,4 +1,4 @@
-import { CollaborationStatisticsData } from '@app/shared/domain/queries/get-collaboration-statistics.query';
+import { CollaborationStatisticsData } from '../../application/dtos/collaboration-statistics.dto';
 import { GrpcPackages } from '@app/shared/infrastructure/grpc/grpc-packages';
 import { Controller, Logger } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';

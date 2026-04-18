@@ -1,5 +1,4 @@
-import { CommunityActivityRow } from '@app/shared/domain/queries/get-initiatives-statistics.query';
-
+import { CommunityActivityRow } from '@app/shared/application/dtos/initiatives-statistics.dto';
 export interface CommunityStatistics {
   name: string;
   users: number;

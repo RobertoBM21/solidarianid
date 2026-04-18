@@ -2,8 +2,8 @@ import {
   CauseStatisticsRow,
   CommunityActivityRow,
   OdsCount,
-} from '@app/shared/domain/queries/get-initiatives-statistics.query';
-import { UserSupportHistoryItem } from '@app/shared/domain/queries/get-my-collaborations.query';
+} from '@app/shared/application/dtos/initiatives-statistics.dto';
+import { UserSupportHistoryItem } from '@app/shared/application/dtos/my-collaborations.dto';
 
 export abstract class InitiativesStatisticsPort {
   abstract getOdsCounts(): Promise<OdsCount[]>;

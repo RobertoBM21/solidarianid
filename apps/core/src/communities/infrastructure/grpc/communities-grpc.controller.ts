@@ -1,4 +1,4 @@
-import { CommunitiesStatisticsData } from '@app/shared/domain/queries/get-communities-statistics.query';
+import { CommunitiesStatisticsData } from '../../application/dtos/communities-statistics.dto';
 import { GrpcPackages } from '@app/shared/infrastructure/grpc/grpc-packages';
 import { Controller, Logger } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';

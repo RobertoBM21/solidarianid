@@ -12,10 +12,15 @@ async function bootstrap() {
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.GRPC,
     options: {
-      package: [GrpcPackages.Statistics.Package, GrpcPackages.Reports.Package],
+      package: [
+        GrpcPackages.Statistics.Package,
+        GrpcPackages.Reports.Package,
+        GrpcPackages.Auth.Package,
+      ],
       protoPath: [
         GrpcPackages.Statistics.ProtoPath,
         GrpcPackages.Reports.ProtoPath,
+        GrpcPackages.Auth.ProtoPath,
       ],
       url: process.env.CORE_GRPC_URL ?? '127.0.0.1:5002',
     },

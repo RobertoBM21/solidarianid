@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package auth;
+
+service AuthService {
+  rpc ValidateCredentials (ValidateCredentialsRequest) returns (UserIdResponse);
+  rpc RegisterUser (RegisterUserRequest) returns (UserIdResponse);
+  rpc FindOrCreateGoogleUser (GoogleUserRequest) returns (UserIdResponse);
+}
+message ValidateCredentialsRequest {
+  string email = 1;
+  string password = 2;
+}
+message UserIdResponse {
+  string userId = 1;
+}
+message RegisterUserRequest {
+  string name = 1;
+  string email = 2;
+  string phone = 3;
+  string password = 4;
+  string city = 5;
+  string country = 6;
+}
+message GoogleUserRequest {
+  string email = 1;
+  string name = 2;
+}

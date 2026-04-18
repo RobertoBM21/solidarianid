@@ -27,4 +27,10 @@ export abstract class CommunityMemberRepository extends Repository<
   ): Promise<Either<CommunityMemberNotFoundError, CommunityMember>>;
 
   abstract listByUserIds(userIds: string[]): Promise<Map<string, string[]>>;
+  abstract getUserMemberships(userId: string): Promise<
+    {
+      communityName: string;
+      joinedAt: Date;
+    }[]
+  >;
 }

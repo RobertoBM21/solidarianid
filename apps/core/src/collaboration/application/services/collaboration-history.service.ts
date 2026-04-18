@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { QueryBus } from '@nestjs/cqrs';
-import { GetMyMembershipsQuery } from '../../../communities/application/queries/get-my-memberships.query';
-import { GetMySupportsQuery } from '../../../initiatives/application/queries/get-my-supports.query';
 import { CollaborationHistoryRetrieverPort } from '../../domain/ports/collaboration-history-retriever.port';
-import { MyCollaborationsDto } from '../dtos/my-collaborations.dto';
+import { MyCollaborationsDto } from '@app/shared/application/dtos/my-collaborations.dto';
 import { CollaborationHistoryPort } from '../ports/collaboration-history.port';
+import { GetUserMembershipsPort } from '../ports/get-user-memberships.port';
+import { GetMySupportsPort } from '../ports/get-my-supports.port';
 
 @Injectable()
 export class CollaborationHistoryService implements CollaborationHistoryPort {
   constructor(
     private readonly collaborationHistoryRetriever: CollaborationHistoryRetrieverPort,
-    private readonly queryBus: QueryBus,
+    private readonly getMysupportsService: GetMySupportsPort,
+    private readonly userMembershipsRetreiverService: GetUserMembershipsPort,
   ) {}
 
   async getUserCollaborations(
@@ -18,8 +18,8 @@ export class CollaborationHistoryService implements CollaborationHistoryPort {
     order: 'ASC' | 'DESC',
   ): Promise<MyCollaborationsDto> {
     const [memberships, supports, donations, volunteering] = await Promise.all([
-      this.queryBus.execute(new GetMyMembershipsQuery(userId)),
-      this.queryBus.execute(new GetMySupportsQuery(userId)),
+      this.userMembershipsRetreiverService.getUserMemberships(userId),
+      this.getMysupportsService.getMySupports(userId),
       this.collaborationHistoryRetriever.getUserDonations(userId),
       this.collaborationHistoryRetriever.getUserVolunteering(userId),
     ]);

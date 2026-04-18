@@ -1,4 +1,4 @@
-import { UserCollaborationHistory } from '@app/shared/domain/queries/get-my-collaborations.query';
+import { UserCollaborationHistory } from '@app/shared/application/dtos/my-collaborations.dto';
 
 export interface CoreReportUser {
   id: string;

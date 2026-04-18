@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { CoreAuthClientPort } from '../ports/core-auth-client.port';
 import { GatewayAuthPort } from '../ports/gateway-auth.port';
+import { RegisterDto } from '../dtos/register.dto';
 
 @Injectable()
 export class GatewayAuthService implements GatewayAuthPort {
@@ -29,7 +30,12 @@ export class GatewayAuthService implements GatewayAuthPort {
     city?: string;
     country?: string;
   }): Promise<{ access_token: string }> {
-    const { userId } = await this.coreAuthClient.registerUser(data);
+    const request: RegisterDto = {
+      ...data,
+      city: data.city ?? '',
+      country: data.country ?? '',
+    };
+    const { userId } = await this.coreAuthClient.registerUser(request);
     return this.generateJwt({ userId, email: data.email });
   }
 

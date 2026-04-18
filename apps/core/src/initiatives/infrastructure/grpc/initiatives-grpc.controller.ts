@@ -1,4 +1,4 @@
-import { InitiativesStatisticsData } from '@app/shared/domain/queries/get-initiatives-statistics.query';
+import { InitiativesStatisticsData } from '@app/shared/application/dtos/initiatives-statistics.dto';
 import { GrpcPackages } from '@app/shared/infrastructure/grpc/grpc-packages';
 import { Controller, Logger } from '@nestjs/common';
 import { GrpcMethod } from '@nestjs/microservices';

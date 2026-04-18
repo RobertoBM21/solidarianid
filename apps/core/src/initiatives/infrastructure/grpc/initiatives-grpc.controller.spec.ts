@@ -2,7 +2,7 @@ import {
   CauseStatisticsRow,
   CommunityActivityRow,
   OdsCount,
-} from '@app/shared/domain/queries/get-initiatives-statistics.query';
+} from '@app/shared/application/dtos/initiatives-statistics.dto';
 import { Test, TestingModule } from '@nestjs/testing';
 import { InitiativesStatisticsPort } from '../../domain/ports/initiatives-statistics.port';
 import { InitiativesGrpcController } from './initiatives-grpc.controller';

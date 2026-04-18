@@ -1,7 +1,5 @@
 import { DomainEventsPort, Either, left, right } from '@app/shared/domain';
 import { Injectable } from '@nestjs/common';
-import { QueryBus } from '@nestjs/cqrs';
-import { GetDonationIntentionQuery } from '../../../initiatives/application/queries/get-donation-intention.query';
 import { DonationIntentionCreationError } from '../../../initiatives/domain/entities/donation-intention.entity';
 import {
   Donation,
@@ -16,13 +14,15 @@ import {
   PaymentsGatewaryError,
   PaymentsGatewaryPort,
 } from '../ports/payments-gateway.port';
+import { DonationIntentionDto } from '../../../initiatives/application/dtos/donation-intention.dto';
+import { RequestDonationIntentionPort } from '../ports/request-donation-intention.port';
 
 @Injectable()
 export class DonationsService implements DonationsPort {
   constructor(
     private readonly domainEvents: DomainEventsPort,
     private readonly donationRepository: DonationRepository,
-    private readonly queryBus: QueryBus,
+    private readonly donationIntentionService: RequestDonationIntentionPort,
     private readonly paymentsGateway: PaymentsGatewaryPort,
   ) {}
 
@@ -33,12 +33,13 @@ export class DonationsService implements DonationsPort {
   ): Promise<
     Either<PaymentsGatewaryError | DonationIntentionCreationError, PaymentDto>
   > {
-    const query = new GetDonationIntentionQuery(
+    const donationIntentionDto = new DonationIntentionDto(
       data.fundingActionId,
       userId,
       data.amount,
     );
-    const intentionOrError = await this.queryBus.execute(query);
+    const intentionOrError =
+      await this.donationIntentionService.requestDonation(donationIntentionDto);
     if (intentionOrError.isLeft()) {
       return left(intentionOrError.value);
     }

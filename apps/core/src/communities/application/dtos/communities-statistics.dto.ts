@@ -1,5 +1,3 @@
-import { DomainEvent } from '../event';
-
 export interface CommunitiesStatisticsData {
   data: {
     id: string;
@@ -8,5 +6,3 @@ export interface CommunitiesStatisticsData {
     admins: number;
   }[];
 }
-
-export class GetCommunitiesStatisticsQuery extends DomainEvent {}

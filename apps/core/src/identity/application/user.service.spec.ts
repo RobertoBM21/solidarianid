@@ -1,7 +1,7 @@
 import { left, PasswordHasherPort, right } from '@app/shared/domain';
 import { UserAlreadyExistsError } from '@app/shared/domain/aggregates/abstract-user.aggregate';
 import { InvalidUserEmailError } from '@app/shared/domain/value-objects/user-email.vo';
-import { QueryBus } from '@nestjs/cqrs';
+import { GetMembershipsPort } from '../application/ports/get-memberships.port';
 import { Test, TestingModule } from '@nestjs/testing';
 import { User } from '../domain/aggregates/user.aggregate';
 import { CountryCheckerPort } from '../domain/ports/country-checker.port';
@@ -15,8 +15,8 @@ describe('UserService', () => {
   let service: UserService;
   let userRepository: UserRepository;
 
-  const mockQueryBus = {
-    execute: jest.fn(),
+  const mockGetMembershipsPort = {
+    getMemberships: jest.fn(),
   };
 
   const mockUserRepository = {
@@ -54,8 +54,8 @@ describe('UserService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         {
-          provide: QueryBus,
-          useValue: mockQueryBus,
+          provide: GetMembershipsPort,
+          useValue: mockGetMembershipsPort,
         },
         {
           provide: CountryCheckerPort,
@@ -214,11 +214,12 @@ describe('UserService', () => {
       mockUserRepository.list = jest
         .fn()
         .mockResolvedValue({ users: mockUsersList, totalPages: 1 });
-      mockQueryBus.execute = jest.fn().mockResolvedValue({
-        communityNamesPerUser: new Map<string, string[]>([
-          [mockUsers[0].id.toString(), ['Community A', 'Community B']],
-        ]),
-      });
+      const memberships = new Map<string, string[]>([
+        [mockUsers[0].id.toString(), ['Community A', 'Community B']],
+      ]);
+      mockGetMembershipsPort.getMemberships = jest
+        .fn()
+        .mockResolvedValue(memberships);
 
       const result = await service.listUsers();
 
@@ -231,10 +232,8 @@ describe('UserService', () => {
         undefined,
         undefined,
       );
-      expect(mockQueryBus.execute).toHaveBeenCalledWith(
-        expect.objectContaining({
-          userIds: mockUsersList.map((user) => user.id),
-        }),
+      expect(mockGetMembershipsPort.getMemberships).toHaveBeenCalledWith(
+        mockUsersList.map((user) => user.id),
       );
     });
   });

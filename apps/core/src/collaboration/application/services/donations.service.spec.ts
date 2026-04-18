@@ -1,5 +1,4 @@
 import { DomainEventsPort, left, right } from '@app/shared/domain';
-import { QueryBus } from '@nestjs/cqrs';
 import { Test, TestingModule } from '@nestjs/testing';
 import { v4 } from 'uuid';
 import { DonationRepository } from '../../domain/repositories/donation.repository';
@@ -7,6 +6,7 @@ import { CreateDonationDto } from '../dtos/create-donation.dto';
 import { DonationDto } from '../dtos/donation.dto';
 import { PaymentDto } from '../dtos/payment.dto';
 import { PaymentsGatewaryPort } from '../ports/payments-gateway.port';
+import { RequestDonationIntentionPort } from '../ports/request-donation-intention.port';
 import { DonationsService } from './donations.service';
 
 describe('DonationsService', () => {
@@ -14,7 +14,7 @@ describe('DonationsService', () => {
 
   const domainEvents = { dispatch: jest.fn() };
   const donationRepository = { save: jest.fn() };
-  const queryBus = { execute: jest.fn() };
+  const donationIntentionService = { requestDonation: jest.fn() };
   const paymentsGateway = {
     generatePaymentLink: jest.fn(),
     verifyPayment: jest.fn(),
@@ -26,7 +26,10 @@ describe('DonationsService', () => {
         DonationsService,
         { provide: DomainEventsPort, useValue: domainEvents },
         { provide: DonationRepository, useValue: donationRepository },
-        { provide: QueryBus, useValue: queryBus },
+        {
+          provide: RequestDonationIntentionPort,
+          useValue: donationIntentionService,
+        },
         { provide: PaymentsGatewaryPort, useValue: paymentsGateway },
       ],
     }).compile();
@@ -48,7 +51,9 @@ describe('DonationsService', () => {
 
     it('returns left when GetDonationIntentionQuery fails', async () => {
       const intentionError = { reason: 'no-intention' };
-      queryBus.execute.mockResolvedValueOnce(left(intentionError));
+      donationIntentionService.requestDonation.mockResolvedValueOnce(
+        left(intentionError),
+      );
       const res = await service.startDonation(createDto, userId, apiUrl);
       expect(res.isLeft()).toBe(true);
       expect(res.value).toEqual(intentionError);
@@ -57,7 +62,9 @@ describe('DonationsService', () => {
     it('returns left when payments gateway generatePaymentLink fails', async () => {
       const intention = { id: 'int-1' };
       const gwError = { code: 'gw-fail' };
-      queryBus.execute.mockResolvedValueOnce(right(intention));
+      donationIntentionService.requestDonation.mockResolvedValueOnce(
+        right(intention),
+      );
       paymentsGateway.generatePaymentLink.mockResolvedValueOnce(left(gwError));
       const res = await service.startDonation(createDto, userId, apiUrl);
       expect(res.isLeft()).toBe(true);
@@ -67,7 +74,9 @@ describe('DonationsService', () => {
     it('returns right with PaymentDto when succeeds', async () => {
       const intention = { id: 'int-1' };
       const paymentLink = 'https://pay.test/checkout/123';
-      queryBus.execute.mockResolvedValueOnce(right(intention));
+      donationIntentionService.requestDonation.mockResolvedValueOnce(
+        right(intention),
+      );
       paymentsGateway.generatePaymentLink.mockResolvedValueOnce(
         right(paymentLink),
       );

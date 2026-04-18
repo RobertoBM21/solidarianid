@@ -34,6 +34,7 @@ services:
       - DB_NAME=core_db
       - REDIS_URL=redis://redis:6379
       - NATS_URL=nats://nats:4222
+      - STRIPE_SK=${STRIPE_SK}
     secrets:
       - db_pass_core
     depends_on:

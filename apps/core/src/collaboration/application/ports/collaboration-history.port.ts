@@ -1,4 +1,4 @@
-import { MyCollaborationsDto } from '../dtos/my-collaborations.dto';
+import { MyCollaborationsDto } from '@app/shared/application/dtos/my-collaborations.dto';
 
 export abstract class CollaborationHistoryPort {
   abstract getUserCollaborations(

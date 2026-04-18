@@ -3,9 +3,9 @@ import {
   InvalidCredentialsError,
   UserAlreadyExistsError,
 } from '@app/shared/domain/aggregates/abstract-user.aggregate';
-import { GetUsersQueryResult } from '@app/shared/domain/queries/get-users.query';
 import { UserCreationError } from '../../domain/aggregates/user.aggregate';
 import { CreateUserDto } from '../dtos/create-user.dto';
+import { UserListDto } from '../dtos/user-list.dto';
 
 export abstract class UserPort {
   abstract createLocalUser(
@@ -24,8 +24,5 @@ export abstract class UserPort {
     name: string,
   ): Promise<Either<UserCreationError, { userId: string }>>;
 
-  abstract listUsers(
-    page?: number,
-    search?: string,
-  ): Promise<GetUsersQueryResult>;
+  abstract listUsers(page?: number, search?: string): Promise<UserListDto>;
 }

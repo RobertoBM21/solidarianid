@@ -1,7 +1,7 @@
 import {
   UserHistoryItem as DomainUserHistoryItem,
   UserCollaborationHistory,
-} from '@app/shared/domain/queries/get-my-collaborations.query';
+} from '@app/shared/application/dtos/my-collaborations.dto';
 import { GrpcPackages } from '@app/shared/infrastructure/grpc/grpc-packages';
 import {
   Pagination,

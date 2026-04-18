@@ -1,5 +1,5 @@
 import { DomainEventError, Either, left, right } from '@app/shared/domain';
-import { CauseStatisticsRow } from '@app/shared/domain/queries/get-initiatives-statistics.query';
+import { CauseStatisticsRow } from '@app/shared/application/dtos/initiatives-statistics.dto';
 import { Injectable, Logger } from '@nestjs/common';
 import { CommunityStatistics, StatisticsDto } from '../dtos/statistics.dto';
 import {

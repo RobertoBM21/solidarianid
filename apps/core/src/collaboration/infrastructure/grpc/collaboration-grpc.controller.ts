@@ -1,4 +1,4 @@
-import { UserHistoryItem as DomainUserHistoryItem } from '@app/shared/domain/queries/get-my-collaborations.query';
+import { UserHistoryItem as DomainUserHistoryItem } from '@app/shared/application/dtos/my-collaborations.dto';
 import { GrpcPackages } from '@app/shared/infrastructure/grpc/grpc-packages';
 import type { UserId } from '@app/shared/infrastructure/grpc/stubs/reports';
 import {

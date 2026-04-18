@@ -1,11 +1,13 @@
 import {
   CauseStatisticsRow,
   CommunityActivityRow,
-} from '@app/shared/domain/queries/get-initiatives-statistics.query';
-import { UserSupportHistoryItem } from '@app/shared/domain/queries/get-my-collaborations.query';
+} from '@app/shared/application/dtos/initiatives-statistics.dto';
+import {
+  UserSupportHistoryItem,
+  UserSupportHistoryItemDto,
+} from '@app/shared/application/dtos/my-collaborations.dto';
 import { Injectable } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
-import { UserSupportHistoryItemDto } from '../../../collaboration/application/dtos/my-collaborations.dto';
 import { CauseDbEntity } from '../../../communities/infrastructure/persistence/entities/cause.db-entity';
 import { InitiativesStatisticsPort } from '../../domain/ports/initiatives-statistics.port';
 import { CauseSupportDbEntity } from './entities/cause-support.db-entity';

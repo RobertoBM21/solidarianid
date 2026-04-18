@@ -23,17 +23,42 @@ import { VolunteerLogRepositoryImpl } from './infrastructure/persistence/reposit
 import { CollaborationController } from './infrastructure/presentation/controllers/collaboration.controller';
 import { DonationsController } from './infrastructure/presentation/controllers/donations.controller';
 import { VolunteerLogsController } from './infrastructure/presentation/controllers/volunteer-logs.controller';
+import { CommunitiesModule } from '../communities/communities.module';
+import { InitiativesModule } from '../initiatives/initiatives.module';
+import { MyMembershipsIntegrationAdapter } from './infrastructure/my-memberships-integration.adapter';
+import { GetUserMembershipsPort } from './application/ports/get-user-memberships.port';
+import { RequestDonationIntentionPort } from './application/ports/request-donation-intention.port';
+import { DonationIntentionIntegrationAdapter } from './infrastructure/donation-intention-integration.adapter';
+import { GetMySupportsPort } from './application/ports/get-my-supports.port';
+import { GetMySupportsIntegrationAdapter } from './infrastructure/get-my-supports-integration.adapter';
 
 @Module({
   imports: [
     ConfigModule.forFeature(stripeConfig),
     TypeOrmModule.forFeature([DonationDbEntity, VolunteerLogDbEntity]),
+    CommunitiesModule,
+    InitiativesModule,
   ],
   providers: [
     DonationRepositoryImpl,
     {
       provide: DonationRepository,
       useExisting: DonationRepositoryImpl,
+    },
+    MyMembershipsIntegrationAdapter,
+    {
+      provide: GetUserMembershipsPort,
+      useExisting: MyMembershipsIntegrationAdapter,
+    },
+    DonationIntentionIntegrationAdapter,
+    {
+      provide: RequestDonationIntentionPort,
+      useExisting: DonationIntentionIntegrationAdapter,
+    },
+    GetMySupportsIntegrationAdapter,
+    {
+      provide: GetMySupportsPort,
+      useExisting: GetMySupportsIntegrationAdapter,
     },
     StripeAdapter,
     {

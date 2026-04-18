@@ -2,10 +2,15 @@ import { UniqueEntityID } from '@app/shared/domain';
 import { Injectable } from '@nestjs/common';
 import { Cause } from '../../domain/entities/cause.entity';
 import { CommunityRepository } from '../../domain/repositories/community.repository';
+import { UserMembershipHistoryItem } from '@app/shared/application/dtos/my-collaborations.dto';
+import { CommunityMemberRepository } from '../../domain/repositories/community-member.repository';
 
 @Injectable()
 export class CommunitiesIntegrationService {
-  constructor(private readonly communityRepo: CommunityRepository) {}
+  constructor(
+    private readonly communityRepo: CommunityRepository,
+    private readonly communityMemberRepo: CommunityMemberRepository,
+  ) {}
 
   async isCommunityAdmin(
     userId: string,
@@ -33,5 +38,21 @@ export class CommunitiesIntegrationService {
     }
     const community = communityIdOrError.value;
     return community.getCause(UniqueEntityID.create(causeId)) ?? null;
+  }
+
+  async getMemberships(userIds: string[]): Promise<Map<string, string[]>> {
+    return this.communityMemberRepo.listByUserIds(userIds);
+  }
+
+  async getUserMemberships(
+    userId: string,
+  ): Promise<UserMembershipHistoryItem[]> {
+    const userMemberships =
+      await this.communityMemberRepo.getUserMemberships(userId);
+    return userMemberships.map((membership) => ({
+      type: 'membership',
+      subject: membership.communityName,
+      date: membership.joinedAt.toISOString(),
+    }));
   }
 }

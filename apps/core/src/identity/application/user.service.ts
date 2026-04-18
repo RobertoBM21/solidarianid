@@ -3,21 +3,20 @@ import {
   InvalidCredentialsError,
   UserAlreadyExistsError,
 } from '@app/shared/domain/aggregates/abstract-user.aggregate';
-import { GetUsersQueryResult } from '@app/shared/domain/queries/get-users.query';
 import { Injectable } from '@nestjs/common';
-import { QueryBus } from '@nestjs/cqrs';
-import { GetMembershipsQuery } from '../../communities/application/queries/get-memberships.query';
 import { User, UserCreationError } from '../domain/aggregates/user.aggregate';
 import { CountryCheckerPort } from '../domain/ports/country-checker.port';
 import { UserRepository } from '../domain/repositories/user.repository';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UserPort } from './ports/user.port';
+import { UserListDto } from './dtos/user-list.dto';
+import { GetMembershipsPort } from './ports/get-memberships.port';
 
 @Injectable()
 export class UserService implements UserPort {
   constructor(
     private readonly countryChecker: CountryCheckerPort,
-    private readonly queryBus: QueryBus,
+    private readonly getMembershipsService: GetMembershipsPort,
     private readonly passwordHasher: PasswordHasherPort,
     private readonly userRepository: UserRepository,
   ) {}
@@ -98,17 +97,14 @@ export class UserService implements UserPort {
     return right({ userId: user.id.toString() });
   }
 
-  async listUsers(
-    page?: number,
-    search?: string,
-  ): Promise<GetUsersQueryResult> {
+  async listUsers(page?: number, search?: string): Promise<UserListDto> {
     const { users, totalPages } = await this.userRepository.list(page, search);
-    const memberships = await this.queryBus.execute(
-      new GetMembershipsQuery(users.map((user) => user.id)),
-    );
+    const userIds = users.map((user) => user.id);
+    const memberships =
+      await this.getMembershipsService.getMemberships(userIds);
     const mappedUsers = users.map((user) => ({
       ...user,
-      communities: memberships.communityNamesPerUser.get(user.id) ?? [],
+      communities: memberships.get(user.id) ?? [],
     }));
     return {
       users: mappedUsers,

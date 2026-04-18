@@ -1,5 +1,3 @@
-import { DomainEvent } from '../event';
-
 export interface OdsCount {
   ods: number;
   count: number;
@@ -27,5 +25,3 @@ export interface InitiativesStatisticsData {
   totalCauses: number;
   totalSupports: number;
 }
-
-export class GetInitiativesStatisticsQuery extends DomainEvent {}

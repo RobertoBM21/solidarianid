@@ -1,9 +1,9 @@
-type GrpcPackageName = 'reports' | 'statistics';
+type GrpcPackageName = 'reports' | 'statistics' | 'auth';
 
 function createGrpcPackage(packageName: GrpcPackageName) {
   return {
     Package: packageName,
-    ProtoPath: `libs/shared/src/infrastructure/grpc/protos/${packageName}.proto`,
+    ProtoPath: `grpc/protos/${packageName}.proto`,
     Client: `CLIENT_${packageName.toUpperCase()}`,
     ServiceName: `${packageName.charAt(0).toUpperCase() + packageName.slice(1)}Service`,
   };
@@ -12,4 +12,5 @@ function createGrpcPackage(packageName: GrpcPackageName) {
 export const GrpcPackages = {
   Reports: createGrpcPackage('reports'),
   Statistics: createGrpcPackage('statistics'),
+  Auth: createGrpcPackage('auth'),
 };
