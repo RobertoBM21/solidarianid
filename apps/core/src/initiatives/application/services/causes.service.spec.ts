@@ -1,6 +1,7 @@
 import { left, right, UniqueEntityID } from '@app/shared/domain';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CauseAggr } from '../../domain/aggregates/cause.aggregate';
+import { CommunityAuthorizationPort } from '../../domain/ports/community-authz.port';
 import { ActionRepository } from '../../domain/repositories/action.repository';
 import {
   CauseAggrRepository,
@@ -38,6 +39,12 @@ describe('CausesService', () => {
     getCauseData: jest.fn(),
   };
 
+  const mockCommunityAuthzPort: jest.Mocked<
+    Pick<CommunityAuthorizationPort, 'canManageCommunity'>
+  > = {
+    canManageCommunity: jest.fn(),
+  };
+
   const communityId = UniqueEntityID.create();
   const causeId = UniqueEntityID.create();
 
@@ -61,6 +68,10 @@ describe('CausesService', () => {
           provide: CauseDataGetterPort,
           useValue: mockCauseDataGetter,
         },
+        {
+          provide: CommunityAuthorizationPort,
+          useValue: mockCommunityAuthzPort,
+        },
       ],
     }).compile();
 
@@ -82,8 +93,10 @@ describe('CausesService', () => {
 
       mockCauseRepository.findById.mockResolvedValue(right(cause));
       mockSupportRepository.existsForSupporterAndCause.mockResolvedValue(true);
+      mockCommunityAuthzPort.canManageCommunity.mockResolvedValue(true);
       mockActionRepository.listByCause.mockResolvedValue([]);
       mockCauseDataGetter.getCauseData.mockResolvedValue({
+        communityName: 'Test Community',
         title: cause.title,
         description: 'Test Description',
         duration: '1 month',
@@ -100,6 +113,9 @@ describe('CausesService', () => {
       expect(result.isRight()).toBe(true);
       if (result.isRight()) {
         expect(result.value.id).toBe(cause.id.toString());
+        expect(result.value.communityName).toBe('Test Community');
+        expect(result.value.supportedByUser).toBe(true);
+        expect(result.value.isCommunityAdmin).toBe(true);
       }
 
       expect(mockCauseRepository.findById).toHaveBeenCalledWith(causeId);
@@ -113,6 +129,10 @@ describe('CausesService', () => {
       expect(mockCauseDataGetter.getCauseData).toHaveBeenCalledWith(
         cause.communityId.toString(),
         cause.id.toString(),
+      );
+      expect(mockCommunityAuthzPort.canManageCommunity).toHaveBeenCalledWith(
+        expect.any(String),
+        cause.communityId.toString(),
       );
     });
 

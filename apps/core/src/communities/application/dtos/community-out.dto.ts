@@ -27,12 +27,18 @@ export class CommunityOutDto {
    */
   readonly causes: CauseDto[];
 
-  constructor(data: Community) {
+  /**
+   * Whether the current user is an admin of this community
+   */
+  readonly isCommunityAdmin?: boolean;
+
+  constructor(data: Community, isCommunityAdmin?: boolean) {
     this.id = data.id.toString();
     this.name = data.name;
     this.description = data.description;
     this.createdAt = data.createdAt.toISOString();
     this.causes = data.causes.map((cause) => new CauseDto(cause));
+    this.isCommunityAdmin = isCommunityAdmin;
   }
 }
 

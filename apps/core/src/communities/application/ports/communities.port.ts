@@ -17,6 +17,7 @@ export abstract class CommunitiesPort {
 
   abstract getCommunity(
     id: string,
+    requesterId?: string,
   ): Promise<Either<CommunityNotFoundError, CommunityOutDto>>;
 
   abstract proposeCommunity(

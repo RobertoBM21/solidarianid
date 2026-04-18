@@ -39,6 +39,7 @@ export class CommunitiesService implements CommunitiesPort {
 
   async getCommunity(
     id: string,
+    requesterId?: string,
   ): Promise<Either<CommunityNotFoundError, CommunityOutDto>> {
     const communityOrError = await this.communityRepository.findById(
       UniqueEntityID.create(id),
@@ -46,7 +47,12 @@ export class CommunitiesService implements CommunitiesPort {
     if (communityOrError.isLeft()) {
       return left(communityOrError.value);
     }
-    return right(new CommunityOutDto(communityOrError.value));
+
+    const isCommunityAdmin = requesterId
+      ? communityOrError.value.admins.has(UniqueEntityID.create(requesterId))
+      : undefined;
+
+    return right(new CommunityOutDto(communityOrError.value, isCommunityAdmin));
   }
 
   async proposeCommunity(

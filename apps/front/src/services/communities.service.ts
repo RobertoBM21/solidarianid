@@ -1,5 +1,6 @@
-import { gql } from '@apollo/client';
+import { gql } from '@apollo/client/core';
 import apolloClient from '../lib/apollo/client';
+import { getServerApolloClient } from '../lib/apollo/server-client';
 import { fetchServer } from '../lib/http/fetch-server';
 import type {
   CommunityDetail,
@@ -47,6 +48,7 @@ const GET_COMMUNITY = gql`
       name
       description
       createdAt
+      isCommunityAdmin
       causes {
         id
         title
@@ -85,7 +87,8 @@ export async function getLatestCommunities(): Promise<CommunityListItem[]> {
 export async function getCommunityById(
   id: string,
 ): Promise<CommunityDetail | undefined> {
-  const { data } = await apolloClient.query<CommunityQueryResponse>({
+  const serverApolloClient = await getServerApolloClient();
+  const { data } = await serverApolloClient.query<CommunityQueryResponse>({
     query: GET_COMMUNITY,
     variables: { id },
     fetchPolicy: 'cache-first',

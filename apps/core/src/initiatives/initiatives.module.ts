@@ -23,10 +23,12 @@ import { AnonymousSupporterRepository } from './domain/repositories/anonymous-su
 import { CauseAggrRepository } from './domain/repositories/cause-aggr.repository';
 import { CauseSupportRepository } from './domain/repositories/cause-support.repository';
 import { FundingActionRepository } from './domain/repositories/funding-action.repository';
-import { CommunitiesIntegrationAdapter } from './infrastructure/communities-integration.adapter';
+import { CauseDataGetterAdapter } from './infrastructure/adapters/cause-data-getter.adapter';
+import { CommunityAuthorizationAdapter } from './infrastructure/adapters/community-authz.adapter';
+import { UserCheckerAdapter } from './infrastructure/adapters/user-checker.adapter';
 import { causeSupportPubSubProvider } from './infrastructure/graphql/pubsub.provider';
 import { InitiativesGrpcController } from './infrastructure/grpc/initiatives-grpc.controller';
-import { IdentityIntegrationAdapter } from './infrastructure/identity-integration.adapter';
+import { InitiativesIntegrationService } from './infrastructure/initiatives-integration.service';
 import { ActionDbEntity } from './infrastructure/persistence/entities/action.db-entity';
 import { AnonymousUserDbEntity } from './infrastructure/persistence/entities/anonymous-user.db-entity';
 import { CauseAggrDbEntity } from './infrastructure/persistence/entities/cause-aggr.db-entity';
@@ -43,7 +45,6 @@ import { ActionsController } from './infrastructure/presentation/controllers/act
 import { CauseSupportsController } from './infrastructure/presentation/controllers/cause-supports.controller';
 import { CauseController } from './infrastructure/presentation/controllers/cause.controller';
 import { CauseSupportsResolver } from './infrastructure/presentation/graphql/cause-supports.resolver';
-import { InitiativesIntegrationService } from './infrastructure/initiatives-integration.service';
 
 @Module({
   imports: [
@@ -60,51 +61,55 @@ import { InitiativesIntegrationService } from './infrastructure/initiatives-inte
   ],
   providers: [
     // Persistence
-    CauseAggrRepositoryImpl,
     {
       provide: CauseAggrRepository,
-      useExisting: CauseAggrRepositoryImpl,
+      useClass: CauseAggrRepositoryImpl,
     },
-    CauseSupportRepositoryImpl,
     {
       provide: CauseSupportRepository,
-      useExisting: CauseSupportRepositoryImpl,
+      useClass: CauseSupportRepositoryImpl,
     },
-    AnonymousSupporterRepositoryImpl,
     {
       provide: AnonymousSupporterRepository,
-      useExisting: AnonymousSupporterRepositoryImpl,
+      useClass: AnonymousSupporterRepositoryImpl,
     },
-    ActionRepositoryImpl,
     {
       provide: ActionRepository,
-      useExisting: ActionRepositoryImpl,
+      useClass: ActionRepositoryImpl,
     },
-    FundingActionRepositoryImpl,
     {
       provide: FundingActionRepository,
-      useExisting: FundingActionRepositoryImpl,
-    },
-    InitiativesStatisticsAdapter,
-    {
-      provide: InitiativesStatisticsPort,
-      useExisting: InitiativesStatisticsAdapter,
+      useClass: FundingActionRepositoryImpl,
     },
 
-    CommunitiesIntegrationAdapter,
+    // Ports
+    {
+      provide: InitiativesStatisticsPort,
+      useClass: InitiativesStatisticsAdapter,
+    },
     {
       provide: CommunityAuthorizationPort,
-      useExisting: CommunitiesIntegrationAdapter,
+      useClass: CommunityAuthorizationAdapter,
     },
     {
       provide: CauseDataGetterPort,
-      useExisting: CommunitiesIntegrationAdapter,
+      useClass: CauseDataGetterAdapter,
     },
-
-    IdentityIntegrationAdapter,
     {
       provide: UserCheckerPort,
-      useExisting: IdentityIntegrationAdapter,
+      useClass: UserCheckerAdapter,
+    },
+    {
+      provide: CausesPort,
+      useClass: CausesService,
+    },
+    {
+      provide: CauseSupportsPort,
+      useClass: CauseSupportsService,
+    },
+    {
+      provide: ActionsPort,
+      useClass: ActionsService,
     },
 
     // Handlers
@@ -115,22 +120,6 @@ import { InitiativesIntegrationService } from './infrastructure/initiatives-inte
     FundingActionCreatedHandler,
     DonationCreatedHandler,
 
-    // Services / Ports
-    CausesService,
-    {
-      provide: CausesPort,
-      useExisting: CausesService,
-    },
-    CauseSupportsService,
-    {
-      provide: CauseSupportsPort,
-      useExisting: CauseSupportsService,
-    },
-    ActionsService,
-    {
-      provide: ActionsPort,
-      useExisting: ActionsService,
-    },
     InitiativesIntegrationService,
 
     causeSupportPubSubProvider,

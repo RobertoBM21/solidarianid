@@ -30,6 +30,7 @@ describe('CommunitiesService', () => {
     existsByName: jest.fn(),
     findAll: jest.fn(),
     findById: jest.fn(),
+    isAdmin: jest.fn(),
     save: jest.fn(),
   };
 
@@ -85,6 +86,23 @@ describe('CommunitiesService', () => {
       expect(result[0].name).toBe('Community 1');
       expect(result[1].name).toBe('Community 2');
       expect(mockCommunityRepository.findAll).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('getCommunity', () => {
+    it('should include whether the requester is an admin of the community', async () => {
+      mockCommunityRepository.findById.mockResolvedValue(right(community1));
+
+      const result = await service.getCommunity(
+        community1.id.toString(),
+        admin1.toString(),
+      );
+
+      expect(result.isRight()).toBe(true);
+      if (result.isRight()) {
+        expect(result.value.id).toBe(community1.id.toString());
+        expect(result.value.isCommunityAdmin).toBe(true);
+      }
     });
   });
 

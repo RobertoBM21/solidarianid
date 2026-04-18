@@ -1,5 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 import { Args, Query, Resolver } from '@nestjs/graphql';
+import { GqlAuthId } from '../../../../identity/infrastructure/decorators/gql-auth-id.decorator';
 import { CommunityOutDto } from '../../../application/dtos/community-out.dto';
 import { CommunitiesPort } from '../../../application/ports/communities.port';
 import { CommunityType } from './types/community.type';
@@ -28,8 +29,11 @@ export class CommunitiesResolver {
     name: 'community',
     description: 'Get a single community by ID',
   })
-  async community(@Args('id') id: string): Promise<CommunityType> {
-    const result = await this.communitiesPort.getCommunity(id);
+  async community(
+    @Args('id') id: string,
+    @GqlAuthId({ optional: true }) requesterId?: string,
+  ): Promise<CommunityType> {
+    const result = await this.communitiesPort.getCommunity(id, requesterId);
 
     if (result.isLeft()) {
       throw new NotFoundException(result.value.message);
@@ -44,6 +48,7 @@ export class CommunitiesResolver {
       name: dto.name,
       description: dto.description,
       createdAt: dto.createdAt,
+      isCommunityAdmin: dto.isCommunityAdmin,
       causes: dto.causes.map((c) => ({
         id: c.id,
         title: c.title,

@@ -20,6 +20,7 @@ export interface CommunityDetail {
   name: string;
   description: string;
   createdAt: string;
+  isCommunityAdmin?: boolean;
   causes: CommunityCauseSummary[];
 }
 

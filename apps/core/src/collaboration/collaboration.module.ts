@@ -1,9 +1,14 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { CommunitiesModule } from '../communities/communities.module';
+import { InitiativesModule } from '../initiatives/initiatives.module';
 import { CollaborationHistoryPort } from './application/ports/collaboration-history.port';
 import { DonationsPort } from './application/ports/donations.port';
+import { GetMySupportsPort } from './application/ports/get-my-supports.port';
+import { GetUserMembershipsPort } from './application/ports/get-user-memberships.port';
 import { PaymentsGatewaryPort } from './application/ports/payments-gateway.port';
+import { RequestDonationIntentionPort } from './application/ports/request-donation-intention.port';
 import { VolunteerLogPort } from './application/ports/volunteer-log.port';
 import { CollaborationHistoryService } from './application/services/collaboration-history.service';
 import { DonationsService } from './application/services/donations.service';
@@ -13,8 +18,10 @@ import { DonationRepository } from './domain/repositories/donation.repository';
 import { VolunteerLogRepository } from './domain/repositories/volunteer-log.repository';
 import { StripeAdapter } from './infrastructure/adapters/stripe.adapter';
 import stripeConfig from './infrastructure/config/stripe.config';
+import { GetMySupportsAdapter } from './infrastructure/get-my-supports.adapter';
 import { CollaborationGrpcController } from './infrastructure/grpc/collaboration-grpc.controller';
 import { DonationsGrpcController } from './infrastructure/grpc/donations-grpc.controller';
+import { MyMembershipsAdapter } from './infrastructure/my-memberships.adapter';
 import { CollaborationHistoryRetrieverAdapter } from './infrastructure/persistence/adapters/collaboration-history-retriever.adapter';
 import { DonationDbEntity } from './infrastructure/persistence/entities/donation.db-entity';
 import { VolunteerLogDbEntity } from './infrastructure/persistence/entities/volunteer-log.db-entity';
@@ -23,14 +30,7 @@ import { VolunteerLogRepositoryImpl } from './infrastructure/persistence/reposit
 import { CollaborationController } from './infrastructure/presentation/controllers/collaboration.controller';
 import { DonationsController } from './infrastructure/presentation/controllers/donations.controller';
 import { VolunteerLogsController } from './infrastructure/presentation/controllers/volunteer-logs.controller';
-import { CommunitiesModule } from '../communities/communities.module';
-import { InitiativesModule } from '../initiatives/initiatives.module';
-import { MyMembershipsIntegrationAdapter } from './infrastructure/my-memberships-integration.adapter';
-import { GetUserMembershipsPort } from './application/ports/get-user-memberships.port';
-import { RequestDonationIntentionPort } from './application/ports/request-donation-intention.port';
-import { DonationIntentionIntegrationAdapter } from './infrastructure/donation-intention-integration.adapter';
-import { GetMySupportsPort } from './application/ports/get-my-supports.port';
-import { GetMySupportsIntegrationAdapter } from './infrastructure/get-my-supports-integration.adapter';
+import { RequestDonationIntentionAdapter } from './infrastructure/request-donation-intention.adapter';
 
 @Module({
   imports: [
@@ -40,55 +40,48 @@ import { GetMySupportsIntegrationAdapter } from './infrastructure/get-my-support
     InitiativesModule,
   ],
   providers: [
-    DonationRepositoryImpl,
+    // Persistence
     {
       provide: DonationRepository,
-      useExisting: DonationRepositoryImpl,
+      useClass: DonationRepositoryImpl,
     },
-    MyMembershipsIntegrationAdapter,
-    {
-      provide: GetUserMembershipsPort,
-      useExisting: MyMembershipsIntegrationAdapter,
-    },
-    DonationIntentionIntegrationAdapter,
-    {
-      provide: RequestDonationIntentionPort,
-      useExisting: DonationIntentionIntegrationAdapter,
-    },
-    GetMySupportsIntegrationAdapter,
-    {
-      provide: GetMySupportsPort,
-      useExisting: GetMySupportsIntegrationAdapter,
-    },
-    StripeAdapter,
-    {
-      provide: PaymentsGatewaryPort,
-      useExisting: StripeAdapter,
-    },
-    DonationsService,
-    {
-      provide: DonationsPort,
-      useExisting: DonationsService,
-    },
-    VolunteerLogRepositoryImpl,
     {
       provide: VolunteerLogRepository,
-      useExisting: VolunteerLogRepositoryImpl,
+      useClass: VolunteerLogRepositoryImpl,
     },
-    VolunteerLogService,
+
+    // Ports
+    {
+      provide: GetUserMembershipsPort,
+      useClass: MyMembershipsAdapter,
+    },
+    {
+      provide: RequestDonationIntentionPort,
+      useClass: RequestDonationIntentionAdapter,
+    },
+    {
+      provide: GetMySupportsPort,
+      useClass: GetMySupportsAdapter,
+    },
+    {
+      provide: PaymentsGatewaryPort,
+      useClass: StripeAdapter,
+    },
+    {
+      provide: DonationsPort,
+      useClass: DonationsService,
+    },
     {
       provide: VolunteerLogPort,
-      useExisting: VolunteerLogService,
+      useClass: VolunteerLogService,
     },
-    CollaborationHistoryService,
     {
       provide: CollaborationHistoryPort,
-      useExisting: CollaborationHistoryService,
+      useClass: CollaborationHistoryService,
     },
-    CollaborationHistoryRetrieverAdapter,
     {
       provide: CollaborationHistoryRetrieverPort,
-      useExisting: CollaborationHistoryRetrieverAdapter,
+      useClass: CollaborationHistoryRetrieverAdapter,
     },
   ],
   controllers: [

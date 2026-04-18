@@ -35,6 +35,25 @@ export interface CauseDetail {
   duration: string;
   ods: number;
   closed: boolean;
+  createdAt: string;
   supportedByUser?: boolean;
+  isCommunityAdmin?: boolean;
   actions: CauseAction[];
+}
+
+export interface CreateCausePayload {
+  title: string;
+  description: string;
+  duration: string;
+  ods: number;
+}
+
+export interface CreateCauseResponse {
+  id: string;
+  title: string;
+  description: string;
+  duration: string;
+  ods: number;
+  closed: boolean;
+  createdAt: string;
 }

@@ -1,9 +1,16 @@
+import { UserMembershipHistoryItem } from '@app/shared/application/dtos/my-collaborations.dto';
 import { UniqueEntityID } from '@app/shared/domain';
 import { Injectable } from '@nestjs/common';
 import { Cause } from '../../domain/entities/cause.entity';
-import { CommunityRepository } from '../../domain/repositories/community.repository';
-import { UserMembershipHistoryItem } from '@app/shared/application/dtos/my-collaborations.dto';
 import { CommunityMemberRepository } from '../../domain/repositories/community-member.repository';
+import { CommunityRepository } from '../../domain/repositories/community.repository';
+
+type CauseData = Pick<
+  Cause,
+  'title' | 'description' | 'duration' | 'ods' | 'closed' | 'createdAt'
+> & {
+  communityName: string;
+};
 
 @Injectable()
 export class CommunitiesIntegrationService {
@@ -17,27 +24,39 @@ export class CommunitiesIntegrationService {
     communityId: string,
   ): Promise<boolean> {
     const communityIdObj = UniqueEntityID.create(communityId);
-    const communityIdOrError =
-      await this.communityRepo.findById(communityIdObj);
-    if (communityIdOrError.isLeft()) {
+    const communityOrError = await this.communityRepo.findById(communityIdObj);
+    if (communityOrError.isLeft()) {
       return false;
     }
-    const community = communityIdOrError.value;
+    const community = communityOrError.value;
     return community.admins.has(UniqueEntityID.create(userId));
   }
 
   async getCauseData(
     communityId: string,
     causeId: string,
-  ): Promise<Cause | null> {
+  ): Promise<CauseData | null> {
     const communityIdObj = UniqueEntityID.create(communityId);
-    const communityIdOrError =
-      await this.communityRepo.findById(communityIdObj);
-    if (communityIdOrError.isLeft()) {
+    const communityOrError = await this.communityRepo.findById(communityIdObj);
+    if (communityOrError.isLeft()) {
       return null;
     }
-    const community = communityIdOrError.value;
-    return community.getCause(UniqueEntityID.create(causeId)) ?? null;
+    const community = communityOrError.value;
+    const cause = community.getCause(UniqueEntityID.create(causeId));
+
+    if (!cause) {
+      return null;
+    }
+
+    return {
+      communityName: community.name,
+      title: cause.title,
+      description: cause.description,
+      duration: cause.duration,
+      ods: cause.ods,
+      closed: cause.closed,
+      createdAt: cause.createdAt,
+    };
   }
 
   async getMemberships(userIds: string[]): Promise<Map<string, string[]>> {

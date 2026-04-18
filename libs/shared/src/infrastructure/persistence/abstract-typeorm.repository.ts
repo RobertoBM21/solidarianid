@@ -11,7 +11,6 @@ import { Injectable } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
 
 @Injectable()
-// eslint-disable-next-line @darraghor/nestjs-typed/injectable-should-be-provided
 export abstract class AbstractTypeormRepository<
   T extends Entity<unknown>,
   E extends DomainError,

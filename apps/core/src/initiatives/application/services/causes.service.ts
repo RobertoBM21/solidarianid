@@ -1,5 +1,6 @@
 import { Either, left, right, UniqueEntityID } from '@app/shared/domain';
 import { Injectable } from '@nestjs/common';
+import { CommunityAuthorizationPort } from '../../domain/ports/community-authz.port';
 import { ActionRepository } from '../../domain/repositories/action.repository';
 import {
   CauseAggrRepository,
@@ -19,6 +20,7 @@ export class CausesService extends CausesPort {
     private readonly actionRepository: ActionRepository,
     private readonly causeDataGetter: CauseDataGetterPort,
     private readonly causeSupportsRepository: CauseSupportRepository,
+    private readonly communityAuthzPort: CommunityAuthorizationPort,
   ) {
     super();
   }
@@ -35,11 +37,6 @@ export class CausesService extends CausesPort {
     }
     const cause = causeResult.value;
 
-    const actions = await this.actionRepository.listByCause(cause.id);
-    const actionDtos = actions.map((action) => mapActionToOutDto(action));
-
-    const supportedByUser = await this.isCauseSupportedByUser(cause.id, userId);
-
     const causeData = await this.causeDataGetter.getCauseData(
       cause.communityId.toString(),
       cause.id.toString(),
@@ -48,7 +45,22 @@ export class CausesService extends CausesPort {
       return left(new CauseNotFoundError(causeId));
     }
 
-    return right(new CauseDto(cause, causeData, supportedByUser, actionDtos));
+    const [actions, supportedByUser, isCommunityAdmin] = await Promise.all([
+      this.actionRepository.listByCause(cause.id),
+      this.isCauseSupportedByUser(cause.id, userId),
+      this.isCommunityAdmin(cause.communityId.toString(), userId),
+    ]);
+    const actionDtos = actions.map((action) => mapActionToOutDto(action));
+
+    return right(
+      new CauseDto(
+        cause,
+        causeData,
+        supportedByUser,
+        isCommunityAdmin,
+        actionDtos,
+      ),
+    );
   }
 
   private async isCauseSupportedByUser(
@@ -63,5 +75,16 @@ export class CausesService extends CausesPort {
       supporter,
       causeId,
     );
+  }
+
+  private async isCommunityAdmin(
+    communityId: string,
+    userId?: string,
+  ): Promise<boolean | undefined> {
+    if (!userId) {
+      return undefined;
+    }
+
+    return this.communityAuthzPort.canManageCommunity(userId, communityId);
   }
 }

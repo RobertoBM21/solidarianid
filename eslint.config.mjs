@@ -1,5 +1,4 @@
 // @ts-check
-import eslintNestJs from '@darraghor/eslint-plugin-nestjs-typed';
 import eslint from '@eslint/js';
 import jestDom from 'eslint-plugin-jest-dom';
 import testingLibrary from 'eslint-plugin-testing-library';
@@ -27,7 +26,6 @@ export default [
   eslint.configs.recommended,
   ...tseslint.configs.strictTypeChecked,
   ...tseslint.configs.stylisticTypeChecked,
-  ...eslintNestJs.configs.flatRecommended,
   {
     languageOptions: {
       globals: {
@@ -44,16 +42,6 @@ export default [
   {
     rules: {
       '@typescript-eslint/no-floating-promises': 'warn',
-
-      '@darraghor/nestjs-typed/injectable-should-be-provided': [
-        'error',
-        {
-          // Fixes false positives when eslint is run from the command line
-          // as the dependency graph is built differently
-          src: ['**/*.ts'],
-          filterFromPaths: ['node_modules', '.test.', '.spec.', '.e2e-spec.'],
-        },
-      ],
     },
   },
   {
@@ -61,14 +49,6 @@ export default [
     files: ['**/*.module.ts'],
     rules: {
       '@typescript-eslint/no-extraneous-class': 'off',
-    },
-  },
-  {
-    // Disable OpenAPI complaints in admin controllers (it's an MVC app, not a REST API)
-    files: ['**/admin/**/*.controller.ts'],
-    rules: {
-      '@darraghor/nestjs-typed/controllers-should-supply-api-tags': 'off',
-      '@darraghor/nestjs-typed/api-method-should-specify-api-response': 'off',
     },
   },
   {

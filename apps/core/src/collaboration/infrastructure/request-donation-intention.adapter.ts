@@ -4,7 +4,7 @@ import { InitiativesIntegrationService } from '../../initiatives/infrastructure/
 import { RequestDonationIntentionPort } from '../application/ports/request-donation-intention.port';
 
 @Injectable()
-export class DonationIntentionIntegrationAdapter
+export class RequestDonationIntentionAdapter
   implements RequestDonationIntentionPort
 {
   constructor(private readonly integrationApi: InitiativesIntegrationService) {}

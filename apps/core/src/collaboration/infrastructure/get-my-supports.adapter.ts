@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { GetMySupportsPort } from '../application/ports/get-my-supports.port';
 import { InitiativesIntegrationService } from '../../initiatives/infrastructure/initiatives-integration.service';
+import { GetMySupportsPort } from '../application/ports/get-my-supports.port';
 
 @Injectable()
-export class GetMySupportsIntegrationAdapter implements GetMySupportsPort {
+export class GetMySupportsAdapter implements GetMySupportsPort {
   constructor(private readonly integrationApi: InitiativesIntegrationService) {}
 
   getMySupports(userId: string) {

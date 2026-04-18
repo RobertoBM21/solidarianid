@@ -1,4 +1,5 @@
-﻿import Link from 'next/link';
+﻿import { getServerSession } from 'next-auth';
+import Link from 'next/link';
 import Card from 'react-bootstrap/Card';
 import CardBody from 'react-bootstrap/CardBody';
 import CardText from 'react-bootstrap/CardText';
@@ -6,12 +7,16 @@ import CardTitle from 'react-bootstrap/CardTitle';
 import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
+import { authOptions } from '../../lib/auth/auth-options';
 import { getCommunities } from '../../services/communities.service';
 
 export const dynamic = 'force-dynamic';
 
 export default async function CommunitiesPage() {
-  const communities = await getCommunities();
+  const [communities, session] = await Promise.all([
+    getCommunities(),
+    getServerSession(authOptions),
+  ]);
 
   return (
     <main>
@@ -22,9 +27,11 @@ export default async function CommunitiesPage() {
             <p className="mb-0 text-muted">Explora las comunidades disponibles.</p>
           </div>
 
-          <Link href="/communities/create" className="btn btn-primary">
-            Proponer comunidad
-          </Link>
+          {session ? (
+            <Link href="/communities/create" className="btn btn-primary">
+              Proponer comunidad
+            </Link>
+          ) : null}
         </div>
 
         <Row className="g-4">

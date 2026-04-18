@@ -15,6 +15,9 @@ export class CommunityType {
   @Field()
   createdAt: string;
 
+  @Field({ nullable: true })
+  isCommunityAdmin?: boolean;
+
   @Field(() => [CauseType])
   causes: CauseType[];
 }

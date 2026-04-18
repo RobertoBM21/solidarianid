@@ -81,9 +81,12 @@ export class CommunitiesController {
   @ApiQuery({ name: 'id', required: true })
   async detail(
     @Param('communityId', ParseUUIDPipe) communityId: string,
+    @AuthId({ optional: true }) requesterId?: string,
   ): Promise<CommunityOutDto> {
-    const communityOrError =
-      await this.communitiesPort.getCommunity(communityId);
+    const communityOrError = await this.communitiesPort.getCommunity(
+      communityId,
+      requesterId,
+    );
     if (communityOrError.isLeft()) {
       throw new NotFoundException(communityOrError.value.message);
     }

@@ -109,24 +109,27 @@ describe('CommunitiesController', () => {
   describe('detail', () => {
     it('should return community details if community exists', async () => {
       const communityId = '1';
+      const requesterId = v4();
       const mockCommunity: CommunityOutDto = {
         id: communityId,
         name: 'Community A',
         description: 'Description A',
         createdAt: new Date().toISOString(),
         causes: [],
+        isCommunityAdmin: true,
       };
 
       mockCommunitiesService.getCommunity.mockResolvedValue(
         right(mockCommunity),
       );
 
-      const result = await controller.detail(communityId);
+      const result = await controller.detail(communityId, requesterId);
 
       expect(result).toEqual(mockCommunity);
       expect(mockCommunitiesService.getCommunity).toHaveBeenCalledTimes(1);
       expect(mockCommunitiesService.getCommunity).toHaveBeenCalledWith(
         communityId,
+        requesterId,
       );
     });
 
@@ -144,6 +147,7 @@ describe('CommunitiesController', () => {
       expect(mockCommunitiesService.getCommunity).toHaveBeenCalledTimes(1);
       expect(mockCommunitiesService.getCommunity).toHaveBeenCalledWith(
         communityId,
+        undefined,
       );
     });
   });

@@ -3,6 +3,11 @@ import { ActionOutDto } from './action-out.dto';
 
 export class CauseData {
   /**
+   * The name of the community the cause belongs to
+   */
+  readonly communityName: string;
+
+  /**
    * The cause title
    */
   readonly title: string;
@@ -34,6 +39,7 @@ export class CauseData {
   readonly createdAt: Date;
 
   constructor(causeData: CauseData) {
+    this.communityName = causeData.communityName;
     this.title = causeData.title;
     this.description = causeData.description;
     this.duration = causeData.duration;
@@ -65,6 +71,11 @@ export class CauseDto extends CauseData {
   readonly supportedByUser?: boolean;
 
   /**
+   * Whether the current user is an admin of the community that owns this cause
+   */
+  readonly isCommunityAdmin?: boolean;
+
+  /**
    * Actions associated with this cause
    */
   readonly actions: ActionOutDto[];
@@ -73,6 +84,7 @@ export class CauseDto extends CauseData {
     causeAggr: CauseAggr,
     causeData: CauseData,
     supportedByUser: boolean | undefined,
+    isCommunityAdmin: boolean | undefined,
     actions: ActionOutDto[],
   ) {
     super(causeData);
@@ -81,6 +93,7 @@ export class CauseDto extends CauseData {
     this.communityId = causeAggr.communityId.toString();
     this.closed = causeAggr.closed;
     this.supportedByUser = supportedByUser;
+    this.isCommunityAdmin = isCommunityAdmin;
     this.actions = actions;
   }
 }

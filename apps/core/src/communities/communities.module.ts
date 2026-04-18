@@ -39,22 +39,21 @@ import { CommunitiesResolver } from './infrastructure/presentation/graphql/commu
     ]),
   ],
   providers: [
-    CommunityRepositoryImpl,
+    // Persistence
     {
       provide: CommunityRepository,
-      useExisting: CommunityRepositoryImpl,
+      useClass: CommunityRepositoryImpl,
     },
-    MembershipRequestRepositoryImpl,
     {
       provide: MembershipRequestRepository,
-      useExisting: MembershipRequestRepositoryImpl,
+      useClass: MembershipRequestRepositoryImpl,
     },
-    CommunityMemberRepositoryImpl,
     {
       provide: CommunityMemberRepository,
-      useExisting: CommunityMemberRepositoryImpl,
+      useClass: CommunityMemberRepositoryImpl,
     },
 
+    // Domain services
     {
       provide: CommunityFactory,
       inject: [CommunityRepository],
@@ -63,29 +62,26 @@ import { CommunitiesResolver } from './infrastructure/presentation/graphql/commu
       },
     },
 
-    CommunityStatisticsAdapter,
+    // Ports
     {
       provide: CommunityStatisticsPort,
-      useExisting: CommunityStatisticsAdapter,
+      useClass: CommunityStatisticsAdapter,
     },
-
-    MembershipRequestAcceptedHandler,
-
-    CommunitiesService,
     {
       provide: CommunitiesPort,
-      useExisting: CommunitiesService,
+      useClass: CommunitiesService,
     },
-    MembershipRequestsService,
     {
       provide: MembershipRequestsPort,
-      useExisting: MembershipRequestsService,
+      useClass: MembershipRequestsService,
     },
-    CommunityMembersService,
     {
       provide: CommunityMembersPort,
-      useExisting: CommunityMembersService,
+      useClass: CommunityMembersService,
     },
+
+    // Handlers
+    MembershipRequestAcceptedHandler,
 
     CommunitiesIntegrationService,
 

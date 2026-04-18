@@ -43,7 +43,13 @@ describe('CauseController', () => {
       const detail: CauseDto = {
         id: causeId,
         communityId,
+        communityName: 'Test Community',
+        title: 'Test Cause',
+        description: 'Test Description',
+        duration: '1 month',
+        ods: 1,
         closed: false,
+        createdAt: new Date(),
         actions: [],
       };
       const userId = v4();
