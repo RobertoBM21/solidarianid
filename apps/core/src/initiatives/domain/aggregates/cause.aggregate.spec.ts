@@ -1,10 +1,13 @@
 import { UniqueEntityID } from '@app/shared/domain';
+import { InitiativeAlreadyClosedError } from '@app/shared/domain/value-objects/initiative-status.vo';
+import {
+  FundingActionDef,
+  VolunteeringActionDef,
+} from '../entities/action.entity';
 import { CauseSupportRegisteredEvent } from '../events/cause-support-registered.event';
 import { FundingActionCreatedEvent } from '../events/funding-action-created.event';
 import { VolunteeringActionCreatedEvent } from '../events/volunteering-action-created.event';
-import { InitiativeAlreadyClosedError } from '../value-objects/initiative-status.vo';
 import { UserSupporter } from '../value-objects/supporter.vo';
-import { FundingAction, VolunteeringAction } from './action.aggregate';
 import { CauseAggr } from './cause.aggregate';
 
 const makeCause = (closed = false) =>
@@ -98,7 +101,7 @@ describe('Cause Aggregate', () => {
       const result = cause.createVolunteeringAction(validData);
 
       expect(result.isRight()).toBe(true);
-      expect(result.value).toBeInstanceOf(VolunteeringAction);
+      expect(result.value).toBeInstanceOf(VolunteeringActionDef);
       const events = cause.pullDomainEvents();
       expect(events).toHaveLength(1);
       expect(events[0]).toBeInstanceOf(VolunteeringActionCreatedEvent);
@@ -132,7 +135,7 @@ describe('Cause Aggregate', () => {
       const result = cause.createFundingAction(validData);
 
       expect(result.isRight()).toBe(true);
-      expect(result.value).toBeInstanceOf(FundingAction);
+      expect(result.value).toBeInstanceOf(FundingActionDef);
       const events = cause.pullDomainEvents();
       expect(events).toHaveLength(1);
       expect(events[0]).toBeInstanceOf(FundingActionCreatedEvent);

@@ -1,4 +1,5 @@
 import { left, right, UniqueEntityID } from '@app/shared/domain';
+import { InitiativeAlreadyClosedError } from '@app/shared/domain/value-objects/initiative-status.vo';
 import {
   BadRequestException,
   ForbiddenException,
@@ -14,7 +15,6 @@ import {
   VolunteeringActionOut,
 } from '../../../application/ports/actions.port';
 import { CauseNotFoundError } from '../../../domain/repositories/cause-aggr.repository';
-import { InitiativeAlreadyClosedError } from '../../../domain/value-objects/initiative-status.vo';
 import { ActionsController } from './actions.controller';
 
 describe('ActionsController', () => {
@@ -68,7 +68,6 @@ describe('ActionsController', () => {
         createdAt: new Date().toISOString(),
         type: 'funding',
         targetAmount: dto.targetAmount,
-        currentAmount: 0,
       };
 
       mockActionsPort.createFundingAction.mockResolvedValue(

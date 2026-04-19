@@ -7,9 +7,17 @@ import {
   UniqueEntityID,
 } from '@app/shared/domain';
 import {
+  ActionCurrentAmount,
+  InvalidActionCurrentAmountError,
+} from '@app/shared/domain/value-objects/action-current-amount.vo';
+import {
   CreationDate,
   InvalidDateError,
 } from '@app/shared/domain/value-objects/creation-date.vo';
+import {
+  InitiativeAlreadyClosedError,
+  InitiativeStatus,
+} from '@app/shared/domain/value-objects/initiative-status.vo';
 import {
   InvalidMoneyAmountError,
   MoneyAmount,
@@ -23,10 +31,6 @@ import {
   DonationIntentionCreationError,
 } from '../entities/donation-intention.entity';
 import {
-  ActionCurrentAmount,
-  InvalidActionCurrentAmountError,
-} from '../value-objects/action-current-amount.vo';
-import {
   ActionObjectives,
   InvalidActionObjectivesError,
 } from '../value-objects/action-objectives.vo';
@@ -38,10 +42,6 @@ import {
   Description,
   InvalidDescriptionError,
 } from '../value-objects/description.vo';
-import {
-  InitiativeAlreadyClosedError,
-  InitiativeStatus,
-} from '../value-objects/initiative-status.vo';
 
 export class InvalidActionTypeError implements DomainError {
   message = 'Action type must be volunteering or funding.';

@@ -1,8 +1,8 @@
 import {
-  Action,
-  FundingAction,
-  VolunteeringAction,
-} from '../../domain/aggregates/action.aggregate';
+  ActionDefEntity,
+  FundingActionDef,
+  VolunteeringActionDef,
+} from '../../domain/entities/action.entity';
 
 export class FundingActionOutDto {
   /**
@@ -41,12 +41,8 @@ export class FundingActionOutDto {
    * The target amount for the funding action.
    */
   readonly targetAmount: number;
-  /**
-   * The current amount collected for the funding action.
-   */
-  readonly currentAmount: number;
 
-  constructor(action: FundingAction) {
+  constructor(action: FundingActionDef) {
     this.id = action.id.toString();
     this.causeId = action.causeId.toString();
     this.type = 'funding';
@@ -56,7 +52,6 @@ export class FundingActionOutDto {
     this.closed = action.closed;
     this.createdAt = action.createdAt.toISOString();
     this.targetAmount = action.targetAmountValue;
-    this.currentAmount = action.currentAmountValue;
   }
 }
 
@@ -102,7 +97,7 @@ export class VolunteeringActionOutDto {
    */
   readonly end: string;
 
-  constructor(action: VolunteeringAction) {
+  constructor(action: VolunteeringActionDef) {
     this.id = action.id.toString();
     this.causeId = action.causeId.toString();
     this.type = 'volunteering';
@@ -118,13 +113,12 @@ export class VolunteeringActionOutDto {
 
 export type ActionOutDto = FundingActionOutDto | VolunteeringActionOutDto;
 
-export function mapActionToOutDto(action: Action): ActionOutDto {
-  switch (action.constructor) {
-    case FundingAction:
-      return new FundingActionOutDto(action as FundingAction);
-    case VolunteeringAction:
-      return new VolunteeringActionOutDto(action as VolunteeringAction);
-    default:
-      throw new Error('Unknown action subtype');
+export function mapActionToOutDto(action: ActionDefEntity): ActionOutDto {
+  if (action instanceof FundingActionDef) {
+    return new FundingActionOutDto(action);
   }
+  if (action instanceof VolunteeringActionDef) {
+    return new VolunteeringActionOutDto(action);
+  }
+  throw new Error('Unknown action subtype');
 }

@@ -1,4 +1,12 @@
-import { Column, Entity, PrimaryColumn, TableInheritance } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryColumn,
+  TableInheritance,
+} from 'typeorm';
+import { CauseAggrDbEntity } from './cause-aggr.db-entity';
 
 @Entity('actions')
 @TableInheritance({ column: { type: 'varchar', name: 'type' } })
@@ -8,6 +16,12 @@ export class ActionDbEntity {
 
   @Column({ name: 'cause_id', type: 'uuid' })
   causeId: string;
+
+  @ManyToOne(() => CauseAggrDbEntity, (causeAggr) => causeAggr.actions, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'cause_id' })
+  causeAggr!: CauseAggrDbEntity;
 
   @Column({ type: 'varchar', length: 255 })
   title: string;

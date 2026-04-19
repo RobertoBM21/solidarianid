@@ -77,6 +77,9 @@ docker compose -f docker-compose.dev.yml up -d --wait
 # Instalar dependencias
 npm install
 
+# Generar el código desde Protobuffers
+npm run proto:gen
+
 # Lanzar las aplicaciones backend
 npm run start:dev:core
 # ó npm run start:dev:admin

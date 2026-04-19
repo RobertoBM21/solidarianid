@@ -6,11 +6,12 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, type ConfigType } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { join } from 'path';
-import { CollaborationModule } from './collaboration/collaboration.module';
 import { CommunitiesModule } from './communities/communities.module';
+import { FundingModule } from './funding/funding.module';
 import { IdentityModule } from './identity/identity.module';
 import cacheConfig from './infrastructure/config/cache.config';
 import { InitiativesModule } from './initiatives/initiatives.module';
+import { VolunteeringModule } from './volunteering/volunteering.module';
 
 @Module({
   imports: [
@@ -36,7 +37,8 @@ import { InitiativesModule } from './initiatives/initiatives.module';
     CommunitiesModule,
     IdentityModule,
     InitiativesModule,
-    CollaborationModule,
+    FundingModule,
+    VolunteeringModule,
   ],
   controllers: [],
 })

@@ -18,7 +18,7 @@ import {
   CreationDate,
   InvalidDateError,
 } from '@app/shared/domain/value-objects/creation-date.vo';
-import { InitiativeAlreadyClosedError } from '../../initiatives/domain/value-objects/initiative-status.vo';
+import { InitiativeAlreadyClosedError } from '@app/shared/domain/value-objects/initiative-status.vo';
 import { Cause } from './entities/cause.entity';
 import { CauseClosedEvent } from './events/cause-closed.event';
 import { CauseCreatedEvent } from './events/cause-created.event';
@@ -140,9 +140,7 @@ export class Community extends AggregateRoot<CommunityProps> {
     if (closedOrError.isLeft()) {
       return left(closedOrError.value);
     }
-    this.addDomainEvent(
-      new CauseClosedEvent(cause.id.toString(), this.id.toString()),
-    );
+    this.addDomainEvent(new CauseClosedEvent(cause.id.toString()));
     return right(undefined);
   }
 

@@ -1,32 +1,36 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CommunitiesModule } from '../communities/communities.module';
+import { FundingModule } from '../funding/funding.module';
 import { IdentityModule } from '../identity/identity.module';
+import { VolunteeringModule } from '../volunteering/volunteering.module';
 import { CauseClosedHandler } from './application/handlers/cause-closed.handler';
 import { CauseCreatedHandler } from './application/handlers/cause-created.handler';
 import { CauseSupportRegisteredHandler } from './application/handlers/cause-support-registered.handler';
-import { DonationCreatedHandler } from './application/handlers/donation-created.handler';
-import { FundingActionCreatedHandler } from './application/handlers/funding-action-created.handler';
-import { VolunteeringActionCreatedHandler } from './application/handlers/volunteering-action-created.handler';
 import { ActionsPort } from './application/ports/actions.port';
 import { CauseDataGetterPort } from './application/ports/cause-data-getter.port';
 import { CauseSupportsPort } from './application/ports/cause-supports.port';
 import { CausesPort } from './application/ports/causes.port';
+import { CollaborationHistoryPort } from './application/ports/collaboration-history.port';
+import { GetUserMembershipsPort } from './application/ports/get-user-memberships.port';
 import { ActionsService } from './application/services/actions.service';
 import { CauseSupportsService } from './application/services/cause-supports.service';
 import { CausesService } from './application/services/causes.service';
+import { CollaborationHistoryService } from './application/services/collaboration-history.service';
+import { CollaborationHistoryRetrieverPort } from './domain/ports/collaboration-history-retriever.port';
 import { CommunityAuthorizationPort } from './domain/ports/community-authz.port';
 import { InitiativesStatisticsPort } from './domain/ports/initiatives-statistics.port';
 import { UserCheckerPort } from './domain/ports/user-checker.port';
-import { ActionRepository } from './domain/repositories/action.repository';
 import { AnonymousSupporterRepository } from './domain/repositories/anonymous-supporter.repository';
 import { CauseAggrRepository } from './domain/repositories/cause-aggr.repository';
 import { CauseSupportRepository } from './domain/repositories/cause-support.repository';
-import { FundingActionRepository } from './domain/repositories/funding-action.repository';
 import { CauseDataGetterAdapter } from './infrastructure/adapters/cause-data-getter.adapter';
+import { CollaborationHistoryRetrieverAdapter } from './infrastructure/adapters/collaboration-history-retriever.adapter';
 import { CommunityAuthorizationAdapter } from './infrastructure/adapters/community-authz.adapter';
+import { MyMembershipsAdapter } from './infrastructure/adapters/my-memberships.adapter';
 import { UserCheckerAdapter } from './infrastructure/adapters/user-checker.adapter';
 import { causeSupportPubSubProvider } from './infrastructure/graphql/pubsub.provider';
+import { CollaborationGrpcController } from './infrastructure/grpc/collaboration-grpc.controller';
 import { InitiativesGrpcController } from './infrastructure/grpc/initiatives-grpc.controller';
 import { InitiativesIntegrationService } from './infrastructure/initiatives-integration.service';
 import { ActionDbEntity } from './infrastructure/persistence/entities/action.db-entity';
@@ -36,14 +40,13 @@ import { CauseSupportDbEntity } from './infrastructure/persistence/entities/caus
 import { FundingActionDbEntity } from './infrastructure/persistence/entities/funding-action.db-entity';
 import { VolunteeringActionDbEntity } from './infrastructure/persistence/entities/volunteering-action.db-entity';
 import { InitiativesStatisticsAdapter } from './infrastructure/persistence/initiatives-statistics.adapter';
-import { ActionRepositoryImpl } from './infrastructure/persistence/repositories/action.repository.impl';
 import { AnonymousSupporterRepositoryImpl } from './infrastructure/persistence/repositories/anonymous-supporter.repository.impl';
 import { CauseAggrRepositoryImpl } from './infrastructure/persistence/repositories/cause-aggr.repository.impl';
 import { CauseSupportRepositoryImpl } from './infrastructure/persistence/repositories/cause-support.repository.impl';
-import { FundingActionRepositoryImpl } from './infrastructure/persistence/repositories/funding-action.repository.impl';
 import { ActionsController } from './infrastructure/presentation/controllers/actions.controller';
 import { CauseSupportsController } from './infrastructure/presentation/controllers/cause-supports.controller';
 import { CauseController } from './infrastructure/presentation/controllers/cause.controller';
+import { CollaborationController } from './infrastructure/presentation/controllers/collaboration.controller';
 import { CauseSupportsResolver } from './infrastructure/presentation/graphql/cause-supports.resolver';
 
 @Module({
@@ -58,6 +61,8 @@ import { CauseSupportsResolver } from './infrastructure/presentation/graphql/cau
     ]),
     CommunitiesModule,
     IdentityModule,
+    FundingModule,
+    VolunteeringModule,
   ],
   providers: [
     // Persistence
@@ -72,14 +77,6 @@ import { CauseSupportsResolver } from './infrastructure/presentation/graphql/cau
     {
       provide: AnonymousSupporterRepository,
       useClass: AnonymousSupporterRepositoryImpl,
-    },
-    {
-      provide: ActionRepository,
-      useClass: ActionRepositoryImpl,
-    },
-    {
-      provide: FundingActionRepository,
-      useClass: FundingActionRepositoryImpl,
     },
 
     // Ports
@@ -111,14 +108,23 @@ import { CauseSupportsResolver } from './infrastructure/presentation/graphql/cau
       provide: ActionsPort,
       useClass: ActionsService,
     },
+    {
+      provide: CollaborationHistoryPort,
+      useClass: CollaborationHistoryService,
+    },
+    {
+      provide: CollaborationHistoryRetrieverPort,
+      useClass: CollaborationHistoryRetrieverAdapter,
+    },
+    {
+      provide: GetUserMembershipsPort,
+      useClass: MyMembershipsAdapter,
+    },
 
     // Handlers
     CauseCreatedHandler,
     CauseClosedHandler,
     CauseSupportRegisteredHandler,
-    VolunteeringActionCreatedHandler,
-    FundingActionCreatedHandler,
-    DonationCreatedHandler,
 
     InitiativesIntegrationService,
 
@@ -130,7 +136,9 @@ import { CauseSupportsResolver } from './infrastructure/presentation/graphql/cau
     CauseController,
     CauseSupportsController,
     ActionsController,
+    CollaborationController,
     InitiativesGrpcController,
+    CollaborationGrpcController,
   ],
 })
 export class InitiativesModule {}

@@ -55,6 +55,7 @@ export class ActionsService extends ActionsPort {
     if (actionOrError.isLeft()) {
       return left(actionOrError.value);
     }
+    await this.causeAggrRepository.save(cause);
     await this.domainEvents.dispatch(cause);
     return right(new FundingActionOutDto(actionOrError.value));
   }
@@ -82,6 +83,7 @@ export class ActionsService extends ActionsPort {
     if (actionOrError.isLeft()) {
       return left(actionOrError.value);
     }
+    await this.causeAggrRepository.save(cause);
     await this.domainEvents.dispatch(cause);
     return right(new VolunteeringActionOutDto(actionOrError.value));
   }

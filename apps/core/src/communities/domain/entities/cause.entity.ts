@@ -10,6 +10,10 @@ import {
   InvalidDateError,
 } from '@app/shared/domain/value-objects/creation-date.vo';
 import {
+  InitiativeAlreadyClosedError,
+  InitiativeStatus,
+} from '@app/shared/domain/value-objects/initiative-status.vo';
+import {
   InvalidTitleError,
   Title,
 } from '@app/shared/domain/value-objects/title.vo';
@@ -25,10 +29,6 @@ import {
   Description,
   InvalidDescriptionError,
 } from '../../../initiatives/domain/value-objects/description.vo';
-import {
-  InitiativeAlreadyClosedError,
-  InitiativeStatus,
-} from '../../../initiatives/domain/value-objects/initiative-status.vo';
 
 export interface CauseProps {
   title: Title;

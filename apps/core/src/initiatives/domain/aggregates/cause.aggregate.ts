@@ -6,29 +6,35 @@ import {
   UniqueEntityID,
 } from '@app/shared/domain';
 import {
+  InitiativeAlreadyClosedError,
+  InitiativeStatus,
+} from '@app/shared/domain/value-objects/initiative-status.vo';
+import {
   InvalidTitleError,
   Title,
 } from '@app/shared/domain/value-objects/title.vo';
+import {
+  ActionDefEntity,
+  FundingActionDef,
+  FundingActionDefCreationError,
+  VolunteeringActionDef,
+  VolunteeringActionDefCreationError,
+} from '../entities/action.entity';
 import { CauseSupportRegisteredEvent } from '../events/cause-support-registered.event';
 import { FundingActionCreatedEvent } from '../events/funding-action-created.event';
 import { VolunteeringActionCreatedEvent } from '../events/volunteering-action-created.event';
 import {
-  InitiativeAlreadyClosedError,
-  InitiativeStatus,
-} from '../value-objects/initiative-status.vo';
+  ActionsList,
+  InvalidActionsListError,
+} from '../value-objects/actions-list.vo';
 import { Supporter } from '../value-objects/supporter.vo';
-import {
-  FundingAction,
-  FundingActionCreationError,
-  VolunteeringAction,
-  VolunteeringActionCreationError,
-} from './action.aggregate';
-export { InitiativeAlreadyClosedError as CauseAlreadyClosedError } from '../value-objects/initiative-status.vo';
+export { InitiativeAlreadyClosedError as CauseAlreadyClosedError } from '@app/shared/domain/value-objects/initiative-status.vo';
 
 export interface CauseAggrProps {
   title: Title;
   status: InitiativeStatus;
   communityId: UniqueEntityID;
+  actions: ActionsList;
 }
 
 export class CauseAggr extends AggregateRoot<CauseAggrProps> {
@@ -46,6 +52,14 @@ export class CauseAggr extends AggregateRoot<CauseAggrProps> {
 
   get communityId(): UniqueEntityID {
     return this.props.communityId;
+  }
+
+  get actions(): ActionDefEntity[] {
+    return [...this.props.actions.value];
+  }
+
+  getAction(actionId: UniqueEntityID): ActionDefEntity | undefined {
+    return this.props.actions.getAction(actionId);
   }
 
   close(): Either<InitiativeAlreadyClosedError, void> {
@@ -80,13 +94,15 @@ export class CauseAggr extends AggregateRoot<CauseAggrProps> {
     start: Date | string;
     end: Date | string;
   }): Either<
-    InitiativeAlreadyClosedError | VolunteeringActionCreationError,
-    VolunteeringAction
+    | InitiativeAlreadyClosedError
+    | VolunteeringActionDefCreationError
+    | InvalidActionsListError,
+    VolunteeringActionDef
   > {
     if (this.closed) {
       return left(new InitiativeAlreadyClosedError());
     }
-    const actionOrError = VolunteeringAction.create({
+    const actionOrError = VolunteeringActionDef.create({
       ...data,
       causeId: this.id.toString(),
     });
@@ -94,6 +110,11 @@ export class CauseAggr extends AggregateRoot<CauseAggrProps> {
       return left(actionOrError.value);
     }
     const action = actionOrError.value;
+    const updatedActions = this.props.actions.withAdded(action);
+    if (updatedActions.isLeft()) {
+      return left(updatedActions.value);
+    }
+    this.props.actions = updatedActions.value;
     this.addDomainEvent(
       new VolunteeringActionCreatedEvent(
         action.id.toString(),
@@ -114,13 +135,15 @@ export class CauseAggr extends AggregateRoot<CauseAggrProps> {
     objectives: string[];
     targetAmount: number;
   }): Either<
-    InitiativeAlreadyClosedError | FundingActionCreationError,
-    FundingAction
+    | InitiativeAlreadyClosedError
+    | FundingActionDefCreationError
+    | InvalidActionsListError,
+    FundingActionDef
   > {
     if (this.closed) {
       return left(new InitiativeAlreadyClosedError());
     }
-    const actionOrError = FundingAction.create({
+    const actionOrError = FundingActionDef.create({
       ...data,
       causeId: this.id.toString(),
     });
@@ -128,6 +151,11 @@ export class CauseAggr extends AggregateRoot<CauseAggrProps> {
       return left(actionOrError.value);
     }
     const action = actionOrError.value;
+    const updatedActions = this.props.actions.withAdded(action);
+    if (updatedActions.isLeft()) {
+      return left(updatedActions.value);
+    }
+    this.props.actions = updatedActions.value;
     this.addDomainEvent(
       new FundingActionCreatedEvent(
         action.id.toString(),
@@ -146,16 +174,23 @@ export class CauseAggr extends AggregateRoot<CauseAggrProps> {
     title: string;
     closed?: boolean;
     communityId: string;
-  }): Either<InvalidTitleError, CauseAggr> {
+    actions?: ActionDefEntity[];
+  }): Either<InvalidTitleError | InvalidActionsListError, CauseAggr> {
     const titleOrError = Title.create(data.title);
     if (titleOrError.isLeft()) {
       return left(titleOrError.value);
+    }
+
+    const actionsListOrError = ActionsList.create(data.actions ?? []);
+    if (actionsListOrError.isLeft()) {
+      return left(actionsListOrError.value);
     }
 
     const props: CauseAggrProps = {
       title: titleOrError.value,
       status: InitiativeStatus.create(data.closed ?? false),
       communityId: UniqueEntityID.create(data.communityId),
+      actions: actionsListOrError.value,
     };
     const idObj = UniqueEntityID.create(data.id);
     return right(new CauseAggr(props, idObj));

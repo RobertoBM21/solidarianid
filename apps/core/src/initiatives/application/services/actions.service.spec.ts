@@ -1,5 +1,6 @@
 import { left, right, UniqueEntityID } from '@app/shared/domain';
 import { DomainEventsPort } from '@app/shared/domain/ports/domain-events.port';
+import { InitiativeAlreadyClosedError } from '@app/shared/domain/value-objects/initiative-status.vo';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserIsNotAdminError } from '../../../communities/domain/community.aggregate';
 import { CauseAggr } from '../../domain/aggregates/cause.aggregate';
@@ -8,7 +9,6 @@ import {
   CauseAggrRepository,
   CauseNotFoundError,
 } from '../../domain/repositories/cause-aggr.repository';
-import { InitiativeAlreadyClosedError } from '../../domain/value-objects/initiative-status.vo';
 import { ActionsService } from './actions.service';
 
 describe('ActionsService', () => {
@@ -19,9 +19,10 @@ describe('ActionsService', () => {
   };
 
   const mockCauseRepository: jest.Mocked<
-    Pick<CauseAggrRepository, 'findById'>
+    Pick<CauseAggrRepository, 'findById' | 'save'>
   > = {
     findById: jest.fn(),
+    save: jest.fn(),
   };
 
   const mockCommunityAuthzPort: jest.Mocked<CommunityAuthorizationPort> = {

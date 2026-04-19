@@ -35,6 +35,7 @@ services:
       - REDIS_URL=redis://redis:6379
       - NATS_URL=nats://nats:4222
       - STRIPE_SK=${STRIPE_SK}
+      - STRIPE_PAYMENT_SUCCESS_URL=${STRIPE_PAYMENT_SUCCESS_URL}
     secrets:
       - db_pass_core
     depends_on:

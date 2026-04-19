@@ -1,7 +1,6 @@
 import { Either, left, right, UniqueEntityID } from '@app/shared/domain';
 import { Injectable } from '@nestjs/common';
 import { CommunityAuthorizationPort } from '../../domain/ports/community-authz.port';
-import { ActionRepository } from '../../domain/repositories/action.repository';
 import {
   CauseAggrRepository,
   CauseNotFoundError,
@@ -17,7 +16,6 @@ import { CausesPort } from '../ports/causes.port';
 export class CausesService extends CausesPort {
   constructor(
     private readonly causeAggrRepository: CauseAggrRepository,
-    private readonly actionRepository: ActionRepository,
     private readonly causeDataGetter: CauseDataGetterPort,
     private readonly causeSupportsRepository: CauseSupportRepository,
     private readonly communityAuthzPort: CommunityAuthorizationPort,
@@ -45,12 +43,11 @@ export class CausesService extends CausesPort {
       return left(new CauseNotFoundError(causeId));
     }
 
-    const [actions, supportedByUser, isCommunityAdmin] = await Promise.all([
-      this.actionRepository.listByCause(cause.id),
+    const [supportedByUser, isCommunityAdmin] = await Promise.all([
       this.isCauseSupportedByUser(cause.id, userId),
       this.isCommunityAdmin(cause.communityId.toString(), userId),
     ]);
-    const actionDtos = actions.map((action) => mapActionToOutDto(action));
+    const actionDtos = cause.actions.map((action) => mapActionToOutDto(action));
 
     return right(
       new CauseDto(

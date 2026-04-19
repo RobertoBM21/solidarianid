@@ -2,7 +2,6 @@ import { left, right, UniqueEntityID } from '@app/shared/domain';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CauseAggr } from '../../domain/aggregates/cause.aggregate';
 import { CommunityAuthorizationPort } from '../../domain/ports/community-authz.port';
-import { ActionRepository } from '../../domain/repositories/action.repository';
 import {
   CauseAggrRepository,
   CauseNotFoundError,
@@ -19,12 +18,6 @@ describe('CausesService', () => {
     Pick<CauseAggrRepository, 'findById'>
   > = {
     findById: jest.fn(),
-  };
-
-  const mockActionRepository: jest.Mocked<
-    Pick<ActionRepository, 'listByCause'>
-  > = {
-    listByCause: jest.fn(),
   };
 
   const mockSupportRepository: jest.Mocked<
@@ -55,10 +48,6 @@ describe('CausesService', () => {
         {
           provide: CauseAggrRepository,
           useValue: mockCauseRepository,
-        },
-        {
-          provide: ActionRepository,
-          useValue: mockActionRepository,
         },
         {
           provide: CauseSupportRepository,
@@ -94,7 +83,6 @@ describe('CausesService', () => {
       mockCauseRepository.findById.mockResolvedValue(right(cause));
       mockSupportRepository.existsForSupporterAndCause.mockResolvedValue(true);
       mockCommunityAuthzPort.canManageCommunity.mockResolvedValue(true);
-      mockActionRepository.listByCause.mockResolvedValue([]);
       mockCauseDataGetter.getCauseData.mockResolvedValue({
         communityName: 'Test Community',
         title: cause.title,
@@ -125,7 +113,6 @@ describe('CausesService', () => {
         expect.any(UserSupporter),
         UniqueEntityID.create(cause.id.toString()),
       );
-      expect(mockActionRepository.listByCause).toHaveBeenCalledTimes(1);
       expect(mockCauseDataGetter.getCauseData).toHaveBeenCalledWith(
         cause.communityId.toString(),
         cause.id.toString(),

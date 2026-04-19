@@ -1,4 +1,5 @@
 import { Either, UniqueEntityID } from '@app/shared/domain';
+import { InitiativeAlreadyClosedError } from '@app/shared/domain/value-objects/initiative-status.vo';
 import {
   BadRequestException,
   Body,
@@ -29,7 +30,6 @@ import {
   VolunteeringActionOut,
 } from '../../../application/ports/actions.port';
 import { CauseNotFoundError } from '../../../domain/repositories/cause-aggr.repository';
-import { InitiativeAlreadyClosedError } from '../../../domain/value-objects/initiative-status.vo';
 import {
   FundingActionApiDto,
   VolunteeringActionApiDto,

@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
+import { ActionDbEntity } from './action.db-entity';
 
 @Entity('cause_aggrs')
 export class CauseAggrDbEntity {
@@ -13,4 +14,10 @@ export class CauseAggrDbEntity {
 
   @Column({ default: false })
   closed!: boolean;
+
+  @OneToMany(() => ActionDbEntity, (action) => action.causeAggr, {
+    cascade: true,
+    orphanedRowAction: 'delete',
+  })
+  actions!: ActionDbEntity[];
 }
