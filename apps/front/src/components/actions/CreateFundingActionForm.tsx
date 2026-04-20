@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -12,60 +12,71 @@ import FormControl from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import { useFetchClient } from '../../lib/http/use-fetch-client';
-import { createCause } from '../../services/causes.service';
+import { createFundingAction } from '../../services/actions.service';
 
-interface CreateCauseFormProps {
-  communityId: string;
+interface CreateFundingActionFormProps {
+  causeId: string;
 }
 
 const MAX_TITLE_LENGTH = 255;
-const MAX_DURATION_LENGTH = 100;
 
 const initialForm = {
   title: '',
   description: '',
-  duration: '',
-  ods: '1',
+  objectives: '',
+  targetAmount: '',
 };
 
 const initialFieldErrors = {
   title: '',
   description: '',
-  duration: '',
-  ods: '',
+  targetAmount: '',
 };
 
-export default function CreateCauseForm({ communityId }: CreateCauseFormProps) {
+function parseObjectives(value: string): string[] {
+  return value
+    .split('\n')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+export default function CreateFundingActionForm({
+  causeId,
+}: CreateFundingActionFormProps) {
   const fetchClient = useFetchClient();
   const router = useRouter();
   const [formData, setFormData] = useState(initialForm);
   const [fieldErrors, setFieldErrors] = useState(initialFieldErrors);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   function handleChange(
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) {
     const { name, value } = event.target;
 
-    setFormData({
-      ...formData,
+    setFormData((current) => ({
+      ...current,
       [name]: value,
-    });
+    }));
 
-    setFieldErrors({
-      ...fieldErrors,
-      [name]: '',
-    });
+    if (name in initialFieldErrors) {
+      setFieldErrors((current) => ({
+        ...current,
+        [name]: '',
+      }));
+    }
   }
 
   async function handleSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const parsedOds = Number(formData.ods);
     const title = formData.title.trim();
     const description = formData.description.trim();
-    const duration = formData.duration.trim();
+    const objectives = parseObjectives(formData.objectives);
+    const parsedTargetAmount = Number(formData.targetAmount);
+
     const nextFieldErrors = {
       title: !title
         ? 'El título es obligatorio.'
@@ -73,15 +84,10 @@ export default function CreateCauseForm({ communityId }: CreateCauseFormProps) {
           ? 'El título no puede superar los 255 caracteres.'
           : '',
       description: description ? '' : 'La descripción es obligatoria.',
-      duration: !duration
-        ? 'La duración es obligatoria.'
-        : duration.length > MAX_DURATION_LENGTH
-          ? 'La duración no puede superar los 100 caracteres.'
-          : '',
-      ods:
-        Number.isInteger(parsedOds) && parsedOds >= 1 && parsedOds <= 17
+      targetAmount:
+        Number.isFinite(parsedTargetAmount) && parsedTargetAmount > 0
           ? ''
-          : 'El ODS debe estar entre 1 y 17.',
+          : 'El objetivo económico debe ser mayor que cero.',
     };
 
     setFieldErrors(nextFieldErrors);
@@ -89,28 +95,28 @@ export default function CreateCauseForm({ communityId }: CreateCauseFormProps) {
     if (
       nextFieldErrors.title ||
       nextFieldErrors.description ||
-      nextFieldErrors.duration ||
-      nextFieldErrors.ods
+      nextFieldErrors.targetAmount
     ) {
       return;
     }
 
     setMessage('');
     setError('');
+    setIsSubmitting(true);
 
     try {
-      await createCause(
-        communityId,
+      await createFundingAction(
+        causeId,
         {
           title,
           description,
-          duration,
-          ods: parsedOds,
+          objectives,
+          targetAmount: parsedTargetAmount,
         },
         fetchClient,
       );
 
-      setMessage('Causa creada correctamente.');
+      setMessage('Acción de financiación creada correctamente.');
       setFormData(initialForm);
       setFieldErrors(initialFieldErrors);
       router.refresh();
@@ -118,17 +124,21 @@ export default function CreateCauseForm({ communityId }: CreateCauseFormProps) {
       setError(
         submissionError instanceof Error
           ? submissionError.message
-          : 'Error al crear la causa.',
+          : 'No se pudo crear la acción de financiación.',
       );
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
   return (
     <Card className="border-0 shadow-sm">
       <CardBody>
-        <CardTitle className="text-primary">Crear causa</CardTitle>
+        <CardTitle className="text-primary">
+          Crear acción de financiación
+        </CardTitle>
         <p className="text-muted">
-          Registra una nueva causa para esta comunidad.
+          Define una nueva acción para recaudar fondos dentro de esta causa.
         </p>
 
         <Form
@@ -142,7 +152,7 @@ export default function CreateCauseForm({ communityId }: CreateCauseFormProps) {
               name="title"
               value={formData.title}
               onChange={handleChange}
-              placeholder="Título de la causa"
+              placeholder="Título de la acción"
               maxLength={MAX_TITLE_LENGTH}
               required
               isInvalid={Boolean(fieldErrors.title)}
@@ -162,7 +172,7 @@ export default function CreateCauseForm({ communityId }: CreateCauseFormProps) {
               name="description"
               value={formData.description}
               onChange={handleChange}
-              placeholder="Descripción breve"
+              placeholder="Descripción breve de la acción"
               required
               isInvalid={Boolean(fieldErrors.description)}
             />
@@ -174,42 +184,45 @@ export default function CreateCauseForm({ communityId }: CreateCauseFormProps) {
           </FormGroup>
 
           <FormGroup className="mb-3">
-            <FormLabel>Duración</FormLabel>
+            <FormLabel>Objetivos</FormLabel>
             <FormControl
-              name="duration"
-              value={formData.duration}
+              as="textarea"
+              rows={3}
+              name="objectives"
+              value={formData.objectives}
               onChange={handleChange}
-              placeholder="Por ejemplo, 3 meses"
-              maxLength={MAX_DURATION_LENGTH}
-              required
-              isInvalid={Boolean(fieldErrors.duration)}
+              placeholder="Un objetivo por línea"
             />
-            {fieldErrors.duration ? (
-              <div className="invalid-feedback d-block">
-                {fieldErrors.duration}
-              </div>
-            ) : null}
+            <div className="form-text">
+              Campo opcional. Se guardará un objetivo por cada línea no vacía.
+            </div>
           </FormGroup>
 
           <FormGroup className="mb-3">
-            <FormLabel>ODS</FormLabel>
+            <FormLabel>Objetivo económico</FormLabel>
             <FormControl
               type="number"
-              min={1}
-              max={17}
-              name="ods"
-              value={formData.ods}
+              inputMode="decimal"
+              step="0.01"
+              min="0.01"
+              name="targetAmount"
+              value={formData.targetAmount}
               onChange={handleChange}
+              placeholder="Por ejemplo, 500"
               required
-              isInvalid={Boolean(fieldErrors.ods)}
+              isInvalid={Boolean(fieldErrors.targetAmount)}
             />
-            {fieldErrors.ods ? (
-              <div className="invalid-feedback d-block">{fieldErrors.ods}</div>
-            ) : null}
+            {fieldErrors.targetAmount ? (
+              <div className="invalid-feedback d-block">
+                {fieldErrors.targetAmount}
+              </div>
+            ) : (
+              <div className="form-text">Importe objetivo en euros.</div>
+            )}
           </FormGroup>
 
-          <Button type="submit" variant="primary">
-            Crear causa
+          <Button type="submit" variant="primary" disabled={isSubmitting}>
+            {isSubmitting ? 'Creando…' : 'Crear acción de financiación'}
           </Button>
         </Form>
 

@@ -8,6 +8,7 @@ import CardTitle from 'react-bootstrap/CardTitle';
 import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
+import CreateFundingActionForm from '../../../components/actions/CreateFundingActionForm';
 import CloseCauseButton from '../../../components/causes/CloseCauseButton';
 import { fetchServer } from '../../../lib/http/fetch-server';
 import { getCauseById } from '../../../services/causes.service';
@@ -24,7 +25,7 @@ export default async function CauseDetailPage({
     notFound();
   }
 
-  const canCloseCause = Boolean(cause.isCommunityAdmin && !cause.closed);
+  const canManageCause = Boolean(cause.isCommunityAdmin && !cause.closed);
 
   return (
     <main>
@@ -38,7 +39,7 @@ export default async function CauseDetailPage({
           </div>
 
           <div className="d-flex flex-column flex-sm-row align-items-stretch gap-2">
-            {canCloseCause ? (
+            {canManageCause ? (
               <CloseCauseButton
                 communityId={cause.communityId}
                 causeId={cause.id}
@@ -134,12 +135,29 @@ export default async function CauseDetailPage({
                         </CardText>
                       </>
                     )}
+
+                    <div className="mt-3">
+                      <Link
+                        href={`/causes/${cause.id}/actions/${action.id}`}
+                        className="btn btn-sm btn-outline-primary"
+                      >
+                        Ver acción
+                      </Link>
+                    </div>
                   </CardBody>
                 </Card>
               </Col>
             ))}
           </Row>
         )}
+
+        {canManageCause ? (
+          <Row className="g-4 mt-1">
+            <Col>
+              <CreateFundingActionForm causeId={cause.id} />
+            </Col>
+          </Row>
+        ) : null}
       </Container>
     </main>
   );

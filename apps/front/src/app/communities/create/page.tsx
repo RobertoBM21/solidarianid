@@ -65,13 +65,8 @@ export default function CreateCommunityPage() {
     setError('');
 
     try {
-      const proposalResponse = await createCommunityProposal(
-        formData,
-        fetchClient,
-      );
-      setMessage(
-        `Se ha registrado la propuesta de comunidad. ID de propuesta: ${proposalResponse.proposalId ?? ''}`,
-      );
+      await createCommunityProposal(formData, fetchClient);
+      setMessage('Se ha registrado la propuesta de comunidad.');
       setFormData(initialForm);
       setFieldErrors(initialFieldErrors);
     } catch (submissionError) {
