@@ -81,6 +81,31 @@ export class CommunityMembersController {
     return result.value;
   }
 
+  @Delete('communities/:id/leave')
+  @ApiOkResponse({
+    description: 'Left community successfully',
+  })
+  async leaveCommunity(
+    @Param('id') communityId: string,
+    @AuthId() requesterId: string,
+  ): Promise<void> {
+    const result = await this.membersPort.leaveCommunity(
+      communityId,
+      requesterId,
+    );
+
+    if (result.isLeft()) {
+      const error = result.value;
+      if (error instanceof CommunityMemberNotFoundError) {
+        throw new NotFoundException(error.message);
+      }
+      if (error instanceof CannotExpelAdminError) {
+        throw new BadRequestException(error.message);
+      }
+      throw new BadRequestException(result.value.message);
+    }
+  }
+
   @Delete('community-members/:memberId')
   @ApiOkResponse({
     description: 'Member expelled successfully',

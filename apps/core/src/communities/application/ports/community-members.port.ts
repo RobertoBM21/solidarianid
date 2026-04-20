@@ -30,6 +30,13 @@ export abstract class CommunityMembersPort {
     >
   >;
 
+  abstract leaveCommunity(
+    communityId: string,
+    userId: string,
+  ): Promise<
+    Either<CommunityMemberNotFoundError | CannotExpelAdminError, void>
+  >;
+
   abstract expelMember(
     memberId: string,
     requesterId: string,

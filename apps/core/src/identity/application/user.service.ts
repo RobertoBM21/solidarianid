@@ -1,4 +1,10 @@
-import { Either, left, PasswordHasherPort, right } from '@app/shared/domain';
+import {
+  Either,
+  left,
+  PasswordHasherPort,
+  right,
+  UniqueEntityID,
+} from '@app/shared/domain';
 import {
   InvalidCredentialsError,
   UserAlreadyExistsError,
@@ -6,8 +12,13 @@ import {
 import { Injectable } from '@nestjs/common';
 import { User, UserCreationError } from '../domain/aggregates/user.aggregate';
 import { CountryCheckerPort } from '../domain/ports/country-checker.port';
-import { UserRepository } from '../domain/repositories/user.repository';
+import {
+  UserNotFoundError,
+  UserRepository,
+} from '../domain/repositories/user.repository';
 import { CreateUserDto } from './dtos/create-user.dto';
+import { ProfileOutDto } from './dtos/profile-out.dto';
+import { UpdateProfileDto } from './dtos/update-profile.dto';
 import { UserPort } from './ports/user.port';
 import { UserListDto } from './dtos/user-list.dto';
 import { GetMembershipsPort } from './ports/get-memberships.port';
@@ -110,5 +121,50 @@ export class UserService implements UserPort {
       users: mappedUsers,
       totalPages,
     };
+  }
+
+  async getProfile(
+    userId: string,
+  ): Promise<Either<UserNotFoundError, ProfileOutDto>> {
+    const userOrError = await this.userRepository.findById(
+      UniqueEntityID.create(userId),
+    );
+    if (userOrError.isLeft()) {
+      return left(userOrError.value);
+    }
+    const user = userOrError.value;
+    return right(this.toProfileDto(user));
+  }
+
+  async updateProfile(
+    userId: string,
+    data: UpdateProfileDto,
+  ): Promise<Either<UserNotFoundError | UserCreationError, ProfileOutDto>> {
+    const userOrError = await this.userRepository.findById(
+      UniqueEntityID.create(userId),
+    );
+    if (userOrError.isLeft()) {
+      return left(userOrError.value);
+    }
+    const user = userOrError.value;
+
+    const updateResult = user.update(data, this.countryChecker);
+    if (updateResult.isLeft()) {
+      return left(updateResult.value);
+    }
+
+    await this.userRepository.save(user);
+    return right(this.toProfileDto(user));
+  }
+
+  private toProfileDto(user: User): ProfileOutDto {
+    const dto = new ProfileOutDto();
+    dto.id = user.id.toString();
+    dto.name = user.name;
+    dto.email = user.email;
+    dto.phone = user.phone;
+    dto.city = user.city;
+    dto.country = user.country;
+    return dto;
   }
 }

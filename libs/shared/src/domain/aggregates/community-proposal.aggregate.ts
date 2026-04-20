@@ -3,6 +3,7 @@ import { UniqueEntityID } from '../entity';
 import { DomainError, Either, left, right } from '../errors';
 import { CommunityProposalAccepted } from '../events/community-proposal-accepted.event';
 import { CommunityProposalCreated } from '../events/community-proposal-created.event';
+import { CommunityProposalRejected } from '../events/community-proposal-rejected.event';
 import { AcceptedStatus } from '../value-objects/accepted-status.vo';
 import {
   CommunityDescription,
@@ -80,6 +81,14 @@ export class CommunityProposal extends AggregateRoot<CommunityProposalProps> {
     this.props.accepted = AcceptedStatus.create(accepted);
     if (accepted) {
       const ev = new CommunityProposalAccepted(
+        this.id.toString(),
+        this.name,
+        this.description,
+        this.requesterId,
+      );
+      this.addDomainEvent(ev);
+    } else {
+      const ev = new CommunityProposalRejected(
         this.id.toString(),
         this.name,
         this.description,

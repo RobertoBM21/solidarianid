@@ -10,6 +10,8 @@ import {
   AbstractUserCreationError,
   AbstractUserProps,
 } from '@app/shared/domain/aggregates/abstract-user.aggregate';
+import { UserName } from '@app/shared/domain/value-objects/user-name.vo';
+import { UserPhone } from '@app/shared/domain/value-objects/user-phone.vo';
 import { CountryCheckerPort } from '../ports/country-checker.port';
 import { InvalidUserCityError, UserCity } from '../value-objects/user-city.vo';
 import {
@@ -34,6 +36,33 @@ export class User extends AbstractUser<UserProps> {
 
   get country(): string | undefined {
     return this.props.country?.value;
+  }
+
+  update(
+    data: { name?: string; phone?: string; city?: string; country?: string },
+    countryChecker: CountryCheckerPort,
+  ): Either<UserCreationError, void> {
+    if (data.name !== undefined) {
+      const nameOrError = UserName.create(data.name);
+      if (nameOrError.isLeft()) return left(nameOrError.value);
+      this.props.name = nameOrError.value;
+    }
+    if (data.phone !== undefined) {
+      const phoneOrError = UserPhone.create(data.phone);
+      if (phoneOrError.isLeft()) return left(phoneOrError.value);
+      this.props.phone = phoneOrError.value;
+    }
+    if (data.city !== undefined) {
+      const cityOrError = UserCity.create(data.city);
+      if (cityOrError.isLeft()) return left(cityOrError.value);
+      this.props.city = cityOrError.value;
+    }
+    if (data.country !== undefined) {
+      const countryOrError = UserCountry.create(data.country, countryChecker);
+      if (countryOrError.isLeft()) return left(countryOrError.value);
+      this.props.country = countryOrError.value;
+    }
+    return right(undefined);
   }
 
   static async create(

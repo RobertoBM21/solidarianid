@@ -26,6 +26,8 @@ export abstract class CommunityMemberRepository extends Repository<
     userId: UniqueEntityID,
   ): Promise<Either<CommunityMemberNotFoundError, CommunityMember>>;
 
+  abstract findByUserId(userId: UniqueEntityID): Promise<CommunityMember[]>;
+
   abstract listByUserIds(userIds: string[]): Promise<Map<string, string[]>>;
   abstract getUserMemberships(userId: string): Promise<
     {

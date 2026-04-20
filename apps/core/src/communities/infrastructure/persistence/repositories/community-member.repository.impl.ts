@@ -74,6 +74,13 @@ export class CommunityMemberRepositoryImpl extends CommunityMemberRepository {
     return right(this.mapToDomain(dbEntity));
   }
 
+  async findByUserId(userId: UniqueEntityID): Promise<CommunityMember[]> {
+    const entities = await this.em.find(CommunityMemberDbEntity, {
+      where: { userId: userId.toString() },
+    });
+    return entities.map((e) => this.mapToDomain(e));
+  }
+
   async listByUserIds(userIds: string[]): Promise<Map<string, string[]>> {
     if (userIds.length === 0) {
       return new Map<string, string[]>();

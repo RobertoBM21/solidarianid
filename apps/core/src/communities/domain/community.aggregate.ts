@@ -89,6 +89,10 @@ export class Community extends AggregateRoot<CommunityProps> {
     return [...this.props.causes.value];
   }
 
+  isAdmin(userId: UniqueEntityID): boolean {
+    return this.props.admins.has(userId);
+  }
+
   addCause(
     causeProps: {
       title: string;

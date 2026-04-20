@@ -13,6 +13,7 @@ import {
 } from '../../domain/community.aggregate';
 import { Cause } from '../../domain/entities/cause.entity';
 import { CauseClosedEvent } from '../../domain/events/cause-closed.event';
+import { CommunityProposalRepository } from '../../domain/repositories/community-proposal.repository';
 import {
   CommunityNotFoundError,
   CommunityRepository,
@@ -32,6 +33,13 @@ describe('CommunitiesService', () => {
     findById: jest.fn(),
     isAdmin: jest.fn(),
     save: jest.fn(),
+  };
+
+  const mockProposalRepository = {
+    save: jest.fn(),
+    findById: jest.fn(),
+    remove: jest.fn(),
+    updateAcceptedStatus: jest.fn(),
   };
 
   const admin1 = UniqueEntityID.create();
@@ -61,6 +69,10 @@ describe('CommunitiesService', () => {
         {
           provide: DomainEventsPort,
           useValue: mockDomainEvents,
+        },
+        {
+          provide: CommunityProposalRepository,
+          useValue: mockProposalRepository,
         },
       ],
     }).compile();

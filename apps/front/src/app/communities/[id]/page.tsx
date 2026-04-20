@@ -1,4 +1,5 @@
-﻿import Link from 'next/link';
+﻿import { getServerSession } from 'next-auth';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import Card from 'react-bootstrap/Card';
 import CardBody from 'react-bootstrap/CardBody';
@@ -10,7 +11,10 @@ import ListGroup from 'react-bootstrap/ListGroup';
 import ListGroupItem from 'react-bootstrap/ListGroupItem';
 import Row from 'react-bootstrap/Row';
 import CreateCauseForm from '../../../components/communities/CreateCauseForm';
+import MembershipActions from '../../../components/memberships/MembershipActions';
+import { authOptions } from '../../../lib/auth/auth-options';
 import { getCommunityById } from '../../../services/communities.service';
+import { getMyMemberships } from '../../../services/memberships.service';
 
 export default async function CommunityDetailPage({
   params,
@@ -22,6 +26,17 @@ export default async function CommunityDetailPage({
 
   if (!community) {
     notFound();
+  }
+
+  const session = await getServerSession(authOptions);
+  let membershipStatus: 'none' | 'pending' | 'accepted' | 'rejected' = 'none';
+
+  if (session) {
+    const memberships = await getMyMemberships();
+    const existing = memberships.find((m) => m.communityId === id);
+    if (existing) {
+      membershipStatus = existing.status;
+    }
   }
 
   const isCommunityAdmin = community.isCommunityAdmin ?? false;
@@ -39,12 +54,21 @@ export default async function CommunityDetailPage({
             </p>
           </div>
 
-          <Link
-            href={`/communities/${community.id}/management`}
-            className="btn btn-outline-primary"
-          >
-            Ir a gestión
-          </Link>
+          <div className="d-flex gap-2">
+            {session ? (
+              <MembershipActions
+                communityId={community.id}
+                initialStatus={membershipStatus}
+              />
+            ) : null}
+
+            <Link
+              href={`/communities/${community.id}/management`}
+              className="btn btn-outline-primary"
+            >
+              Ir a gestión
+            </Link>
+          </div>
         </div>
 
         <Row className="g-4">

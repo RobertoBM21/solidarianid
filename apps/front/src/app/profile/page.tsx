@@ -9,36 +9,30 @@ import Container from 'react-bootstrap/Container';
 import ListGroup from 'react-bootstrap/ListGroup';
 import ListGroupItem from 'react-bootstrap/ListGroupItem';
 import Row from 'react-bootstrap/Row';
+import ProfileMembershipList from '../../components/memberships/ProfileMembershipList';
+import ProfileEditForm from '../../components/profile/ProfileEditForm';
 import { getSessionOrRedirect } from '../../lib/auth/get-session-or-redirect';
-import type { ProfileMembershipStatus } from '../../models/profile.models';
 import { getProfileView } from '../../services/profile.service';
 
-function getMembershipBadgeLabel(status: ProfileMembershipStatus) {
+function getProposalBadgeVariant(status: string) {
   switch (status) {
-    case 'admin':
-      return 'Administrador';
-    case 'member':
-      return 'Miembro';
     case 'accepted':
-      return 'Aceptada';
-    case 'pending':
-      return 'Pendiente';
+      return 'success';
     case 'rejected':
-      return 'Rechazada';
+      return 'danger';
+    default:
+      return 'warning';
   }
 }
 
-function getMembershipBadgeVariant(status: ProfileMembershipStatus) {
+function getProposalBadgeLabel(status: string) {
   switch (status) {
-    case 'admin':
-      return 'primary';
-    case 'member':
     case 'accepted':
-      return 'success';
-    case 'pending':
-      return 'warning';
+      return 'Aceptada';
     case 'rejected':
-      return 'danger';
+      return 'Rechazada';
+    default:
+      return 'Pendiente';
   }
 }
 
@@ -87,6 +81,14 @@ export default async function ProfilePage() {
                 <strong>País:</strong> {profile.country}
               </CardText>
             )}
+            <ProfileEditForm
+              initialData={{
+                name: profile.name,
+                phone: profile.phone,
+                city: profile.city,
+                country: profile.country,
+              }}
+            />
           </CardBody>
         </Card>
 
@@ -97,19 +99,7 @@ export default async function ProfilePage() {
                 <CardTitle className="text-primary">
                   Mis membresías y solicitudes
                 </CardTitle>
-                <ListGroup variant="flush">
-                  {profile.memberships.map((membership) => (
-                    <ListGroupItem
-                      key={membership.id}
-                      className="d-flex justify-content-between align-items-center gap-3"
-                    >
-                      <span>{membership.communityName}</span>
-                      <Badge bg={getMembershipBadgeVariant(membership.status)}>
-                        {getMembershipBadgeLabel(membership.status)}
-                      </Badge>
-                    </ListGroupItem>
-                  ))}
-                </ListGroup>
+                <ProfileMembershipList memberships={profile.memberships} />
               </CardBody>
             </Card>
           </Col>
@@ -120,21 +110,25 @@ export default async function ProfilePage() {
                 <CardTitle className="text-primary">
                   Mis propuestas de comunidad
                 </CardTitle>
-                <ListGroup variant="flush">
-                  {profile.proposals.map((proposal) => (
-                    <ListGroupItem
-                      key={proposal.id}
-                      className="d-flex justify-content-between align-items-center gap-3"
-                    >
-                      <span>{proposal.title}</span>
-                      <Badge bg="secondary">
-                        {proposal.status === 'pending'
-                          ? 'Pendiente'
-                          : proposal.status}
-                      </Badge>
-                    </ListGroupItem>
-                  ))}
-                </ListGroup>
+                {profile.proposals.length === 0 ? (
+                  <p className="text-muted mb-0">
+                    No tienes propuestas registradas.
+                  </p>
+                ) : (
+                  <ListGroup variant="flush">
+                    {profile.proposals.map((proposal) => (
+                      <ListGroupItem
+                        key={proposal.id}
+                        className="d-flex justify-content-between align-items-center gap-3"
+                      >
+                        <span>{proposal.title}</span>
+                        <Badge bg={getProposalBadgeVariant(proposal.status)}>
+                          {getProposalBadgeLabel(proposal.status)}
+                        </Badge>
+                      </ListGroupItem>
+                    ))}
+                  </ListGroup>
+                )}
               </CardBody>
             </Card>
           </Col>

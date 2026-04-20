@@ -2,6 +2,7 @@ import { CommunityProposalAccepted } from '@app/shared/domain/events/community-p
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
 import { ApiExcludeController } from '@nestjs/swagger';
+import { CommunityProposalRepository } from '../../domain/repositories/community-proposal.repository';
 import { CommunityFactory } from '../../domain/services/community-factory.service';
 
 @Controller()
@@ -9,7 +10,10 @@ import { CommunityFactory } from '../../domain/services/community-factory.servic
 export class CommunityProposalAcceptedConsumer {
   private readonly logger = new Logger(CommunityProposalAcceptedConsumer.name);
 
-  constructor(private readonly communityFactory: CommunityFactory) {}
+  constructor(
+    private readonly communityFactory: CommunityFactory,
+    private readonly proposalRepository: CommunityProposalRepository,
+  ) {}
 
   @MessagePattern(CommunityProposalAccepted.name)
   async handleCommunityProposalAccepted(
@@ -27,6 +31,8 @@ export class CommunityProposalAcceptedConsumer {
       this.logger.error(
         `Failed to create community for proposalId=${event.proposalId}: ${result.value.message}`,
       );
+      return;
     }
+    await this.proposalRepository.updateAcceptedStatus(event.proposalId, true);
   }
 }

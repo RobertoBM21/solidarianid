@@ -20,7 +20,7 @@ export default async function CommunityManagementPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const session = await getSessionOrRedirect();
+  await getSessionOrRedirect();
 
   const { id } = await params;
   const community = await getCommunityById(id);

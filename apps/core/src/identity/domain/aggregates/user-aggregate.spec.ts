@@ -1,5 +1,6 @@
 import { UniqueEntityID } from '@app/shared/domain';
 import { InvalidUserNameError } from '@app/shared/domain/value-objects/user-name.vo';
+import { InvalidUserPhoneError } from '@app/shared/domain/value-objects/user-phone.vo';
 import { PasswordHasherAdapter } from '@app/shared/infrastructure';
 import { InvalidUserCityError } from '../value-objects/user-city.vo';
 import { InvalidUserCountryError } from '../value-objects/user-country.vo';
@@ -131,7 +132,7 @@ describe('User Aggregate', () => {
     expect(user.phone).toBe(DEFAULT_PHONE);
     const res = await passwordHasher.comparePassword(
       DEFAULT_PASSWORD,
-      user.passwordHash,
+      user.passwordHash!,
     );
     expect(res).toBe(true);
     expect(user.city).toBe(DEFAULT_CITY);
@@ -246,5 +247,147 @@ describe('User Aggregate', () => {
     expect(user.city).toBe(DEFAULT_CITY);
     expect(user.country).toBe(DEFAULT_COUNTRY);
     expect(user.id).toBeDefined();
+  });
+
+  describe('update', () => {
+    const createValidUser = () => {
+      const userOrError = User.createWithHashed(
+        {
+          name: DEFAULT_NAME,
+          email: DEFAULT_EMAIL,
+          phone: DEFAULT_PHONE,
+          hashedPassword: DEFAULT_PASSWORD_HASH,
+          city: DEFAULT_CITY,
+          country: DEFAULT_COUNTRY,
+        },
+        mockCountryChecker,
+      );
+      if (userOrError.isLeft()) throw new Error('Failed to create test user');
+      return userOrError.value;
+    };
+
+    it('should update all fields successfully', () => {
+      const user = createValidUser();
+
+      const result = user.update(
+        {
+          name: 'New Name',
+          phone: '87654321',
+          city: 'new city',
+          country: 'es',
+        },
+        mockCountryChecker,
+      );
+
+      expect(result.isRight()).toBe(true);
+      expect(user.name).toBe('New Name');
+      expect(user.phone).toBe('87654321');
+      expect(user.city).toBe('new city');
+      expect(user.country).toBe('es');
+    });
+
+    it('should update only name', () => {
+      const user = createValidUser();
+
+      const result = user.update({ name: 'Updated Name' }, mockCountryChecker);
+
+      expect(result.isRight()).toBe(true);
+      expect(user.name).toBe('Updated Name');
+      expect(user.phone).toBe(DEFAULT_PHONE);
+      expect(user.city).toBe(DEFAULT_CITY);
+      expect(user.country).toBe(DEFAULT_COUNTRY);
+    });
+
+    it('should update only phone', () => {
+      const user = createValidUser();
+
+      const result = user.update({ phone: '99999999' }, mockCountryChecker);
+
+      expect(result.isRight()).toBe(true);
+      expect(user.phone).toBe('99999999');
+      expect(user.name).toBe(DEFAULT_NAME);
+    });
+
+    it('should update only city', () => {
+      const user = createValidUser();
+
+      const result = user.update({ city: 'another city' }, mockCountryChecker);
+
+      expect(result.isRight()).toBe(true);
+      expect(user.city).toBe('another city');
+      expect(user.name).toBe(DEFAULT_NAME);
+    });
+
+    it('should update only country', () => {
+      const user = createValidUser();
+
+      const result = user.update({ country: 'fr' }, mockCountryChecker);
+
+      expect(result.isRight()).toBe(true);
+      expect(user.country).toBe('fr');
+      expect(user.name).toBe(DEFAULT_NAME);
+    });
+
+    it('should fail with invalid name', () => {
+      const user = createValidUser();
+
+      const result = user.update({ name: '' }, mockCountryChecker);
+
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft()) {
+        expect(result.value).toBeInstanceOf(InvalidUserNameError);
+      }
+      expect(user.name).toBe(DEFAULT_NAME);
+    });
+
+    it('should fail with invalid phone', () => {
+      const user = createValidUser();
+
+      const result = user.update({ phone: '' }, mockCountryChecker);
+
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft()) {
+        expect(result.value).toBeInstanceOf(InvalidUserPhoneError);
+      }
+      expect(user.phone).toBe(DEFAULT_PHONE);
+    });
+
+    it('should fail with invalid city', () => {
+      const user = createValidUser();
+
+      const result = user.update({ city: '' }, mockCountryChecker);
+
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft()) {
+        expect(result.value).toBeInstanceOf(InvalidUserCityError);
+      }
+      expect(user.city).toBe(DEFAULT_CITY);
+    });
+
+    it('should fail with invalid country', () => {
+      const user = createValidUser();
+      const invalidCountryChecker = { isValidCountryCode: () => false };
+
+      const result = user.update({ country: 'xx' }, invalidCountryChecker);
+
+      expect(result.isLeft()).toBe(true);
+      if (result.isLeft()) {
+        expect(result.value).toBeInstanceOf(InvalidUserCountryError);
+      }
+      expect(user.country).toBe(DEFAULT_COUNTRY);
+    });
+
+    it('should not modify other fields when one field update fails', () => {
+      const user = createValidUser();
+
+      const result = user.update(
+        { name: 'Valid Name', phone: '' },
+        mockCountryChecker,
+      );
+
+      expect(result.isLeft()).toBe(true);
+      expect(user.name).toBe('Valid Name');
+      expect(user.phone).toBe(DEFAULT_PHONE);
+    });
   });
 });

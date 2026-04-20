@@ -56,6 +56,13 @@ export class CommunityMember extends AggregateRoot<CommunityMemberProps> {
     return right(undefined);
   }
 
+  ensureCanBeRemoved(): Either<CannotExpelAdminError, void> {
+    if (this.role.isAdmin()) {
+      return left(new CannotExpelAdminError());
+    }
+    return right(undefined);
+  }
+
   static create(
     data: {
       communityId: string;

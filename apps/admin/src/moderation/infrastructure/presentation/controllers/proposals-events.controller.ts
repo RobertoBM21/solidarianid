@@ -16,13 +16,16 @@ export class ProposalsEventsController {
       `New community proposal received: ID=${event.proposalId}, Name=${event.name}, RequesterID=${event.requesterId}`,
     );
 
-    const proposal = CommunityProposal.create({
-      name: event.name,
-      description: event.description,
-      requesterId: event.requesterId,
-      accepted: null,
-      createdAt: new Date(),
-    });
+    const proposal = CommunityProposal.create(
+      {
+        name: event.name,
+        description: event.description,
+        requesterId: event.requesterId,
+        accepted: null,
+        createdAt: new Date(),
+      },
+      event.proposalId,
+    );
     if (proposal.isLeft()) {
       this.logger.error(
         `Failed to create community proposal: ${proposal.value.constructor.name}`,

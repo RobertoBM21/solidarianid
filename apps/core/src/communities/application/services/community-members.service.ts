@@ -98,6 +98,40 @@ export class CommunityMembersService implements CommunityMembersPort {
     return right(dto);
   }
 
+  async leaveCommunity(
+    communityId: string,
+    userId: string,
+  ): Promise<
+    Either<CommunityMemberNotFoundError | CannotExpelAdminError, void>
+  > {
+    const community = UniqueEntityID.create(communityId);
+    const user = UniqueEntityID.create(userId);
+
+    const memberOrError =
+      await this.communityMemberRepository.findByCommunityIdAndUserId(
+        community,
+        user,
+      );
+    if (memberOrError.isLeft()) {
+      return left(memberOrError.value);
+    }
+
+    const memberEntity = memberOrError.value;
+    const canBeRemoved = memberEntity.ensureCanBeRemoved();
+    if (canBeRemoved.isLeft()) {
+      return left(canBeRemoved.value);
+    }
+
+    const removeResult = await this.communityMemberRepository.remove(
+      memberEntity.id,
+    );
+    if (removeResult.isLeft()) {
+      return left(removeResult.value);
+    }
+
+    return right(undefined);
+  }
+
   async expelMember(
     memberId: string,
     requesterId: string,
@@ -135,8 +169,9 @@ export class CommunityMembersService implements CommunityMembersPort {
       return left(new UserIsNotAdminError(memberEntity.communityId.toString()));
     }
 
-    if (memberEntity.role.isAdmin()) {
-      return left(new CannotExpelAdminError());
+    const canBeRemoved = memberEntity.ensureCanBeRemoved();
+    if (canBeRemoved.isLeft()) {
+      return left(canBeRemoved.value);
     }
 
     const removeResult = await this.communityMemberRepository.remove(

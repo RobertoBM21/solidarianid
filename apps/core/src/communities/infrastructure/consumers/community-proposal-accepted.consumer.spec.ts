@@ -6,6 +6,7 @@ import {
   Community,
   CommunityNameAlreadyExistsError,
 } from '../../domain/community.aggregate';
+import { CommunityProposalRepository } from '../../domain/repositories/community-proposal.repository';
 import { CommunityFactory } from '../../domain/services/community-factory.service';
 import { CommunityProposalAcceptedConsumer } from './community-proposal-accepted.consumer';
 
@@ -18,6 +19,13 @@ describe('CommunityProposalAcceptedConsumer', () => {
     createCommunity: jest.fn(),
   };
 
+  const mockProposalRepository = {
+    save: jest.fn(),
+    findById: jest.fn(),
+    remove: jest.fn(),
+    updateAcceptedStatus: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -25,6 +33,10 @@ describe('CommunityProposalAcceptedConsumer', () => {
         {
           provide: CommunityFactory,
           useValue: mockCommunityFactory,
+        },
+        {
+          provide: CommunityProposalRepository,
+          useValue: mockProposalRepository,
         },
       ],
     }).compile();
@@ -68,6 +80,10 @@ describe('CommunityProposalAcceptedConsumer', () => {
         description: createData.description,
         adminId: createData.requesterId,
       });
+      expect(mockProposalRepository.updateAcceptedStatus).toHaveBeenCalledWith(
+        createData.proposalId,
+        true,
+      );
     });
 
     it('should reject creation on factory error', async () => {
@@ -86,6 +102,9 @@ describe('CommunityProposalAcceptedConsumer', () => {
       await handler.handleCommunityProposalAccepted(createData);
 
       expect(mockCommunityFactory.createCommunity).toHaveBeenCalled();
+      expect(
+        mockProposalRepository.updateAcceptedStatus,
+      ).not.toHaveBeenCalled();
     });
   });
 });

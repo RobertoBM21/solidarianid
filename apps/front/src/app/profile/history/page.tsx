@@ -21,7 +21,7 @@ function getHistoryTypeLabel(
 }
 
 export default async function ProfileHistoryPage() {
-  const session = await getSessionOrRedirect();
+  await getSessionOrRedirect();
 
   const profileHistory = await getProfileHistory();
 

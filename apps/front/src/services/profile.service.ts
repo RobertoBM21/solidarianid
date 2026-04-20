@@ -1,11 +1,25 @@
 ﻿import { fetchServer } from '../lib/http/fetch-server';
-import type { HistoryItem, ProfileView } from '../models/profile.models';
+import type {
+  HistoryItem,
+  ProfileProposal,
+  ProfileView,
+} from '../models/profile.models';
 import { getCommunities } from './communities.service';
+import { getMyMemberships } from './memberships.service';
 
-interface MembershipRequestResponse {
+interface ProfileResponse {
   id: string;
-  userId: string;
-  communityId: string;
+  name?: string;
+  email: string;
+  phone?: string;
+  city?: string;
+  country?: string;
+}
+
+interface ProposalResponse {
+  id: string;
+  name: string;
+  description: string;
   status: 'pending' | 'accepted' | 'rejected';
   createdAt: string;
 }
@@ -18,30 +32,52 @@ export async function getProfileView(sessionUser: {
   id: string;
   email: string;
 }): Promise<ProfileView> {
-  const [requestsRes, communities] = await Promise.all([
-    fetchServer('/membership-requests/mine'),
-    getCommunities(),
-  ]);
+  const [profileRes, memberships, communities, proposalsRes] =
+    await Promise.all([
+      fetchServer('/profile'),
+      getMyMemberships(),
+      getCommunities(),
+      fetchServer('/my-proposals'),
+    ]);
 
   const communityNames = new Map(communities.map((c) => [c.id, c.name]));
 
-  let memberships: ProfileView['memberships'] = [];
-  if (requestsRes.ok) {
-    const data: unknown = await requestsRes.json();
-    const requests = data as MembershipRequestResponse[];
-    memberships = requests.map((req) => ({
-      id: req.id,
-      communityId: req.communityId,
-      communityName: communityNames.get(req.communityId) ?? req.communityId,
-      status: req.status,
+  const mappedMemberships = memberships.map((req) => ({
+    id: req.id,
+    communityId: req.communityId,
+    communityName: communityNames.get(req.communityId) ?? req.communityId,
+    status: req.status as ProfileView['memberships'][number]['status'],
+  }));
+
+  let proposals: ProfileProposal[] = [];
+  if (proposalsRes.ok) {
+    const data: unknown = await proposalsRes.json();
+    const items = data as ProposalResponse[];
+    proposals = items.map((p) => ({
+      id: p.id,
+      title: p.name,
+      status: p.status,
     }));
   }
 
-  return {
+  let profile: ProfileResponse = {
     id: sessionUser.id,
     email: sessionUser.email,
-    memberships,
-    proposals: [],
+  };
+  if (profileRes.ok) {
+    const data: unknown = await profileRes.json();
+    profile = data as ProfileResponse;
+  }
+
+  return {
+    id: profile.id,
+    name: profile.name,
+    email: profile.email,
+    phone: profile.phone,
+    city: profile.city,
+    country: profile.country,
+    memberships: mappedMemberships,
+    proposals,
   };
 }
 

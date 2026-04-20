@@ -13,6 +13,7 @@ import {
   CommunityNameAlreadyExistsError,
 } from '../../domain/community.aggregate';
 import { Cause, CauseCreationError } from '../../domain/entities/cause.entity';
+import { CommunityProposalRepository } from '../../domain/repositories/community-proposal.repository';
 import {
   CommunityNotFoundError,
   CommunityRepository,
@@ -27,6 +28,7 @@ export class CommunitiesService implements CommunitiesPort {
   constructor(
     private readonly domainEvents: DomainEventsPort,
     private readonly communityRepository: CommunityRepository,
+    private readonly proposalRepository: CommunityProposalRepository,
   ) {}
 
   async listCommunities(
@@ -49,7 +51,7 @@ export class CommunitiesService implements CommunitiesPort {
     }
 
     const isCommunityAdmin = requesterId
-      ? communityOrError.value.admins.has(UniqueEntityID.create(requesterId))
+      ? communityOrError.value.isAdmin(UniqueEntityID.create(requesterId))
       : undefined;
 
     return right(new CommunityOutDto(communityOrError.value, isCommunityAdmin));
@@ -81,6 +83,7 @@ export class CommunitiesService implements CommunitiesPort {
     if (proposalOrError.isLeft()) {
       return left(proposalOrError.value);
     }
+    await this.proposalRepository.save(proposalOrError.value);
     await this.domainEvents.dispatch(proposalOrError.value);
     return right({ proposalId: proposalOrError.value.id.toString() });
   }

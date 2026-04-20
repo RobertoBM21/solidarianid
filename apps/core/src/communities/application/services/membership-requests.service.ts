@@ -18,7 +18,6 @@ import {
   MembershipRequestNotPendingError,
   UserAlreadyMemberError,
 } from '../../domain/membership-request.aggregate';
-import { MembershipRequestsPort } from '../ports/membership-requests.port';
 import { CommunityMemberRepository } from '../../domain/repositories/community-member.repository';
 import {
   CommunityNotFoundError,
@@ -29,6 +28,7 @@ import {
   MembershipRequestRepository,
 } from '../../domain/repositories/membership-request.repository';
 import { MembershipRequestOutDto } from '../dtos/membership-out.dto';
+import { MembershipRequestsPort } from '../ports/membership-requests.port';
 
 @Injectable()
 export class MembershipRequestsService implements MembershipRequestsPort {
@@ -87,10 +87,32 @@ export class MembershipRequestsService implements MembershipRequestsPort {
   }
 
   async listUserRequests(userId: string): Promise<MembershipRequestOutDto[]> {
-    const requests = await this.membershipRepository.findByUserId(
-      UniqueEntityID.create(userId),
+    const uid = UniqueEntityID.create(userId);
+
+    const [requests, members] = await Promise.all([
+      this.membershipRepository.findByUserId(uid),
+      this.memberRepository.findByUserId(uid),
+    ]);
+
+    const dtos = requests.map(
+      (request) => new MembershipRequestOutDto(request),
     );
-    return requests.map((request) => new MembershipRequestOutDto(request));
+
+    const communityIdsWithRequest = new Set(dtos.map((dto) => dto.communityId));
+
+    for (const member of members) {
+      if (!communityIdsWithRequest.has(member.communityId.toString())) {
+        dtos.push({
+          id: member.id.toString(),
+          userId: member.userId.toString(),
+          communityId: member.communityId.toString(),
+          status: MembershipRequestStatus.ACCEPTED,
+          createdAt: member.createdAt.toISOString(),
+        });
+      }
+    }
+
+    return dtos;
   }
 
   async listPendingRequests(

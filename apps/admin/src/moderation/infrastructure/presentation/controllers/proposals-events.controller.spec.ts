@@ -82,6 +82,7 @@ describe('ProposalsEventsController', () => {
       expect(savedProposal.description).toBe(event.description);
       expect(savedProposal.requesterId).toBe(event.requesterId);
       expect(savedProposal.accepted).toBeNull();
+      expect(savedProposal.id.toString()).toBe(event.proposalId);
     });
 
     it('should return an error if proposal creation fails', async () => {

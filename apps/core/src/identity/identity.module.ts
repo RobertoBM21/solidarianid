@@ -14,6 +14,7 @@ import { UsersGrpcController } from './infrastructure/grpc/users-grpc.controller
 import { AuthMiddleware } from './infrastructure/middlewares/auth.middleware';
 import { UserDbEntity } from './infrastructure/persistence/entities/user.db-entity';
 import { UserRepositoryImpl } from './infrastructure/persistence/user.repository.impl';
+import { ProfileController } from './infrastructure/presentation/controllers/profile.controller';
 
 @Module({
   imports: [TypeOrmModule.forFeature([UserDbEntity]), CommunitiesModule],
@@ -37,7 +38,7 @@ import { UserRepositoryImpl } from './infrastructure/persistence/user.repository
 
     IdentityIntegrationService,
   ],
-  controllers: [AuthGrpcController, UsersGrpcController],
+  controllers: [AuthGrpcController, ProfileController, UsersGrpcController],
   exports: [IdentityIntegrationService],
 })
 export class IdentityModule implements NestModule {
