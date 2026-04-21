@@ -10,8 +10,10 @@ import ListGroup from 'react-bootstrap/ListGroup';
 import ListGroupItem from 'react-bootstrap/ListGroupItem';
 import Row from 'react-bootstrap/Row';
 import ProfileMembershipList from '../../components/memberships/ProfileMembershipList';
+import ProfileMembershipRequestList from '../../components/memberships/ProfileMembershipRequestList';
 import ProfileEditForm from '../../components/profile/ProfileEditForm';
 import { getSessionOrRedirect } from '../../lib/auth/get-session-or-redirect';
+import type { ProfileView } from '../../models/profile.models';
 import { getProfileView } from '../../services/profile.service';
 
 function getProposalBadgeVariant(status: string) {
@@ -39,7 +41,7 @@ function getProposalBadgeLabel(status: string) {
 export default async function ProfilePage() {
   const session = await getSessionOrRedirect();
 
-  const profile = await getProfileView({
+  const profile: ProfileView = await getProfileView({
     id: session.user.id,
     email: session.user.email,
   });
@@ -94,14 +96,25 @@ export default async function ProfilePage() {
 
         <Row className="g-4">
           <Col md={6}>
-            <Card className="h-100 border-0 shadow-sm">
-              <CardBody>
-                <CardTitle className="text-primary">
-                  Mis membresías y solicitudes
-                </CardTitle>
-                <ProfileMembershipList memberships={profile.memberships} />
-              </CardBody>
-            </Card>
+            <div className="d-flex flex-column gap-4">
+              <Card className="border-0 shadow-sm">
+                <CardBody>
+                  <CardTitle className="text-primary">Mis membresías</CardTitle>
+                  <ProfileMembershipList memberships={profile.memberships} />
+                </CardBody>
+              </Card>
+
+              <Card className="border-0 shadow-sm">
+                <CardBody>
+                  <CardTitle className="text-primary">
+                    Mis solicitudes de membresía
+                  </CardTitle>
+                  <ProfileMembershipRequestList
+                    requests={profile.membershipRequests}
+                  />
+                </CardBody>
+              </Card>
+            </div>
           </Col>
 
           <Col md={6}>

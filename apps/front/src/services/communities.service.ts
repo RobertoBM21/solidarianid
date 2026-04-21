@@ -1,11 +1,9 @@
 import { gql } from '@apollo/client/core';
 import apolloClient from '../lib/apollo/client';
 import { getServerApolloClient } from '../lib/apollo/server-client';
-import { fetchServer } from '../lib/http/fetch-server';
 import type {
   CommunityDetail,
   CommunityListItem,
-  CommunityMember,
 } from '../models/community.models';
 
 interface CommunitiesQueryResponse {
@@ -95,17 +93,6 @@ export async function getCommunityById(
   });
 
   return data?.community ?? undefined;
-}
-
-export async function getCommunityMembers(
-  communityId: string,
-): Promise<CommunityMember[]> {
-  const res = await fetchServer(`/communities/${communityId}/members`);
-
-  if (!res.ok) return [];
-
-  const data: unknown = await res.json();
-  return data as CommunityMember[];
 }
 
 export async function createCommunityProposal(

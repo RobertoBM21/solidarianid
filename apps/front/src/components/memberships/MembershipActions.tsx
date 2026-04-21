@@ -1,13 +1,10 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import { useFetchClient } from '../../lib/http/use-fetch-client';
-import {
-  leaveCommunity,
-  requestMembership,
-} from '../../services/memberships.service';
+import { requestMembership } from '../../services/memberships.service';
 
 type MembershipStatus = 'none' | 'pending' | 'accepted' | 'rejected';
 
@@ -44,27 +41,9 @@ export default function MembershipActions({
     }
   }
 
-  async function handleLeaveCommunity() {
-    setLoading(true);
-    setError('');
-    setMessage('');
-
-    try {
-      await leaveCommunity(communityId, fetchClient);
-      setStatus('none');
-      setMessage('Has abandonado la comunidad.');
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Error al abandonar la comunidad.',
-      );
-    } finally {
-      setLoading(false);
-    }
-  }
-
   return (
     <div className="position-relative">
-      {status === 'none' || status === 'rejected' ? (
+      {status === 'none' ? (
         <Button
           variant="primary"
           disabled={loading}
@@ -72,7 +51,7 @@ export default function MembershipActions({
             void handleRequestMembership();
           }}
         >
-          {loading ? 'Enviando…' : 'Solicitar membresía'}
+          {loading ? 'Enviando...' : 'Solicitar membresía'}
         </Button>
       ) : null}
 
@@ -83,14 +62,14 @@ export default function MembershipActions({
       ) : null}
 
       {status === 'accepted' ? (
-        <Button
-          variant="outline-danger"
-          disabled={loading}
-          onClick={() => {
-            void handleLeaveCommunity();
-          }}
-        >
-          {loading ? 'Saliendo…' : 'Abandonar comunidad'}
+        <Button variant="success" disabled>
+          Solicitud aceptada
+        </Button>
+      ) : null}
+
+      {status === 'rejected' ? (
+        <Button variant="danger" disabled>
+          Solicitud rechazada
         </Button>
       ) : null}
 

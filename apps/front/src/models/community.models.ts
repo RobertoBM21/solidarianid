@@ -1,4 +1,4 @@
-export interface CommunityListItem {
+﻿export interface CommunityListItem {
   id: string;
   name: string;
   description: string;

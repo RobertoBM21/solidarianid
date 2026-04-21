@@ -1,15 +1,16 @@
-﻿export type ProfileMembershipStatus =
-  | 'admin'
-  | 'member'
-  | 'accepted'
-  | 'pending'
-  | 'rejected';
-
-export interface ProfileMembershipItem {
+﻿export interface ProfileMembershipItem {
   id: string;
   communityId: string;
   communityName: string;
-  status: ProfileMembershipStatus;
+}
+
+export type ProfileMembershipRequestStatus = 'pending' | 'rejected';
+
+export interface ProfileMembershipRequestItem {
+  id: string;
+  communityId: string;
+  communityName: string;
+  status: ProfileMembershipRequestStatus;
 }
 
 export interface ProfileProposal {
@@ -26,6 +27,7 @@ export interface ProfileView {
   city?: string;
   country?: string;
   memberships: ProfileMembershipItem[];
+  membershipRequests: ProfileMembershipRequestItem[];
   proposals: ProfileProposal[];
 }
 

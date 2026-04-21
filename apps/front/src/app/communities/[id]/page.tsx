@@ -14,7 +14,7 @@ import CreateCauseForm from '../../../components/communities/CreateCauseForm';
 import MembershipActions from '../../../components/memberships/MembershipActions';
 import { authOptions } from '../../../lib/auth/auth-options';
 import { getCommunityById } from '../../../services/communities.service';
-import { getMyMemberships } from '../../../services/memberships.service';
+import { getMyMembershipRequests } from '../../../services/memberships.service';
 
 export default async function CommunityDetailPage({
   params,
@@ -30,16 +30,15 @@ export default async function CommunityDetailPage({
 
   const session = await getServerSession(authOptions);
   let membershipStatus: 'none' | 'pending' | 'accepted' | 'rejected' = 'none';
+  const isCommunityAdmin = community.isCommunityAdmin ?? false;
 
-  if (session) {
-    const memberships = await getMyMemberships();
+  if (session && !isCommunityAdmin) {
+    const memberships = await getMyMembershipRequests();
     const existing = memberships.find((m) => m.communityId === id);
     if (existing) {
       membershipStatus = existing.status;
     }
   }
-
-  const isCommunityAdmin = community.isCommunityAdmin ?? false;
   const relatedCauses = community.causes;
 
   return (
@@ -55,19 +54,21 @@ export default async function CommunityDetailPage({
           </div>
 
           <div className="d-flex gap-2">
-            {session ? (
+            {session && !isCommunityAdmin ? (
               <MembershipActions
                 communityId={community.id}
                 initialStatus={membershipStatus}
               />
             ) : null}
 
-            <Link
-              href={`/communities/${community.id}/management`}
-              className="btn btn-outline-primary"
-            >
-              Ir a gestión
-            </Link>
+            {isCommunityAdmin ? (
+              <Link
+                href={`/communities/${community.id}/management`}
+                className="btn btn-outline-primary"
+              >
+                Ir a gestión
+              </Link>
+            ) : null}
           </div>
         </div>
 

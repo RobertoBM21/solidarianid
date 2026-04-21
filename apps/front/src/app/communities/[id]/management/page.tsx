@@ -1,19 +1,13 @@
-﻿import Link from 'next/link';
-import { notFound } from 'next/navigation';
-import Button from 'react-bootstrap/Button';
-import Card from 'react-bootstrap/Card';
-import CardBody from 'react-bootstrap/CardBody';
-import CardText from 'react-bootstrap/CardText';
-import CardTitle from 'react-bootstrap/CardTitle';
-import Col from 'react-bootstrap/Col';
+import Link from 'next/link';
+import { notFound, redirect } from 'next/navigation';
 import Container from 'react-bootstrap/Container';
-import Row from 'react-bootstrap/Row';
-import Table from 'react-bootstrap/Table';
+import CommunityManagementPanels from '../../../../components/memberships/CommunityManagementPanels';
 import { getSessionOrRedirect } from '../../../../lib/auth/get-session-or-redirect';
+import { getCommunityById } from '../../../../services/communities.service';
 import {
-  getCommunityById,
   getCommunityMembers,
-} from '../../../../services/communities.service';
+  getCommunityMembershipRequests,
+} from '../../../../services/memberships.service';
 
 export default async function CommunityManagementPage({
   params,
@@ -29,7 +23,14 @@ export default async function CommunityManagementPage({
     notFound();
   }
 
-  const members = await getCommunityMembers(community.id);
+  if (!community.isCommunityAdmin) {
+    redirect(`/communities/${community.id}`);
+  }
+
+  const [requests, members] = await Promise.all([
+    getCommunityMembershipRequests(community.id),
+    getCommunityMembers(community.id),
+  ]);
 
   return (
     <main>
@@ -38,7 +39,8 @@ export default async function CommunityManagementPage({
           <div>
             <h1 className="mb-1 text-primary">Gestión de comunidad</h1>
             <p className="mb-0 text-muted">
-              Gestiona la información y los miembros de la comunidad.
+              Gestiona las solicitudes de membresía y los miembros de la
+              comunidad.
             </p>
           </div>
 
@@ -50,76 +52,15 @@ export default async function CommunityManagementPage({
           </Link>
         </div>
 
-        <Row className="g-4">
-          <Col md={5}>
-            <Card className="h-100 border-0 shadow-sm">
-              <CardBody>
-                <CardTitle className="text-primary">
-                  Información de la comunidad
-                </CardTitle>
-                <CardText className="mb-2 text-muted">
-                  <strong>Nombre:</strong> {community.name}
-                </CardText>
-                <CardText className="mb-2 text-muted">
-                  <strong>Descripción:</strong> {community.description}
-                </CardText>
-                <CardText className="mb-2 text-muted">
-                  <strong>Creada:</strong>{' '}
-                  {new Date(community.createdAt).toLocaleDateString('es-ES')}
-                </CardText>
-                <CardText className="mb-2 text-muted">
-                  <strong>Miembros:</strong> {members.length}
-                </CardText>
-                <CardText className="mb-0 text-muted">
-                  <strong>Causas asociadas:</strong> {community.causes.length}
-                </CardText>
-              </CardBody>
-            </Card>
-          </Col>
-
-          <Col md={7}>
-            <Card className="h-100 border-0 shadow-sm">
-              <CardBody>
-                <CardTitle className="text-primary">
-                  Gestión de miembros
-                </CardTitle>
-                <Table striped bordered hover responsive className="mb-0">
-                  <thead>
-                    <tr>
-                      <th>Usuario</th>
-                      <th>Rol</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {members.map((member) => (
-                      <tr key={member.id}>
-                        <td>{member.userId}</td>
-                        <td>
-                          {member.role === 'admin'
-                            ? 'Administrador'
-                            : 'Miembro'}
-                        </td>
-                        <td className="d-flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline-primary"
-                            disabled={member.role === 'admin'}
-                          >
-                            Promover
-                          </Button>
-                          <Button size="sm" variant="outline-danger" disabled>
-                            Expulsar
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </Table>
-              </CardBody>
-            </Card>
-          </Col>
-        </Row>
+        <CommunityManagementPanels
+          communityId={community.id}
+          communityName={community.name}
+          communityDescription={community.description}
+          communityCreatedAt={community.createdAt}
+          causesCount={community.causes.length}
+          initialRequests={requests}
+          initialMembers={members}
+        />
       </Container>
     </main>
   );

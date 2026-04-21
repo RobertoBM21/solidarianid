@@ -1,11 +1,14 @@
 ﻿import { fetchServer } from '../lib/http/fetch-server';
 import type {
   HistoryItem,
+  ProfileMembershipItem,
+  ProfileMembershipRequestItem,
+  ProfileMembershipRequestStatus,
   ProfileProposal,
   ProfileView,
 } from '../models/profile.models';
 import { getCommunities } from './communities.service';
-import { getMyMemberships } from './memberships.service';
+import { getMyMembershipRequests } from './memberships.service';
 
 interface ProfileResponse {
   id: string;
@@ -28,26 +31,61 @@ interface CollaborationsResponse {
   items: HistoryItem[];
 }
 
+interface ProfileMembershipEntry {
+  id: string;
+  communityId: string;
+  communityName: string;
+  status: 'accepted' | 'pending' | 'rejected';
+}
+
+function isMembershipRequestEntry(
+  entry: ProfileMembershipEntry,
+): entry is ProfileMembershipEntry & {
+  status: ProfileMembershipRequestStatus;
+} {
+  return entry.status === 'pending' || entry.status === 'rejected';
+}
+
 export async function getProfileView(sessionUser: {
   id: string;
   email: string;
 }): Promise<ProfileView> {
-  const [profileRes, memberships, communities, proposalsRes] =
+  const [profileRes, membershipEntries, communities, proposalsRes] =
     await Promise.all([
       fetchServer('/profile'),
-      getMyMemberships(),
+      getMyMembershipRequests(),
       getCommunities(),
       fetchServer('/my-proposals'),
     ]);
 
   const communityNames = new Map(communities.map((c) => [c.id, c.name]));
 
-  const mappedMemberships = memberships.map((req) => ({
-    id: req.id,
-    communityId: req.communityId,
-    communityName: communityNames.get(req.communityId) ?? req.communityId,
-    status: req.status as ProfileView['memberships'][number]['status'],
-  }));
+  const mappedEntries: ProfileMembershipEntry[] = membershipEntries.map(
+    (entry) => ({
+      id: entry.id,
+      communityId: entry.communityId,
+      communityName:
+        communityNames.get(entry.communityId) ?? 'Comunidad no disponible',
+      status: entry.status,
+    }),
+  );
+
+  const memberships: ProfileMembershipItem[] = mappedEntries
+    .filter((entry) => entry.status === 'accepted')
+    .map(({ id, communityId, communityName }) => ({
+      id,
+      communityId,
+      communityName,
+    }));
+
+  const membershipRequests: ProfileMembershipRequestItem[] = mappedEntries
+    .filter(isMembershipRequestEntry)
+    .map(({ id, communityId, communityName, status }) => ({
+      id,
+      communityId,
+      communityName,
+      status,
+    }));
 
   let proposals: ProfileProposal[] = [];
   if (proposalsRes.ok) {
@@ -76,7 +114,8 @@ export async function getProfileView(sessionUser: {
     phone: profile.phone,
     city: profile.city,
     country: profile.country,
-    memberships: mappedMemberships,
+    memberships,
+    membershipRequests,
     proposals,
   };
 }
