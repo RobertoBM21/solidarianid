@@ -1,4 +1,4 @@
-﻿import { getServerSession } from 'next-auth';
+import { getServerSession } from 'next-auth';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import Badge from 'react-bootstrap/Badge';
@@ -9,6 +9,7 @@ import CardTitle from 'react-bootstrap/CardTitle';
 import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
+import RegisterVolunteeringForm from '../../../../../components/actions/RegisterVolunteeringForm';
 import StartDonationForm from '../../../../../components/actions/StartDonationForm';
 import { authOptions } from '../../../../../lib/auth/auth-options';
 import { fetchServer } from '../../../../../lib/http/fetch-server';
@@ -16,7 +17,9 @@ import {
   getCauseActionById,
   isFundingAction,
 } from '../../../../../services/actions.service';
+
 export const dynamic = 'force-dynamic';
+
 export default async function ActionDetailPage({
   params,
 }: {
@@ -27,12 +30,17 @@ export default async function ActionDetailPage({
     getCauseActionById(id, actionId, fetchServer),
     getServerSession(authOptions),
   ]);
+
   if (!detail) {
     notFound();
   }
+
   const { action } = detail;
-  const canDonate =
-    Boolean(session) && isFundingAction(action) && !action.closed;
+  const isLoggedIn = Boolean(session);
+  const canDonate = isLoggedIn && isFundingAction(action) && !action.closed;
+  const canParticipate =
+    isLoggedIn && action.type === 'volunteering' && !action.closed;
+
   return (
     <main>
       <Container className="py-4">
@@ -101,6 +109,17 @@ export default async function ActionDetailPage({
           <Row className="g-4">
             <Col>
               <StartDonationForm fundingActionId={action.id} />
+            </Col>
+          </Row>
+        ) : null}
+        {canParticipate && action.type === 'volunteering' ? (
+          <Row className="g-4">
+            <Col>
+              <RegisterVolunteeringForm
+                volunteeringActionId={action.id}
+                start={action.start}
+                end={action.end}
+              />
             </Col>
           </Row>
         ) : null}

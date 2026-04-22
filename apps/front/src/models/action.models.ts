@@ -1,4 +1,8 @@
-import type { CauseAction, FundingAction } from './cause.models';
+import type {
+  CauseAction,
+  FundingAction,
+  VolunteeringAction,
+} from './cause.models';
 
 export interface CreateFundingActionPayload {
   title: string;
@@ -8,6 +12,16 @@ export interface CreateFundingActionPayload {
 }
 
 export type CreateFundingActionResponse = FundingAction;
+
+export interface CreateVolunteeringActionPayload {
+  title: string;
+  description: string;
+  objectives: string[];
+  start: string;
+  end: string;
+}
+
+export type CreateVolunteeringActionResponse = VolunteeringAction;
 
 export interface CauseActionDetail {
   causeId: string;

@@ -1,4 +1,4 @@
-﻿import Link from 'next/link';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import Badge from 'react-bootstrap/Badge';
 import Card from 'react-bootstrap/Card';
@@ -9,6 +9,7 @@ import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import CreateFundingActionForm from '../../../components/actions/CreateFundingActionForm';
+import CreateVolunteeringActionForm from '../../../components/actions/CreateVolunteeringActionForm';
 import CloseCauseButton from '../../../components/causes/CloseCauseButton';
 import { fetchServer } from '../../../lib/http/fetch-server';
 import { getCauseById } from '../../../services/causes.service';
@@ -153,8 +154,11 @@ export default async function CauseDetailPage({
 
         {canManageCause ? (
           <Row className="g-4 mt-1">
-            <Col>
+            <Col xl={6}>
               <CreateFundingActionForm causeId={cause.id} />
+            </Col>
+            <Col xl={6}>
+              <CreateVolunteeringActionForm causeId={cause.id} />
             </Col>
           </Row>
         ) : null}

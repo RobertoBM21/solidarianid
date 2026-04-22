@@ -2,6 +2,8 @@ import type {
   CauseActionDetail,
   CreateFundingActionPayload,
   CreateFundingActionResponse,
+  CreateVolunteeringActionPayload,
+  CreateVolunteeringActionResponse,
 } from '../models/action.models';
 import type { CauseAction, FundingAction } from '../models/cause.models';
 import { getCauseById } from './causes.service';
@@ -68,12 +70,30 @@ export async function createFundingAction(
 
   if (!response.ok) {
     throw new Error(
-      parseErrorMessage(
-        data,
-        'No se pudo crear la acción de financiación.',
-      ),
+      parseErrorMessage(data, 'No se pudo crear la acción de financiación.'),
     );
   }
 
   return data as CreateFundingActionResponse;
+}
+
+export async function createVolunteeringAction(
+  causeId: string,
+  payload: CreateVolunteeringActionPayload,
+  fetchFn: FetchFn,
+): Promise<CreateVolunteeringActionResponse> {
+  const response = await fetchFn(`/causes/${causeId}/actions/volunteering`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+
+  const data: unknown = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(
+      parseErrorMessage(data, 'No se pudo crear la acción de voluntariado.'),
+    );
+  }
+
+  return data as CreateVolunteeringActionResponse;
 }
