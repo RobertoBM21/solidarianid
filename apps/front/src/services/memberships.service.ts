@@ -11,7 +11,15 @@ export async function getMyMembershipRequests(
 ): Promise<MembershipRequest[]> {
   const response = await client.get('/membership-requests/mine');
 
-  if (!response.ok) return [];
+  if (!response.ok) {
+    const data: unknown = await response.json();
+    throw new Error(
+      client.parseErrorMessage(
+        data,
+        'No se pudieron obtener las solicitudes de membresía.',
+      ),
+    );
+  }
 
   const data: unknown = await response.json();
   return data as MembershipRequest[];

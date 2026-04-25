@@ -7,16 +7,17 @@ export interface ServiceRoute {
 
 export function proxyConfig(): ServiceRoute[] {
   return [
-    // Add specific service routes here before the catch-all.
-
-    // Example for future donations service:
-    // { path: '/donations', target: process.env.DONATIONS_URL ?? 'http://localhost:3020' },
-
     // GraphQL — served by core, with WebSocket support for subscriptions.
     {
       path: '/graphql',
       target: process.env.CORE_URL ?? 'http://localhost:3000',
       ws: true,
+    },
+
+    // Identity
+    {
+      path: '/profile',
+      target: process.env.IDENTITY_URL ?? 'http://localhost:3002',
     },
 
     // Catch-all: everything else goes to core (excludes /auth handled by gateway)

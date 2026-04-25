@@ -62,6 +62,21 @@ export async function getProfileView(
       client.get('/my-proposals'),
     ]);
 
+  if (!profileRes.ok) {
+    const data: unknown = await profileRes.json().catch(() => null);
+    throw new Error(
+      client.parseErrorMessage(data, 'Error al obtener los datos del perfil.'),
+    );
+  }
+  if (!proposalsRes.ok) {
+    const data: unknown = await proposalsRes.json().catch(() => null);
+    throw new Error(
+      client.parseErrorMessage(data, 'Error al obtener las propuestas.'),
+    );
+  }
+
+  const profile = (await profileRes.json()) as ProfileResponse;
+
   const communityNames = new Map(communities.map((c) => [c.id, c.name]));
 
   const mappedEntries: ProfileMembershipEntry[] = membershipEntries.map(
@@ -91,25 +106,13 @@ export async function getProfileView(
       status,
     }));
 
-  let proposals: ProfileProposal[] = [];
-  if (proposalsRes.ok) {
-    const data: unknown = await proposalsRes.json();
-    const items = data as ProposalResponse[];
-    proposals = items.map((p) => ({
-      id: p.id,
-      title: p.name,
-      status: p.status,
-    }));
-  }
-
-  let profile: ProfileResponse = {
-    id: sessionUser.id,
-    email: sessionUser.email,
-  };
-  if (profileRes.ok) {
-    const data: unknown = await profileRes.json();
-    profile = data as ProfileResponse;
-  }
+  const proposals: ProfileProposal[] = (
+    (await proposalsRes.json()) as ProposalResponse[]
+  ).map((p) => ({
+    id: p.id,
+    title: p.name,
+    status: p.status,
+  }));
 
   return {
     id: profile.id,

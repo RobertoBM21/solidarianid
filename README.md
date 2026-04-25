@@ -34,14 +34,15 @@ Configuración específica de la pasarela de API:
 
 | Variable               | Tipo     | Descripción                                                  | Valor por defecto                            |
 | ---------------------- | -------- | ------------------------------------------------------------ | -------------------------------------------- |
-| `CORE_URL`             | `string` | URL interna del microservicio core                           | `http://localhost:3000`                      |
 | `CORS_ORIGIN`          | `string` | Origen permitido para CORS                                   | `*`                                          |
 | `JWT_SECRET_FILE`      | `string` | Ruta del fichero que contiene el secreto para firmar JWT     | -                                            |
 | `JWT_EXPIRATION`       | `string` | Tiempo de expiración del JWT (formato `ms`, e.g. `7d`, `1h`) | `7d`                                         |
 | `GOOGLE_CLIENT_ID`     | `string` | Client ID de Google OAuth 2.0                                | -                                            |
 | `GOOGLE_CLIENT_SECRET` | `string` | Client Secret de Google OAuth 2.0                            | -                                            |
 | `GOOGLE_CALLBACK_URL`  | `string` | URL de callback de Google OAuth                              | `http://localhost:3010/auth/google/callback` |
-| `FRONTEND_URL`         | `string` | URL del frontend (redirección post-OAuth)                    | `http://localhost:3080`                      |
+| `CORE_URL`             | `string` | URL interna del microservicio `core`                         | `http://localhost:3000`                      |
+| `IDENTITY_URL`         | `string` | URL interna del microservicio `identity`                     | `http://localhost:3002`                      |
+| `FRONTEND_URL`         | `string` | URL del frontend                                             | `http://localhost:3080`                      |
 
 ### Aplicación: core
 
