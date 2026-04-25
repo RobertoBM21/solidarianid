@@ -147,7 +147,7 @@ export default function CreateCauseForm({ communityId }: CreateCauseFormProps) {
   }
 
   return (
-    <Card className="border-0 shadow-sm">
+    <Card className="border-0 shadow" bg="body-tertiary">
       <CardBody>
         <div className="d-flex justify-content-between align-items-center">
           <div>

@@ -132,7 +132,7 @@ export default function CreateFundingActionForm({
   }
 
   return (
-    <Card className="border-0 shadow-sm">
+    <Card className="border-0 shadow-sm" bg="body-tertiary">
       <CardBody>
         <CardTitle className="text-primary">
           Crear acción de financiación

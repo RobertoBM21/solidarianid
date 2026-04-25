@@ -17,7 +17,7 @@ export default function ProfileMembershipList({
       {memberships.map((membership) => (
         <ListGroupItem
           key={membership.id}
-          className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3"
+          className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 bg-transparent"
         >
           <span>{membership.communityName}</span>
 

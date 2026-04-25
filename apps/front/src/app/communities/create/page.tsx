@@ -81,7 +81,7 @@ export default function CreateCommunityPage() {
   return (
     <main>
       <Container className="py-4">
-        <Card className="border-0 shadow-sm">
+        <Card className="border-0 shadow-sm" bg="body-tertiary">
           <CardBody>
             <CardTitle className="text-primary">Proponer comunidad</CardTitle>
             <p className="text-muted">

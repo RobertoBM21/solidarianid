@@ -4,6 +4,7 @@ import AppApolloProvider from '../components/apollo/AppApolloProvider';
 import Footer from '../components/layout/Footer';
 import Navbar from '../components/layout/Navbar';
 import SessionProvider from '../components/providers/SessionProvider';
+import ThemeProvider from '../components/providers/ThemeProvider';
 import RegisterServiceWorker from '../components/pwa/RegisterServiceWorker';
 import SyncPendingActions from '../components/pwa/SyncPendingActions';
 import './global.css';
@@ -19,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es">
+    <html lang="es" data-bs-theme="light" suppressHydrationWarning>
       <head>
         <meta name="theme-color" content="#0d6efd" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -43,16 +44,18 @@ export default function RootLayout({
           href="/icons/icon-512x512.png"
         />
       </head>
-      <body className="d-flex flex-column min-vh-100">
-        <SessionProvider>
-          <AppApolloProvider>
-            <RegisterServiceWorker />
-            <SyncPendingActions />
-            <Navbar />
-            {children}
-            <Footer />
-          </AppApolloProvider>
-        </SessionProvider>
+      <body className="d-flex flex-column min-vh-100 bg-body text-body">
+        <ThemeProvider>
+          <SessionProvider>
+            <AppApolloProvider>
+              <RegisterServiceWorker />
+              <SyncPendingActions />
+              <Navbar />
+              {children}
+              <Footer />
+            </AppApolloProvider>
+          </SessionProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

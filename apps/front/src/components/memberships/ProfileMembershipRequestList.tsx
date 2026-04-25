@@ -41,7 +41,7 @@ export default function ProfileMembershipRequestList({
       {requests.map((request) => (
         <ListGroupItem
           key={request.id}
-          className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3"
+          className="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 bg-transparent"
         >
           <div className="d-flex align-items-center gap-2 flex-wrap">
             <span>{request.communityName}</span>

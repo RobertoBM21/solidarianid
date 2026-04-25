@@ -22,7 +22,7 @@
     "start:dev:core": "nx serve core",
     "start:dev:identity": "nx serve identity",
     "start:dev:gateway": "nx serve gateway",
-    "start:dev:front": "nx start front --port 3080",
+    "start:dev:front": "nx dev front --port 3080",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
     "lint:fix": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "cross-env NODE_ENV=test jest --coverage",

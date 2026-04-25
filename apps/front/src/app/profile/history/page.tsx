@@ -23,7 +23,7 @@ export default async function ProfileHistoryPage() {
           </div>
         </div>
 
-        <Card className="border-0 shadow-sm">
+        <Card className="border-0 shadow" bg="body-tertiary">
           <CardBody>
             <ProfileHistoryTable initialItems={profileHistory} />
           </CardBody>

@@ -102,7 +102,7 @@ export default async function HomePage() {
         </section>
 
         <section className="mb-5">
-          <Card className="border-0 shadow-sm bg-light">
+          <Card className="border-0 shadow-sm bg-body-tertiary">
             <CardBody className="p-4 p-lg-5">
               <div className="d-flex justify-content-between align-items-center mb-3 gap-3">
                 <div>
@@ -158,7 +158,7 @@ export default async function HomePage() {
           </Card>
         </section>
 
-        <section>
+        <section className="mb-5">
           <Card className="border-0 shadow-sm bg-primary text-white">
             <CardBody className="p-4 p-lg-5 text-center">
               <h2 className="mb-3">
@@ -176,7 +176,7 @@ export default async function HomePage() {
         </section>
 
         <section className="mb-5">
-          <Card className="border-0 shadow-sm bg-light">
+          <Card className="border-0 shadow-sm bg-body-tertiary">
             <CardBody className="p-4 p-lg-5">
               <div className="mb-4">
                 <h2 className="mb-2 text-primary">Qué puedes hacer</h2>
@@ -203,7 +203,7 @@ export default async function HomePage() {
         </section>
 
         <section className="mb-5">
-          <Card className="border-0 shadow-sm bg-light">
+          <Card className="border-0 shadow-sm bg-body-tertiary">
             <CardBody className="p-4 p-lg-5">
               <div className="mb-4">
                 <h2 className="mb-2 text-primary">Cómo funciona</h2>

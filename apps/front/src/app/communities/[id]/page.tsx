@@ -75,7 +75,7 @@ export default async function CommunityDetailPage({
 
         <Row className="g-4">
           <Col md={6}>
-            <Card className="h-100 border-0 shadow-sm">
+            <Card className="h-100 border-0 shadow" bg="body-tertiary">
               <CardBody>
                 <CardTitle className="text-primary">
                   Información general
@@ -95,7 +95,7 @@ export default async function CommunityDetailPage({
           </Col>
 
           <Col md={6}>
-            <Card className="h-100 border-0 shadow-sm">
+            <Card className="h-100 border-0 shadow" bg="body-tertiary">
               <CardBody>
                 <CardTitle className="text-primary">Causas asociadas</CardTitle>
                 {relatedCauses.length === 0 ? (
@@ -107,7 +107,7 @@ export default async function CommunityDetailPage({
                     {relatedCauses.map((cause) => (
                       <ListGroupItem
                         key={cause.id}
-                        className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2"
+                        className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 bg-transparent"
                       >
                         <div>
                           <strong>{cause.title}</strong>

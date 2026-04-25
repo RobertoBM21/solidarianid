@@ -46,7 +46,7 @@ export default async function CommunitiesPage() {
           ) : (
             communities.map((community) => (
               <Col key={community.id} md={6}>
-                <Card className="h-100 border-0 shadow-sm">
+                <Card className="h-100 border-0 shadow-sm" bg="body-tertiary">
                   <CardBody className="d-flex flex-column gap-2">
                     <CardTitle className="mb-0 text-primary">
                       {community.name}

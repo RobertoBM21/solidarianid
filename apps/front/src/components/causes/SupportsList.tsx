@@ -76,7 +76,7 @@ export default function SupportsList({
   );
 
   return (
-    <Card className="border-0 shadow-sm h-100">
+    <Card className="border-0 shadow-sm h-100" bg="body-tertiary">
       <CardBody>
         <div className="d-flex justify-content-between align-items-start gap-3 mb-3">
           <CardTitle className="mb-0 text-primary">Últimos apoyos</CardTitle>

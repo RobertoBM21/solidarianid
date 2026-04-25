@@ -62,7 +62,7 @@ export default async function CauseDetailPage({
           </div>
         </div>
 
-        <Card className="mb-4 border-0 shadow-sm">
+        <Card className="mb-4 border-0 shadow" bg="body-tertiary">
           <CardBody>
             <div className="d-flex justify-content-between align-items-start gap-3 mb-3">
               <CardTitle className="mb-0 text-primary">
@@ -98,7 +98,7 @@ export default async function CauseDetailPage({
 
         <h2 className="mb-3 text-primary">Acciones asociadas</h2>
         {cause.actions.length === 0 ? (
-          <Card className="border-0 shadow-sm">
+          <Card className="border-0 shadow-sm" bg="body-tertiary">
             <CardBody>
               <CardText className="mb-0 text-muted">
                 Esta causa todavía no tiene acciones registradas.
@@ -109,7 +109,7 @@ export default async function CauseDetailPage({
           <Row className="g-4">
             {cause.actions.map((action) => (
               <Col key={action.id} md={6}>
-                <Card className="h-100 border-0 shadow-sm">
+                <Card className="h-100 border-0 shadow" bg="body-tertiary">
                   <CardBody>
                     <CardTitle className="text-primary">
                       {action.title}

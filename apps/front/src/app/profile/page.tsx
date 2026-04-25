@@ -70,7 +70,7 @@ export default async function ProfilePage() {
           </Link>
         </div>
 
-        <Card className="mb-4 border-0 shadow-sm">
+        <Card className="mb-4 border-0 shadow" bg="body-tertiary">
           <CardBody>
             {profile.name && (
               <CardTitle className="text-primary">{profile.name}</CardTitle>
@@ -107,14 +107,14 @@ export default async function ProfilePage() {
         <Row className="g-4">
           <Col md={6}>
             <div className="d-flex flex-column gap-4">
-              <Card className="border-0 shadow-sm">
+              <Card className="border-0 shadow-sm" bg="body-tertiary">
                 <CardBody>
                   <CardTitle className="text-primary">Mis membresías</CardTitle>
                   <ProfileMembershipList memberships={profile.memberships} />
                 </CardBody>
               </Card>
 
-              <Card className="border-0 shadow-sm">
+              <Card className="border-0 shadow-sm" bg="body-tertiary">
                 <CardBody>
                   <CardTitle className="text-primary">
                     Mis solicitudes de membresía
@@ -128,7 +128,7 @@ export default async function ProfilePage() {
           </Col>
 
           <Col md={6}>
-            <Card className="h-100 border-0 shadow-sm">
+            <Card className="h-100 border-0 shadow-sm" bg="body-tertiary">
               <CardBody>
                 <CardTitle className="text-primary">
                   Mis propuestas de comunidad
@@ -142,7 +142,7 @@ export default async function ProfilePage() {
                     {profile.proposals.map((proposal) => (
                       <ListGroupItem
                         key={proposal.id}
-                        className="d-flex justify-content-between align-items-center gap-3"
+                        className="d-flex justify-content-between align-items-center gap-3 bg-transparent"
                       >
                         <span>{proposal.title}</span>
                         <Badge bg={getProposalBadgeVariant(proposal.status)}>

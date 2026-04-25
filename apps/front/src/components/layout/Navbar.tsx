@@ -5,6 +5,8 @@ import Link from 'next/link';
 import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
 import Navbar from 'react-bootstrap/Navbar';
+import { useTheme } from '../providers/ThemeProvider';
+import ThemeToggler from './ThemeToggler';
 
 const authenticatedLinks = [
   { href: '/communities', label: 'Comunidades' },
@@ -16,11 +18,18 @@ const publicLinks = [{ href: '/communities', label: 'Comunidades' }];
 
 export default function AppNavbar() {
   const { data: session, status } = useSession();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const isAuthenticated = status === 'authenticated';
   const links = isAuthenticated ? authenticatedLinks : publicLinks;
 
   return (
-    <Navbar bg="white" expand="lg" className="border-bottom shadow-sm">
+    <Navbar
+      bg={isDark ? 'dark' : 'white'}
+      variant={isDark ? 'dark' : 'light'}
+      expand="lg"
+      className="border-bottom shadow-sm"
+    >
       <Container>
         <Link href="/" className="navbar-brand fw-semibold text-primary">
           SolidarianID
@@ -42,8 +51,9 @@ export default function AppNavbar() {
               <span className="nav-link text-muted small">
                 {session.user.email}
               </span>
+              <ThemeToggler />
               <Button
-                variant="outline-secondary"
+                variant={isDark ? 'outline-light' : 'outline-secondary'}
                 size="sm"
                 onClick={() => {
                   void signOut({ callbackUrl: '/login' });
@@ -60,6 +70,7 @@ export default function AppNavbar() {
               <Link href="/register" className="nav-link text-primary">
                 Registrarse
               </Link>
+              <ThemeToggler />
             </>
           )}
         </div>

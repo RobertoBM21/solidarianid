@@ -75,6 +75,7 @@ apps/front/public/sw.js
 apps/front/public/workbox-*.js
 apps/front/public/worker-*.js
 apps/front/public/worker-*.js.map
+next-env.d.ts
 
 # GraphQL
 schema.gql
