@@ -1,4 +1,6 @@
-﻿import Link from 'next/link';
+﻿import * as isoCountries from 'i18n-iso-countries';
+import esLocale from 'i18n-iso-countries/langs/es.json';
+import Link from 'next/link';
 import Badge from 'react-bootstrap/Badge';
 import Card from 'react-bootstrap/Card';
 import CardBody from 'react-bootstrap/CardBody';
@@ -13,8 +15,16 @@ import ProfileMembershipList from '../../components/memberships/ProfileMembershi
 import ProfileMembershipRequestList from '../../components/memberships/ProfileMembershipRequestList';
 import ProfileEditForm from '../../components/profile/ProfileEditForm';
 import { getSessionOrRedirect } from '../../lib/auth/get-session-or-redirect';
+import { fetchServer } from '../../lib/http/fetch-server';
 import type { ProfileView } from '../../models/profile.models';
 import { getProfileView } from '../../services/profile.service';
+
+isoCountries.registerLocale(esLocale);
+
+function getCountryName(code: string): string {
+  const name = isoCountries.getName(code.toUpperCase(), 'es');
+  return typeof name === 'string' ? name : code;
+}
 
 function getProposalBadgeVariant(status: string) {
   switch (status) {
@@ -41,10 +51,10 @@ function getProposalBadgeLabel(status: string) {
 export default async function ProfilePage() {
   const session = await getSessionOrRedirect();
 
-  const profile: ProfileView = await getProfileView({
-    id: session.user.id,
-    email: session.user.email,
-  });
+  const profile: ProfileView = await getProfileView(
+    { id: session.user.id, email: session.user.email },
+    fetchServer(),
+  );
 
   return (
     <main>
@@ -80,7 +90,7 @@ export default async function ProfilePage() {
             )}
             {profile.country && (
               <CardText className="mb-0 text-muted">
-                <strong>País:</strong> {profile.country}
+                <strong>País:</strong> {getCountryName(profile.country)}
               </CardText>
             )}
             <ProfileEditForm

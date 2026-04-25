@@ -1,5 +1,7 @@
 'use client';
 
+import * as isoCountries from 'i18n-iso-countries';
+import esLocale from 'i18n-iso-countries/langs/es.json';
 import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -14,7 +16,14 @@ import Form from 'react-bootstrap/Form';
 import FormControl from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
+import { useFetchClient } from '../../lib/http/use-fetch-client';
 import { registerUser } from '../../services/auth.service';
+
+isoCountries.registerLocale(esLocale);
+
+const countryOptions = Object.entries(isoCountries.getNames('es'))
+  .map(([code, name]) => ({ code: code.toLowerCase(), name }))
+  .sort((a, b) => a.name.localeCompare(b.name, 'es'));
 
 const initialForm = {
   name: '',
@@ -27,11 +36,16 @@ const initialForm = {
 
 export default function RegisterPage() {
   const router = useRouter();
+  const fetchClient = useFetchClient();
   const [formData, setFormData] = useState(initialForm);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+  function handleChange(
+    event: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
+  ) {
     const { name, value } = event.target;
     setFormData({ ...formData, [name]: value });
   }
@@ -42,14 +56,17 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const { access_token } = await registerUser({
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        password: formData.password,
-        city: formData.city,
-        country: formData.country,
-      });
+      const { access_token } = await registerUser(
+        {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          password: formData.password,
+          city: formData.city,
+          country: formData.country,
+        },
+        fetchClient,
+      );
 
       const result = await signIn('token', {
         token: access_token,
@@ -146,13 +163,19 @@ export default function RegisterPage() {
               </FormGroup>
 
               <FormGroup className="mb-3">
-                <FormLabel>País (opcional, código ISO)</FormLabel>
-                <FormControl
+                <FormLabel>País (opcional)</FormLabel>
+                <Form.Select
                   name="country"
                   value={formData.country}
                   onChange={handleChange}
-                  placeholder="es"
-                />
+                >
+                  <option value="">Selecciona un país...</option>
+                  {countryOptions.map(({ code, name }) => (
+                    <option key={code} value={code}>
+                      {name}
+                    </option>
+                  ))}
+                </Form.Select>
               </FormGroup>
 
               <Button

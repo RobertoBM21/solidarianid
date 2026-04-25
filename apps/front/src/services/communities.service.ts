@@ -1,6 +1,7 @@
 import { gql } from '@apollo/client/core';
 import apolloClient from '../lib/apollo/client';
 import { getServerApolloClient } from '../lib/apollo/server-client';
+import type { ApiClient } from '../lib/http/api-client';
 import type {
   CommunityDetail,
   CommunityListItem,
@@ -97,12 +98,9 @@ export async function getCommunityById(
 
 export async function createCommunityProposal(
   payload: CommunityProposalPayload,
-  fetchFn: (endpoint: string, options?: RequestInit) => Promise<Response>,
+  client: ApiClient,
 ): Promise<CommunityProposalResponse> {
-  const response = await fetchFn('/communities', {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  });
+  const response = await client.post('/communities', payload);
 
   const data: unknown = await response.json();
   const proposalResponse = data as CommunityProposalResponse;

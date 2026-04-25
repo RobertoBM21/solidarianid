@@ -25,6 +25,7 @@ export class FundingActionProjector implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(FundingActionProjector.name);
   private static readonly CHECKPOINT_KEY = 'funding-action-projector';
   private subscription: AllStreamSubscription | null = null;
+  private subscriptionDone: Promise<void> = Promise.resolve();
 
   constructor(
     @Inject(KURRENTDB_CLIENT) private readonly client: KurrentDBClient,
@@ -32,7 +33,7 @@ export class FundingActionProjector implements OnModuleInit, OnModuleDestroy {
   ) {}
 
   onModuleInit(): void {
-    this.startSubscription().catch((err: unknown) => {
+    this.subscriptionDone = this.startSubscription().catch((err: unknown) => {
       this.logger.error(
         'FundingActionProjector subscription failed to start',
         err,
@@ -45,6 +46,7 @@ export class FundingActionProjector implements OnModuleInit, OnModuleDestroy {
       await this.subscription.unsubscribe();
       this.subscription = null;
     }
+    await this.subscriptionDone;
     await this.client.dispose();
   }
 

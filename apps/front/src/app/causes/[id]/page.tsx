@@ -22,7 +22,7 @@ export default async function CauseDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const cause = await getCauseById(id, fetchServer);
+  const cause = await getCauseById(id, fetchServer());
 
   if (!cause) {
     notFound();
@@ -55,7 +55,7 @@ export default async function CauseDetailPage({
             ) : null}
             <Link
               href={'/communities/' + cause.communityId}
-              className="btn btn-outline-primary"
+              className="btn btn-outline-primary text-center"
             >
               Volver a comunidad
             </Link>

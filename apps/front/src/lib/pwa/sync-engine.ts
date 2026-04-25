@@ -1,23 +1,22 @@
 import type { HistoryItem } from '../../models/profile.models';
 import { getMyCollaborations } from '../../services/collaboration-history.service';
 import { registerVolunteerParticipation } from '../../services/volunteering.service';
+import type { ApiClient } from '../http/api-client';
 import {
   getPendingActions,
   removePendingAction,
   saveMyCollaborations,
 } from './collaboration-store';
 
-type FetchFn = (endpoint: string, options?: RequestInit) => Promise<Response>;
-
 export async function refreshMyCollaborationsCache(
-  fetchFn: FetchFn,
+  client: ApiClient,
 ): Promise<HistoryItem[]> {
-  const collaborations = await getMyCollaborations(fetchFn);
+  const collaborations = await getMyCollaborations(client);
   await saveMyCollaborations(collaborations);
   return collaborations;
 }
 
-export async function syncPendingActions(fetchFn: FetchFn): Promise<void> {
+export async function syncPendingActions(client: ApiClient): Promise<void> {
   const pendingOperations = await getPendingActions();
 
   for (const operation of pendingOperations) {
@@ -25,9 +24,9 @@ export async function syncPendingActions(fetchFn: FetchFn): Promise<void> {
       continue;
     }
 
-    await registerVolunteerParticipation(operation.payload, fetchFn);
+    await registerVolunteerParticipation(operation.payload, client);
     await removePendingAction(operation.id);
   }
 
-  await refreshMyCollaborationsCache(fetchFn);
+  await refreshMyCollaborationsCache(client);
 }

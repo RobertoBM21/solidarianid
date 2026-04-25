@@ -93,8 +93,9 @@ docker compose -f docker-compose.dev.yml up -d --wait
 # Instalar dependencias
 npm install
 
-# Generar el código desde Protobuffers
+# Generar el código desde Protobuffers (Linux/Mac)
 npm run proto:gen
+# npm run proto:gen:win (Windows)
 
 # Lanzar las aplicaciones backend
 npm run start:dev:core

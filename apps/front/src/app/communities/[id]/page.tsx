@@ -13,6 +13,7 @@ import Row from 'react-bootstrap/Row';
 import CreateCauseForm from '../../../components/communities/CreateCauseForm';
 import MembershipActions from '../../../components/memberships/MembershipActions';
 import { authOptions } from '../../../lib/auth/auth-options';
+import { fetchServer } from '../../../lib/http/fetch-server';
 import { getCommunityById } from '../../../services/communities.service';
 import { getMyMembershipRequests } from '../../../services/memberships.service';
 
@@ -33,7 +34,7 @@ export default async function CommunityDetailPage({
   const isCommunityAdmin = community.isCommunityAdmin ?? false;
 
   if (session && !isCommunityAdmin) {
-    const memberships = await getMyMembershipRequests();
+    const memberships = await getMyMembershipRequests(fetchServer());
     const existing = memberships.find((m) => m.communityId === id);
     if (existing) {
       membershipStatus = existing.status;

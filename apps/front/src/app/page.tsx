@@ -1,4 +1,5 @@
-﻿import Link from 'next/link';
+﻿import Image from 'next/image';
+import Link from 'next/link';
 import Card from 'react-bootstrap/Card';
 import CardBody from 'react-bootstrap/CardBody';
 import CardText from 'react-bootstrap/CardText';
@@ -55,21 +56,37 @@ export default async function HomePage() {
         <section className="mb-5">
           <Row className="align-items-center g-4">
             <Col lg={7}>
-              <h1 className="display-5 fw-semibold mb-3 text-primary">SolidarianID</h1>
+              <div className="d-flex align-items-center gap-3 mb-3">
+                <Image
+                  src="/icons/icon-128x128.png"
+                  alt="SolidarianID logo"
+                  width={56}
+                  height={56}
+                  loading="lazy"
+                />
+                <h1 className="display-5 fw-semibold mb-0 text-primary">
+                  SolidarianID
+                </h1>
+              </div>
               <p className="lead mb-4 text-muted">
                 SolidarianID conecta comunidades, causas y acciones solidarias
                 en un entorno de colaboración transparente.
               </p>
               <div className="d-flex flex-column flex-sm-row gap-3">
-                <Link href="/communities" className="btn btn-warning btn-lg align-self-start">
-                  Haz visible tu impacto.
+                <Link
+                  href="/communities"
+                  className="btn btn-warning btn-lg align-self-start"
+                >
+                  Haz visible tu impacto
                 </Link>
               </div>
             </Col>
             <Col lg={5}>
               <Card className="h-100 border-0 shadow-sm bg-primary text-white">
                 <CardBody className="p-4 p-lg-5">
-                  <CardTitle className="mb-3">Un punto de partida claro</CardTitle>
+                  <CardTitle className="mb-3">
+                    Un punto de partida claro
+                  </CardTitle>
                   <CardText className="mb-3 text-white-50">
                     Explora comunidades, revisa sus causas y accede a acciones
                     concretas sin perder el contexto de cada iniciativa.
@@ -87,6 +104,80 @@ export default async function HomePage() {
         <section className="mb-5">
           <Card className="border-0 shadow-sm bg-light">
             <CardBody className="p-4 p-lg-5">
+              <div className="d-flex justify-content-between align-items-center mb-3 gap-3">
+                <div>
+                  <h2 className="mb-2 text-primary">
+                    Últimas comunidades creadas
+                  </h2>
+                  <p className="mb-0 text-muted">
+                    Consulta las comunidades incorporadas más recientemente.
+                  </p>
+                </div>
+                <Link href="/communities" className="btn btn-outline-primary">
+                  Ver todas
+                </Link>
+              </div>
+
+              <Row className="g-4">
+                {latestCommunities.length === 0 ? (
+                  <Col>
+                    <p className="text-muted mb-0">
+                      No hay comunidades para mostrar.
+                    </p>
+                  </Col>
+                ) : (
+                  latestCommunities.map((community) => (
+                    <Col key={community.id} md={6} lg={4}>
+                      <Card className="h-100 border-0 shadow-sm">
+                        <CardBody>
+                          <CardTitle className="text-primary">
+                            {community.name}
+                          </CardTitle>
+                          <CardText className="text-muted">
+                            {community.description}
+                          </CardText>
+                          <CardText className="mb-3 text-muted">
+                            <strong>Creada:</strong>{' '}
+                            {new Date(community.createdAt).toLocaleDateString(
+                              'es-ES',
+                            )}
+                          </CardText>
+                          <Link
+                            href={`/communities/${community.id}`}
+                            className="btn btn-primary"
+                          >
+                            Ver detalle
+                          </Link>
+                        </CardBody>
+                      </Card>
+                    </Col>
+                  ))
+                )}
+              </Row>
+            </CardBody>
+          </Card>
+        </section>
+
+        <section>
+          <Card className="border-0 shadow-sm bg-primary text-white">
+            <CardBody className="p-4 p-lg-5 text-center">
+              <h2 className="mb-3">
+                Empieza a colaborar con iniciativas que generan impacto real
+              </h2>
+              <p className="mb-4 text-white-50">
+                Revisa las comunidades disponibles y accede a las causas y
+                acciones asociadas a cada una de ellas.
+              </p>
+              <Link href="/communities" className="btn btn-light btn-lg">
+                Ver comunidades
+              </Link>
+            </CardBody>
+          </Card>
+        </section>
+
+        <section className="mb-5">
+          <Card className="border-0 shadow-sm bg-light">
+            <CardBody className="p-4 p-lg-5">
               <div className="mb-4">
                 <h2 className="mb-2 text-primary">Qué puedes hacer</h2>
               </div>
@@ -96,7 +187,9 @@ export default async function HomePage() {
                   <Col key={feature.title} md={6} xl={4}>
                     <Card className="h-100 border-0 shadow-sm">
                       <CardBody>
-                        <CardTitle className="text-primary">{feature.title}</CardTitle>
+                        <CardTitle className="text-primary">
+                          {feature.title}
+                        </CardTitle>
                         <CardText className="mb-0 text-muted">
                           {feature.description}
                         </CardText>
@@ -112,48 +205,11 @@ export default async function HomePage() {
         <section className="mb-5">
           <Card className="border-0 shadow-sm bg-light">
             <CardBody className="p-4 p-lg-5">
-              <div className="d-flex justify-content-between align-items-center mb-3 gap-3">
-                <div>
-                  <h2 className="mb-2 text-primary">Últimas comunidades creadas</h2>
-                  <p className="mb-0 text-muted">
-                    Consulta las comunidades incorporadas más recientemente.
-                  </p>
-                </div>
-                <Link href="/communities" className="btn btn-outline-primary">
-                  Ver todas
-                </Link>
-              </div>
-
-              <Row className="g-4">
-                {latestCommunities.map((community) => (
-                  <Col key={community.id} md={6} lg={4}>
-                    <Card className="h-100 border-0 shadow-sm">
-                      <CardBody>
-                        <CardTitle className="text-primary">{community.name}</CardTitle>
-                        <CardText className="text-muted">{community.description}</CardText>
-                        <CardText className="mb-3 text-muted">
-                          <strong>Creada:</strong>{' '}
-                          {new Date(community.createdAt).toLocaleDateString('es-ES')}
-                        </CardText>
-                        <Link href={`/communities/${community.id}`} className="btn btn-primary">
-                          Ver detalle
-                        </Link>
-                      </CardBody>
-                    </Card>
-                  </Col>
-                ))}
-              </Row>
-            </CardBody>
-          </Card>
-        </section>
-
-        <section className="mb-5">
-          <Card className="border-0 shadow-sm bg-light">
-            <CardBody className="p-4 p-lg-5">
               <div className="mb-4">
                 <h2 className="mb-2 text-primary">Cómo funciona</h2>
                 <p className="mb-0 text-muted">
-                  Un recorrido simple para encontrar una iniciativa y empezar a colaborar.
+                  Un recorrido simple para encontrar una iniciativa y empezar a
+                  colaborar.
                 </p>
               </div>
 
@@ -162,8 +218,12 @@ export default async function HomePage() {
                   <Col key={step.title} md={4}>
                     <Card className="h-100 border-0 shadow-sm">
                       <CardBody>
-                        <div className="fw-semibold mb-2 text-warning">0{index + 1}</div>
-                        <CardTitle className="text-primary">{step.title}</CardTitle>
+                        <div className="fw-semibold mb-2 text-warning">
+                          0{index + 1}
+                        </div>
+                        <CardTitle className="text-primary">
+                          {step.title}
+                        </CardTitle>
                         <CardText className="mb-0 text-muted">
                           {step.description}
                         </CardText>
@@ -172,20 +232,6 @@ export default async function HomePage() {
                   </Col>
                 ))}
               </Row>
-            </CardBody>
-          </Card>
-        </section>
-
-        <section>
-          <Card className="border-0 shadow-sm bg-primary text-white">
-            <CardBody className="p-4 p-lg-5 text-center">
-              <h2 className="mb-3">Empieza a colaborar con iniciativas que generan impacto real</h2>
-              <p className="mb-4 text-white-50">
-                Revisa las comunidades disponibles y accede a las causas y acciones asociadas a cada una de ellas.
-              </p>
-              <Link href="/communities" className="btn btn-light btn-lg">
-                Ver comunidades
-              </Link>
             </CardBody>
           </Card>
         </section>

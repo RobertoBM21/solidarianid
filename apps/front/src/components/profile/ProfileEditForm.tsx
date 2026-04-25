@@ -1,5 +1,8 @@
 'use client';
 
+import * as isoCountries from 'i18n-iso-countries';
+import esLocale from 'i18n-iso-countries/langs/es.json';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
@@ -8,6 +11,13 @@ import FormControl from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import { useFetchClient } from '../../lib/http/use-fetch-client';
+import { updateProfile } from '../../services/profile.service';
+
+isoCountries.registerLocale(esLocale);
+
+const countryOptions = Object.entries(isoCountries.getNames('es'))
+  .map(([code, name]) => ({ code: code.toLowerCase(), name }))
+  .sort((a, b) => a.name.localeCompare(b.name, 'es'));
 
 interface ProfileEditFormProps {
   initialData: {
@@ -20,6 +30,7 @@ interface ProfileEditFormProps {
 
 export default function ProfileEditForm({ initialData }: ProfileEditFormProps) {
   const fetchClient = useFetchClient();
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: initialData.name ?? '',
     phone: initialData.phone ?? '',
@@ -31,7 +42,11 @@ export default function ProfileEditForm({ initialData }: ProfileEditFormProps) {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+  function handleChange(
+    event: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
+  ) {
     const { name, value } = event.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   }
@@ -43,18 +58,10 @@ export default function ProfileEditForm({ initialData }: ProfileEditFormProps) {
     setError('');
 
     try {
-      const response = await fetchClient('/profile', {
-        method: 'PUT',
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        const data = (await response.json()) as { message?: string };
-        throw new Error(data.message ?? 'Error al actualizar el perfil.');
-      }
-
+      await updateProfile(formData, fetchClient);
       setMessage('Perfil actualizado correctamente.');
       setEditing(false);
+      router.refresh();
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'Error al actualizar el perfil.',
@@ -69,6 +76,7 @@ export default function ProfileEditForm({ initialData }: ProfileEditFormProps) {
       <Button
         variant="outline-primary"
         size="sm"
+        className="mt-3"
         onClick={() => {
           setEditing(true);
           setMessage('');
@@ -118,14 +126,19 @@ export default function ProfileEditForm({ initialData }: ProfileEditFormProps) {
       </FormGroup>
 
       <FormGroup className="mb-2">
-        <FormLabel>País (código de 2 letras)</FormLabel>
-        <FormControl
+        <FormLabel>País</FormLabel>
+        <Form.Select
           name="country"
           value={formData.country}
           onChange={handleChange}
-          placeholder="ej. es"
-          maxLength={2}
-        />
+        >
+          <option value="">Selecciona un país...</option>
+          {countryOptions.map(({ code, name }) => (
+            <option key={code} value={code}>
+              {name}
+            </option>
+          ))}
+        </Form.Select>
       </FormGroup>
 
       <div className="d-flex gap-2">

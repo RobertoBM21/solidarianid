@@ -1,20 +1,15 @@
-import { fetchServer } from '../lib/http/fetch-server';
+import type { ApiClient } from '../lib/http/api-client';
 import type {
   CommunityMember,
   MembershipRequest,
 } from '../models/community.models';
 
-type FetchFn = (endpoint: string, options?: RequestInit) => Promise<Response>;
-
 type MembershipRequestVerdict = 'accepted' | 'rejected';
 
-function getErrorMessage(data: unknown, fallback: string): string {
-  const body = data as { message?: string };
-  return body.message ?? fallback;
-}
-
-export async function getMyMembershipRequests(): Promise<MembershipRequest[]> {
-  const response = await fetchServer('/membership-requests/mine');
+export async function getMyMembershipRequests(
+  client: ApiClient,
+): Promise<MembershipRequest[]> {
+  const response = await client.get('/membership-requests/mine');
 
   if (!response.ok) return [];
 
@@ -24,18 +19,17 @@ export async function getMyMembershipRequests(): Promise<MembershipRequest[]> {
 
 export async function requestMembership(
   communityId: string,
-  fetchFn: FetchFn,
+  client: ApiClient,
 ): Promise<MembershipRequest> {
-  const response = await fetchFn(
+  const response = await client.post(
     `/communities/${encodeURIComponent(communityId)}/membership-requests`,
-    { method: 'POST' },
   );
 
   const data: unknown = await response.json();
 
   if (!response.ok) {
     throw new Error(
-      getErrorMessage(data, 'No se pudo solicitar la membresía.'),
+      client.parseErrorMessage(data, 'No se pudo solicitar la membresía.'),
     );
   }
 
@@ -44,9 +38,9 @@ export async function requestMembership(
 
 export async function getCommunityMembershipRequests(
   communityId: string,
-  fetchFn: FetchFn = fetchServer,
+  client: ApiClient,
 ): Promise<MembershipRequest[]> {
-  const response = await fetchFn(
+  const response = await client.get(
     `/communities/${encodeURIComponent(communityId)}/membership-requests`,
   );
 
@@ -59,21 +53,21 @@ export async function getCommunityMembershipRequests(
 export async function reviewMembershipRequest(
   requestId: string,
   verdict: MembershipRequestVerdict,
-  fetchFn: FetchFn,
+  client: ApiClient,
 ): Promise<MembershipRequest> {
-  const response = await fetchFn(
+  const response = await client.put(
     `/membership-requests/${encodeURIComponent(requestId)}`,
-    {
-      method: 'PUT',
-      body: JSON.stringify({ verdict }),
-    },
+    { verdict },
   );
 
   const data: unknown = await response.json();
 
   if (!response.ok) {
     throw new Error(
-      getErrorMessage(data, 'No se pudo revisar la solicitud de membresía.'),
+      client.parseErrorMessage(
+        data,
+        'No se pudo revisar la solicitud de membresía.',
+      ),
     );
   }
 
@@ -82,9 +76,9 @@ export async function reviewMembershipRequest(
 
 export async function getCommunityMembers(
   communityId: string,
-  fetchFn: FetchFn = fetchServer,
+  client: ApiClient,
 ): Promise<CommunityMember[]> {
-  const response = await fetchFn(
+  const response = await client.get(
     `/communities/${encodeURIComponent(communityId)}/members`,
   );
 
@@ -96,18 +90,17 @@ export async function getCommunityMembers(
 
 export async function promoteCommunityMember(
   memberId: string,
-  fetchFn: FetchFn,
+  client: ApiClient,
 ): Promise<CommunityMember> {
-  const response = await fetchFn(
+  const response = await client.post(
     `/community-members/${encodeURIComponent(memberId)}/promote`,
-    { method: 'POST' },
   );
 
   const data: unknown = await response.json();
 
   if (!response.ok) {
     throw new Error(
-      getErrorMessage(data, 'No se pudo promocionar al miembro.'),
+      client.parseErrorMessage(data, 'No se pudo promocionar al miembro.'),
     );
   }
 
@@ -116,32 +109,32 @@ export async function promoteCommunityMember(
 
 export async function expelCommunityMember(
   memberId: string,
-  fetchFn: FetchFn,
+  client: ApiClient,
 ): Promise<void> {
-  const response = await fetchFn(
+  const response = await client.delete(
     `/community-members/${encodeURIComponent(memberId)}`,
-    { method: 'DELETE' },
-  );
-
-  if (!response.ok) {
-    const data: unknown = await response.json();
-    throw new Error(getErrorMessage(data, 'No se pudo expulsar al miembro.'));
-  }
-}
-
-export async function leaveCommunity(
-  communityId: string,
-  fetchFn: FetchFn,
-): Promise<void> {
-  const response = await fetchFn(
-    `/communities/${encodeURIComponent(communityId)}/leave`,
-    { method: 'DELETE' },
   );
 
   if (!response.ok) {
     const data: unknown = await response.json();
     throw new Error(
-      getErrorMessage(data, 'No se pudo abandonar la comunidad.'),
+      client.parseErrorMessage(data, 'No se pudo expulsar al miembro.'),
+    );
+  }
+}
+
+export async function leaveCommunity(
+  communityId: string,
+  client: ApiClient,
+): Promise<void> {
+  const response = await client.delete(
+    `/communities/${encodeURIComponent(communityId)}/leave`,
+  );
+
+  if (!response.ok) {
+    const data: unknown = await response.json();
+    throw new Error(
+      client.parseErrorMessage(data, 'No se pudo abandonar la comunidad.'),
     );
   }
 }

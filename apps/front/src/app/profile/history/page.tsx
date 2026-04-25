@@ -3,12 +3,13 @@ import CardBody from 'react-bootstrap/CardBody';
 import Container from 'react-bootstrap/Container';
 import ProfileHistoryTable from '../../../components/profile/history/ProfileHistoryTable';
 import { getSessionOrRedirect } from '../../../lib/auth/get-session-or-redirect';
+import { fetchServer } from '../../../lib/http/fetch-server';
 import { getProfileHistory } from '../../../services/profile.service';
 
 export default async function ProfileHistoryPage() {
   await getSessionOrRedirect();
 
-  const profileHistory = await getProfileHistory();
+  const profileHistory = await getProfileHistory(fetchServer());
 
   return (
     <main>

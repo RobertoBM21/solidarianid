@@ -1,3 +1,4 @@
+import type { ApiClient } from '../lib/http/api-client';
 import type {
   CauseActionDetail,
   CreateFundingActionPayload,
@@ -8,30 +9,12 @@ import type {
 import type { CauseAction, FundingAction } from '../models/cause.models';
 import { getCauseById } from './causes.service';
 
-type FetchFn = (endpoint: string, options?: RequestInit) => Promise<Response>;
-
-function parseErrorMessage(data: unknown, fallbackMessage: string): string {
-  if (typeof data === 'object' && data !== null && 'message' in data) {
-    const message = (data as { message: unknown }).message;
-
-    if (typeof message === 'string') {
-      return message;
-    }
-
-    if (Array.isArray(message) && typeof message[0] === 'string') {
-      return message[0];
-    }
-  }
-
-  return fallbackMessage;
-}
-
 export async function getCauseActionById(
   causeId: string,
   actionId: string,
-  fetchFn: FetchFn,
+  client: ApiClient,
 ): Promise<CauseActionDetail | undefined> {
-  const cause = await getCauseById(causeId, fetchFn);
+  const cause = await getCauseById(causeId, client);
 
   if (!cause) {
     return undefined;
@@ -59,18 +42,21 @@ export function isFundingAction(action: CauseAction): action is FundingAction {
 export async function createFundingAction(
   causeId: string,
   payload: CreateFundingActionPayload,
-  fetchFn: FetchFn,
+  client: ApiClient,
 ): Promise<CreateFundingActionResponse> {
-  const response = await fetchFn(`/causes/${causeId}/actions/funding`, {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  });
+  const response = await client.post(
+    `/causes/${causeId}/actions/funding`,
+    payload,
+  );
 
   const data: unknown = await response.json().catch(() => null);
 
   if (!response.ok) {
     throw new Error(
-      parseErrorMessage(data, 'No se pudo crear la acción de financiación.'),
+      client.parseErrorMessage(
+        data,
+        'No se pudo crear la acción de financiación.',
+      ),
     );
   }
 
@@ -80,18 +66,21 @@ export async function createFundingAction(
 export async function createVolunteeringAction(
   causeId: string,
   payload: CreateVolunteeringActionPayload,
-  fetchFn: FetchFn,
+  client: ApiClient,
 ): Promise<CreateVolunteeringActionResponse> {
-  const response = await fetchFn(`/causes/${causeId}/actions/volunteering`, {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  });
+  const response = await client.post(
+    `/causes/${causeId}/actions/volunteering`,
+    payload,
+  );
 
   const data: unknown = await response.json().catch(() => null);
 
   if (!response.ok) {
     throw new Error(
-      parseErrorMessage(data, 'No se pudo crear la acción de voluntariado.'),
+      client.parseErrorMessage(
+        data,
+        'No se pudo crear la acción de voluntariado.',
+      ),
     );
   }
 

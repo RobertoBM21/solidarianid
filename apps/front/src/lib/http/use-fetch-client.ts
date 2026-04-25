@@ -1,20 +1,22 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
+import { ApiClient, type FetchFn } from './api-client';
 
 const GATEWAY_URL =
   process.env.NEXT_PUBLIC_GATEWAY_URL ?? 'http://localhost:3010';
 
-export function useFetchClient() {
+export function useFetchClient(): ApiClient {
   const { data: session } = useSession();
+  const accessToken = session?.accessToken;
 
-  const fetchClient = useCallback(
+  const fetchFn: FetchFn = useCallback(
     async (endpoint: string, options: RequestInit = {}): Promise<Response> => {
       const headers = new Headers(options.headers);
 
-      if (session?.accessToken) {
-        headers.set('Authorization', `Bearer ${session.accessToken}`);
+      if (accessToken) {
+        headers.set('Authorization', `Bearer ${accessToken}`);
       }
 
       if (!headers.has('Content-Type') && !(options.body instanceof FormData)) {
@@ -26,8 +28,8 @@ export function useFetchClient() {
         headers,
       });
     },
-    [session?.accessToken],
+    [accessToken],
   );
 
-  return fetchClient;
+  return useMemo(() => new ApiClient(fetchFn), [fetchFn]);
 }

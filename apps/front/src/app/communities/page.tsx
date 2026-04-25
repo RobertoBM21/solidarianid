@@ -24,7 +24,9 @@ export default async function CommunitiesPage() {
         <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
           <div>
             <h1 className="mb-1 text-primary">Comunidades</h1>
-            <p className="mb-0 text-muted">Explora las comunidades disponibles.</p>
+            <p className="mb-0 text-muted">
+              Explora las comunidades disponibles.
+            </p>
           </div>
 
           {session ? (
@@ -35,27 +37,44 @@ export default async function CommunitiesPage() {
         </div>
 
         <Row className="g-4">
-          {communities.map((community) => (
-            <Col key={community.id} md={6}>
-              <Card className="h-100 border-0 shadow-sm">
-                <CardBody className="d-flex flex-column gap-2">
-                  <CardTitle className="mb-0 text-primary">{community.name}</CardTitle>
-
-                  <CardText className="text-muted">{community.description}</CardText>
-                  <CardText className="mb-3 text-muted">
-                    <strong>Creada:</strong>{' '}
-                    {new Date(community.createdAt).toLocaleDateString('es-ES')}
-                  </CardText>
-
-                  <div className="d-flex gap-2 mt-auto">
-                    <Link href={`/communities/${community.id}`} className="btn btn-primary">
-                      Ver detalle
-                    </Link>
-                  </div>
-                </CardBody>
-              </Card>
+          {communities.length === 0 ? (
+            <Col>
+              <p className="text-muted mb-0">
+                No hay comunidades para mostrar.
+              </p>
             </Col>
-          ))}
+          ) : (
+            communities.map((community) => (
+              <Col key={community.id} md={6}>
+                <Card className="h-100 border-0 shadow-sm">
+                  <CardBody className="d-flex flex-column gap-2">
+                    <CardTitle className="mb-0 text-primary">
+                      {community.name}
+                    </CardTitle>
+
+                    <CardText className="text-muted">
+                      {community.description}
+                    </CardText>
+                    <CardText className="mb-3 text-muted">
+                      <strong>Creada:</strong>{' '}
+                      {new Date(community.createdAt).toLocaleDateString(
+                        'es-ES',
+                      )}
+                    </CardText>
+
+                    <div className="d-flex gap-2 mt-auto">
+                      <Link
+                        href={`/communities/${community.id}`}
+                        className="btn btn-primary"
+                      >
+                        Ver detalle
+                      </Link>
+                    </div>
+                  </CardBody>
+                </Card>
+              </Col>
+            ))
+          )}
         </Row>
       </Container>
     </main>

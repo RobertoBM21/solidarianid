@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import Container from 'react-bootstrap/Container';
 import CommunityManagementPanels from '../../../../components/memberships/CommunityManagementPanels';
 import { getSessionOrRedirect } from '../../../../lib/auth/get-session-or-redirect';
+import { fetchServer } from '../../../../lib/http/fetch-server';
 import { getCommunityById } from '../../../../services/communities.service';
 import {
   getCommunityMembers,
@@ -27,9 +28,11 @@ export default async function CommunityManagementPage({
     redirect(`/communities/${community.id}`);
   }
 
+  const client = fetchServer();
+
   const [requests, members] = await Promise.all([
-    getCommunityMembershipRequests(community.id),
-    getCommunityMembers(community.id),
+    getCommunityMembershipRequests(community.id, client),
+    getCommunityMembers(community.id, client),
   ]);
 
   return (

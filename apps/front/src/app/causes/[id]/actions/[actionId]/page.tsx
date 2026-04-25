@@ -27,7 +27,7 @@ export default async function ActionDetailPage({
 }) {
   const { id, actionId } = await params;
   const [detail, session] = await Promise.all([
-    getCauseActionById(id, actionId, fetchServer),
+    getCauseActionById(id, actionId, fetchServer()),
     getServerSession(authOptions),
   ]);
 

@@ -1,5 +1,6 @@
 ﻿import { gql } from '@apollo/client';
 import apolloClient from '../lib/apollo/client';
+import type { ApiClient } from '../lib/http/api-client';
 import type {
   CauseDetail,
   CreateCausePayload,
@@ -17,31 +18,11 @@ const SUPPORT_CAUSE_MUTATION = gql`
   }
 `;
 
-type FetchFn = (endpoint: string, options?: RequestInit) => Promise<Response>;
-
-function parseErrorMessage(data: unknown, fallbackMessage: string): string {
-  if (typeof data === 'object' && data !== null && 'message' in data) {
-    const message = (data as { message: unknown }).message;
-
-    if (typeof message === 'string') {
-      return message;
-    }
-
-    if (Array.isArray(message) && typeof message[0] === 'string') {
-      return message[0];
-    }
-  }
-
-  return fallbackMessage;
-}
-
 export async function getCauseById(
   id: string,
-  fetchFn: FetchFn,
+  client: ApiClient,
 ): Promise<CauseDetail | undefined> {
-  const response = await fetchFn(`/causes/${id}`, {
-    cache: 'no-store',
-  });
+  const response = await client.get(`/causes/${id}`, { cache: 'no-store' });
 
   if (response.status === 404) {
     return undefined;
@@ -51,7 +32,10 @@ export async function getCauseById(
 
   if (!response.ok) {
     throw new Error(
-      parseErrorMessage(data, 'No se pudo cargar el detalle de la causa.'),
+      client.parseErrorMessage(
+        data,
+        'No se pudo cargar el detalle de la causa.',
+      ),
     );
   }
 
@@ -60,7 +44,7 @@ export async function getCauseById(
 
 export async function getCausesByCommunityId(
   communityId: string,
-  fetchFn: FetchFn,
+  client: ApiClient,
 ): Promise<CauseDetail[]> {
   const community = await getCommunityById(communityId);
 
@@ -69,9 +53,7 @@ export async function getCausesByCommunityId(
   }
 
   const causes = await Promise.all(
-    community.causes.map(
-      async (cause) => await getCauseById(cause.id, fetchFn),
-    ),
+    community.causes.map(async (cause) => await getCauseById(cause.id, client)),
   );
 
   return causes.filter((cause): cause is CauseDetail => cause !== undefined);
@@ -80,17 +62,19 @@ export async function getCausesByCommunityId(
 export async function createCause(
   communityId: string,
   payload: CreateCausePayload,
-  fetchFn: FetchFn,
+  client: ApiClient,
 ): Promise<CreateCauseResponse> {
-  const response = await fetchFn(`/communities/${communityId}/causes`, {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  });
+  const response = await client.post(
+    `/communities/${communityId}/causes`,
+    payload,
+  );
 
   const data: unknown = await response.json();
 
   if (!response.ok) {
-    throw new Error(parseErrorMessage(data, 'No se pudo crear la causa.'));
+    throw new Error(
+      client.parseErrorMessage(data, 'No se pudo crear la causa.'),
+    );
   }
 
   return data as CreateCauseResponse;
@@ -99,19 +83,18 @@ export async function createCause(
 export async function closeCause(
   communityId: string,
   causeId: string,
-  fetchFn: FetchFn,
+  client: ApiClient,
 ): Promise<void> {
-  const response = await fetchFn(
+  const response = await client.post(
     `/communities/${communityId}/causes/${causeId}/close`,
-    {
-      method: 'POST',
-    },
   );
 
   const data: unknown = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(parseErrorMessage(data, 'No se pudo finalizar la causa.'));
+    throw new Error(
+      client.parseErrorMessage(data, 'No se pudo finalizar la causa.'),
+    );
   }
 }
 
@@ -130,7 +113,7 @@ export async function supportCause(
   });
 
   if (!data?.registerCauseSupport) {
-    throw new Error(parseErrorMessage(data, 'No se pudo apoyar la causa.'));
+    throw new Error('No se pudo apoyar la causa.');
   }
 }
 
@@ -138,39 +121,36 @@ export async function supportCauseAnonymousUser(
   causeId: string,
   name: string,
   email: string,
-  fetchFn: FetchFn,
+  client: ApiClient,
 ): Promise<void> {
-  const response = await fetchFn(
+  const response = await client.post(
     `/causes/${causeId}/supports/create-anonymous`,
-    {
-      method: 'POST',
-      body: JSON.stringify({
-        name,
-        email,
-      }),
-    },
+    { name, email },
   );
 
   const data: unknown = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(parseErrorMessage(data, 'No se pudo apoyar la causa.'));
+    throw new Error(
+      client.parseErrorMessage(data, 'No se pudo apoyar la causa.'),
+    );
   }
 }
 
 export async function cancelSupportCause(
   causeId: string,
-  fetchFn: FetchFn,
+  client: ApiClient,
 ): Promise<void> {
-  const response = await fetchFn(`/causes/${causeId}/supports`, {
-    method: 'DELETE',
-  });
+  const response = await client.delete(`/causes/${causeId}/supports`);
 
   const data: unknown = await response.json().catch(() => null);
 
   if (!response.ok) {
     throw new Error(
-      parseErrorMessage(data, 'No se pudo cancelar el apoyo a la causa.'),
+      client.parseErrorMessage(
+        data,
+        'No se pudo cancelar el apoyo a la causa.',
+      ),
     );
   }
 }

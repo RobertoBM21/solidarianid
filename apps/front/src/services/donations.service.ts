@@ -1,40 +1,22 @@
+import type { ApiClient } from '../lib/http/api-client';
 import type {
   CreateDonationPayload,
   DonationResponse,
   PaymentLinkResponse,
 } from '../models/donation.models';
 
-type FetchFn = (endpoint: string, options?: RequestInit) => Promise<Response>;
-
-function parseErrorMessage(data: unknown, fallbackMessage: string): string {
-  if (typeof data === 'object' && data !== null && 'message' in data) {
-    const message = (data as { message: unknown }).message;
-
-    if (typeof message === 'string') {
-      return message;
-    }
-
-    if (Array.isArray(message) && typeof message[0] === 'string') {
-      return message[0];
-    }
-  }
-
-  return fallbackMessage;
-}
-
 export async function startDonation(
   payload: CreateDonationPayload,
-  fetchFn: FetchFn,
+  client: ApiClient,
 ): Promise<PaymentLinkResponse> {
-  const response = await fetchFn('/donations', {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  });
+  const response = await client.post('/donations', payload);
 
   const data: unknown = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(parseErrorMessage(data, 'No se pudo iniciar la donación.'));
+    throw new Error(
+      client.parseErrorMessage(data, 'No se pudo iniciar la donación.'),
+    );
   }
 
   return data as PaymentLinkResponse;
@@ -42,20 +24,17 @@ export async function startDonation(
 
 export async function completeDonation(
   externalPaymentId: string,
-  fetchFn: FetchFn,
+  client: ApiClient,
 ): Promise<DonationResponse> {
-  const response = await fetchFn(
+  const response = await client.get(
     `/donations/complete/${encodeURIComponent(externalPaymentId)}`,
-    {
-      method: 'GET',
-    },
   );
 
   const data: unknown = await response.json().catch(() => null);
 
   if (!response.ok) {
     throw new Error(
-      parseErrorMessage(data, 'No se pudo completar la donación.'),
+      client.parseErrorMessage(data, 'No se pudo completar la donación.'),
     );
   }
 

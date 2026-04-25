@@ -1,31 +1,14 @@
+import type { ApiClient } from '../lib/http/api-client';
 import type { HistoryItem } from '../models/profile.models';
-
-type FetchFn = (endpoint: string, options?: RequestInit) => Promise<Response>;
 
 interface CollaborationsResponse {
   items?: HistoryItem[];
 }
 
-function parseErrorMessage(data: unknown, fallbackMessage: string): string {
-  if (typeof data === 'object' && data !== null && 'message' in data) {
-    const message = (data as { message: unknown }).message;
-
-    if (typeof message === 'string') {
-      return message;
-    }
-
-    if (Array.isArray(message) && typeof message[0] === 'string') {
-      return message[0];
-    }
-  }
-
-  return fallbackMessage;
-}
-
 export async function getMyCollaborations(
-  fetchFn: FetchFn,
+  client: ApiClient,
 ): Promise<HistoryItem[]> {
-  const response = await fetchFn('/my-collaborations', {
+  const response = await client.get('/my-collaborations', {
     cache: 'no-store',
   });
 
@@ -33,7 +16,10 @@ export async function getMyCollaborations(
 
   if (!response.ok) {
     throw new Error(
-      parseErrorMessage(data, 'No se pudo cargar el histórico de acciones.'),
+      client.parseErrorMessage(
+        data,
+        'No se pudo cargar el histórico de acciones.',
+      ),
     );
   }
 

@@ -1,4 +1,4 @@
-import { fetchServer } from '../lib/http/fetch-server';
+import type { ApiClient } from '../lib/http/api-client';
 import type {
   HistoryItem,
   ProfileMembershipItem,
@@ -35,6 +35,13 @@ interface ProfileMembershipEntry {
   status: 'accepted' | 'pending' | 'rejected';
 }
 
+interface UpdateProfilePayload {
+  name?: string;
+  phone?: string;
+  city?: string;
+  country?: string;
+}
+
 function isMembershipRequestEntry(
   entry: ProfileMembershipEntry,
 ): entry is ProfileMembershipEntry & {
@@ -43,16 +50,16 @@ function isMembershipRequestEntry(
   return entry.status === 'pending' || entry.status === 'rejected';
 }
 
-export async function getProfileView(sessionUser: {
-  id: string;
-  email: string;
-}): Promise<ProfileView> {
+export async function getProfileView(
+  sessionUser: { id: string; email: string },
+  client: ApiClient,
+): Promise<ProfileView> {
   const [profileRes, membershipEntries, communities, proposalsRes] =
     await Promise.all([
-      fetchServer('/profile'),
-      getMyMembershipRequests(),
+      client.get('/profile'),
+      getMyMembershipRequests(client),
       getCommunities(),
-      fetchServer('/my-proposals'),
+      client.get('/my-proposals'),
     ]);
 
   const communityNames = new Map(communities.map((c) => [c.id, c.name]));
@@ -117,9 +124,25 @@ export async function getProfileView(sessionUser: {
   };
 }
 
-export async function getProfileHistory(): Promise<HistoryItem[]> {
+export async function updateProfile(
+  payload: UpdateProfilePayload,
+  client: ApiClient,
+): Promise<void> {
+  const response = await client.put('/profile', payload);
+
+  if (!response.ok) {
+    const data: unknown = await response.json().catch(() => null);
+    throw new Error(
+      client.parseErrorMessage(data, 'Error al actualizar el perfil.'),
+    );
+  }
+}
+
+export async function getProfileHistory(
+  client: ApiClient,
+): Promise<HistoryItem[]> {
   try {
-    return await getMyCollaborations(fetchServer);
+    return await getMyCollaborations(client);
   } catch {
     return [];
   }
