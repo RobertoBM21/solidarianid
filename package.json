@@ -34,7 +34,8 @@
     "cy:open": "cypress open",
     "test:cypress": "cypress run",
     "test:mutation": "stryker run",
-    "proto:gen": "npx protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./libs/shared/src/infrastructure/grpc/stubs --ts_proto_opt=nestJs=true -I=./grpc/protos ./grpc/protos/*.proto"
+    "proto:gen": "npx protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./libs/shared/src/infrastructure/grpc/stubs --ts_proto_opt=nestJs=true -I=./grpc/protos ./grpc/protos/*.proto",
+    "proto:gen:win": "npx protoc --plugin=protoc-gen-ts_proto=.\\node_modules\\.bin\\protoc-gen-ts_proto.cmd --ts_proto_out=./libs/shared/src/infrastructure/grpc/stubs --ts_proto_opt=nestJs=true -I=./grpc/protos ./grpc/protos/*.proto"
   },
   "dependencies": {
     "@apollo/client": "^4.1.7",
@@ -43,6 +44,7 @@
     "@grpc/grpc-js": "^1.14.3",
     "@grpc/proto-loader": "^0.8.0",
     "@keyv/redis": "^5.1.5",
+    "@kurrent/kurrentdb-client": "^1.1.2",
     "@nestjs/apollo": "^13.2.4",
     "@nestjs/cache-manager": "^3.0.1",
     "@nestjs/common": "^11.0.1",

@@ -21,7 +21,23 @@ import {
   InvalidTitleError,
   Title,
 } from '@app/shared/domain/value-objects/title.vo';
+import { CauseClosedEvent } from '../../../communities/domain/events/cause-closed.event';
+import { FundingActionCreatedEvent } from '../../../initiatives/domain/events/funding-action-created.event';
 import { Donation, DonationCreationError } from '../entities/donation.entity';
+import { DonationProcessed } from '../events/donation-processed.event';
+
+export type FundingActionEvent =
+  | FundingActionCreatedEvent
+  | DonationProcessed
+  | CauseClosedEvent;
+
+export interface FundingActionData {
+  title: string;
+  causeId: string;
+  currentAmount?: number;
+  closed?: boolean;
+  version?: bigint;
+}
 
 export interface FundingActionProps {
   title: Title;
@@ -35,8 +51,15 @@ export type FundingActionCreationError =
   | InvalidActionCurrentAmountError;
 
 export class FundingAction extends AggregateRoot<FundingActionProps> {
-  private constructor(props: FundingActionProps, id?: UniqueEntityID) {
+  private _version: bigint;
+
+  private constructor(
+    props: FundingActionProps,
+    id?: UniqueEntityID,
+    version = -1n,
+  ) {
     super(props, id);
+    this._version = version;
   }
 
   get title(): string {
@@ -55,8 +78,14 @@ export class FundingAction extends AggregateRoot<FundingActionProps> {
     return this.props.currentAmount.value;
   }
 
+  get version(): bigint {
+    return this._version;
+  }
+
   close(): void {
+    if (this.closed) return;
     this.props.status = InitiativeStatus.closed();
+    this.addDomainEvent(new CauseClosedEvent(this.causeId.toString()));
   }
 
   validateDonationRequest(
@@ -76,31 +105,49 @@ export class FundingAction extends AggregateRoot<FundingActionProps> {
     amount: number,
     donorId: string,
     externalPaymentId: string,
+    donationId: string,
+    processedAt: Date = new Date(),
   ): Either<DonationCreationError | InvalidMoneyAmountError, Donation> {
+    const amountOrError = MoneyAmount.create(amount);
+    if (amountOrError.isLeft()) {
+      return left(amountOrError.value);
+    }
+
     const newAmountOrError = this.props.currentAmount.plus(amount);
     if (newAmountOrError.isLeft()) {
       return left(newAmountOrError.value);
     }
-    const donationOrError = Donation.create({
-      donorId,
-      fundingActionId: this.id.toString(),
-      externalPaymentId,
-      amount,
-    });
+
+    const donationOrError = Donation.create(
+      {
+        donorId,
+        fundingActionId: this.id.toString(),
+        externalPaymentId,
+        amount,
+        date: processedAt,
+      },
+      UniqueEntityID.create(donationId),
+    );
     if (donationOrError.isLeft()) {
       return left(donationOrError.value);
     }
+
     this.props.currentAmount = newAmountOrError.value;
+    this.addDomainEvent(
+      new DonationProcessed(
+        donationId,
+        donorId,
+        amount,
+        externalPaymentId,
+        processedAt,
+      ),
+    );
+
     return right(donationOrError.value);
   }
 
   static create(
-    data: {
-      title: string;
-      closed?: boolean;
-      causeId: string;
-      currentAmount?: number;
-    },
+    data: FundingActionData,
     id?: string,
   ): Either<FundingActionCreationError, FundingAction> {
     const titleOrError = Title.create(data.title);
@@ -119,6 +166,21 @@ export class FundingAction extends AggregateRoot<FundingActionProps> {
     };
 
     const idObj = id ? UniqueEntityID.create(id) : undefined;
-    return right(new FundingAction(props, idObj));
+    const action = new FundingAction(props, idObj, data.version ?? -1n);
+
+    if (data.closed === undefined && data.currentAmount === undefined) {
+      action.addDomainEvent(
+        new FundingActionCreatedEvent(
+          action.id.toString(),
+          data.title,
+          '',
+          [],
+          data.causeId,
+          0,
+        ),
+      );
+    }
+
+    return right(action);
   }
 }

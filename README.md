@@ -44,10 +44,12 @@ Configuración específica de la pasarela de API:
 
 Configuración específica de la aplicación principal:
 
-| Variable    | Tipo     | Descripción               | Valor por defecto |
-| ----------- | -------- | ------------------------- | ----------------- |
-| `REDIS_URL` | `string` | URL de la instancia Redis | -                 |
-| `STRIPE_SK` | `string` | Clave secreta de Stripe   | -                 |
+| Variable                     | Tipo     | Descripción                                         | Valor por defecto |
+| ---------------------------- | -------- | --------------------------------------------------- | ----------------- |
+| `REDIS_URL`                  | `string` | URL de la instancia Redis                           | -                 |
+| `KURRENTDB_URL`              | `string` | URL de conexión a KurrentDB                         | -                 |
+| `STRIPE_SK`                  | `string` | Clave secreta de Stripe                             | -                 |
+| `STRIPE_PAYMENT_SUCCESS_URL` | `string` | URL de redirección tras completar un pago en Stripe | -                 |
 
 ### Aplicación: admin
 

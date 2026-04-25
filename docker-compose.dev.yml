@@ -35,6 +35,20 @@ services:
       timeout: 5s
       retries: 5
 
+  kurrentdb:
+    image: kurrentplatform/kurrentdb:25.0.0
+    command: '--run-projections=All --insecure --enable-atom-pub-over-http'
+    ports:
+      - 2113:2113
+    volumes:
+      - kurrentdb_data:/var/lib/kurrentdb
+    healthcheck:
+      test:
+        ['CMD-SHELL', 'curl -sf http://localhost:2113/health/live || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   nats:
     image: nats:2.12.3-alpine
     command: '-js -m 8222'
@@ -60,6 +74,7 @@ services:
 volumes:
   db_data:
   nats_data:
+  kurrentdb_data:
 
 secrets:
   db_pass:

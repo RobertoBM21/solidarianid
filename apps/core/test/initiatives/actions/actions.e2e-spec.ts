@@ -4,6 +4,7 @@ import request from 'supertest';
 import { DataSource } from 'typeorm';
 import { CoreAppModule } from '../../../src/app.module';
 import { CommunityMemberDbEntity } from '../../../src/communities/infrastructure/persistence/entities/community-member.db-entity';
+import { FundingActionAggrDbEntity } from '../../../src/funding/infrastructure/persistence/entities/funding-action-aggr.db-entity';
 import {
   FundingActionApiDto,
   VolunteeringActionApiDto,
@@ -155,10 +156,20 @@ describe('Actions integration tests', () => {
     });
   };
 
+  const waitForFundingActionProjected = async (actionId: string) => {
+    await waitFor(async () => {
+      const entity = await dataSource
+        .getRepository(FundingActionAggrDbEntity)
+        .findOneBy({ id: actionId });
+      return entity !== null;
+    });
+  };
+
   it('should create a funding action successfully', async () => {
     const actionData = buildFundingActionData();
     const res = await createFundingActionAndExpectSuccess(actionData);
     await waitForActionPersisted(res.body.id as string);
+    await waitForFundingActionProjected(res.body.id as string);
   });
 
   it('should fail to create a funding action with empty title', async () => {

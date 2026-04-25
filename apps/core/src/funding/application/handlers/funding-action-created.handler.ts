@@ -17,7 +17,6 @@ export class FundingActionCreatedHandler {
       {
         title: event.title,
         causeId: event.causeId,
-        currentAmount: 0,
       },
       event.actionId,
     );

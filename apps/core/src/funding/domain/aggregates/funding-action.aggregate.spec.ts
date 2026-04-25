@@ -3,22 +3,43 @@ import { InvalidActionCurrentAmountError } from '@app/shared/domain/value-object
 import { InitiativeAlreadyClosedError } from '@app/shared/domain/value-objects/initiative-status.vo';
 import { InvalidMoneyAmountError } from '@app/shared/domain/value-objects/money-amount.vo';
 import { InvalidTitleError } from '@app/shared/domain/value-objects/title.vo';
+import { CauseClosedEvent } from '../../../communities/domain/events/cause-closed.event';
+import { FundingActionCreatedEvent } from '../../../initiatives/domain/events/funding-action-created.event';
 import { Donation } from '../entities/donation.entity';
+import { DonationProcessed } from '../events/donation-processed.event';
 import { FundingAction } from './funding-action.aggregate';
 
 const CAUSE_ID = UniqueEntityID.create().toString();
 
-const makeFundingAction = (closed = false, currentAmount = 0) =>
-  FundingAction.create({
-    title: 'Test Action',
-    causeId: CAUSE_ID,
-    closed,
-    currentAmount,
-  }).value as FundingAction;
+const makeFundingAction = (
+  closed = false,
+  currentAmount = 0,
+): FundingAction => {
+  const actionId = UniqueEntityID.create().toString();
+  const action = FundingAction.create(
+    { title: 'Test Action', causeId: CAUSE_ID },
+    actionId,
+  ).value as FundingAction;
+  action.pullDomainEvents();
+  if (currentAmount > 0) {
+    action.acceptDonation(
+      currentAmount,
+      UniqueEntityID.create().toString(),
+      'cs_test_seed',
+      UniqueEntityID.create().toString(),
+    );
+    action.pullDomainEvents();
+  }
+  if (closed) {
+    action.close();
+    action.pullDomainEvents();
+  }
+  return action;
+};
 
 describe('FundingAction Aggregate', () => {
   describe('create', () => {
-    it('should create a funding action with valid data', () => {
+    it('should create a funding action with valid data and emit FundingActionCreatedEvent', () => {
       const result = FundingAction.create({
         title: 'Help Fund Schools',
         causeId: CAUSE_ID,
@@ -29,9 +50,12 @@ describe('FundingAction Aggregate', () => {
       expect(action.title).toBe('Help Fund Schools');
       expect(action.closed).toBe(false);
       expect(action.currentAmountValue).toBe(0);
+      const events = action.pullDomainEvents();
+      expect(events).toHaveLength(1);
+      expect(events[0]).toBeInstanceOf(FundingActionCreatedEvent);
     });
 
-    it('should create with explicit closed and currentAmount', () => {
+    it('should create with explicit closed and currentAmount (no pending events)', () => {
       const result = FundingAction.create({
         title: 'Closed Action',
         causeId: CAUSE_ID,
@@ -43,6 +67,7 @@ describe('FundingAction Aggregate', () => {
       const action = result.value as FundingAction;
       expect(action.closed).toBe(true);
       expect(action.currentAmountValue).toBe(100);
+      expect(action.pullDomainEvents()).toHaveLength(0);
     });
 
     it('should fail with invalid title', () => {
@@ -68,20 +93,24 @@ describe('FundingAction Aggregate', () => {
   });
 
   describe('close', () => {
-    it('should close an open action', () => {
+    it('should close an open action and emit CauseClosedEvent', () => {
       const action = makeFundingAction();
 
       action.close();
 
       expect(action.closed).toBe(true);
+      const events = action.pullDomainEvents();
+      expect(events).toHaveLength(1);
+      expect(events[0]).toBeInstanceOf(CauseClosedEvent);
     });
 
-    it('should be idempotent on an already closed action', () => {
+    it('should be idempotent on an already closed action (no duplicate event)', () => {
       const action = makeFundingAction(true);
 
       action.close();
 
       expect(action.closed).toBe(true);
+      expect(action.pullDomainEvents()).toHaveLength(0);
     });
   });
 
@@ -114,12 +143,18 @@ describe('FundingAction Aggregate', () => {
   });
 
   describe('acceptDonation', () => {
-    it('should create a donation and increment current amount', () => {
+    it('should create a donation, increment current amount, and emit DonationProcessed', () => {
       const action = makeFundingAction(false, 100);
-
       const donorId = UniqueEntityID.create().toString();
+      const donationId = UniqueEntityID.create().toString();
       const externalPaymentId = 'cs_test_session_456';
-      const result = action.acceptDonation(50, donorId, externalPaymentId);
+
+      const result = action.acceptDonation(
+        50,
+        donorId,
+        externalPaymentId,
+        donationId,
+      );
 
       expect(result.isRight()).toBe(true);
       const donation = result.value as Donation;
@@ -128,6 +163,12 @@ describe('FundingAction Aggregate', () => {
       expect(donation.externalPaymentId).toBe(externalPaymentId);
       expect(donation.fundingActionId).toBe(action.id.toString());
       expect(action.currentAmountValue).toBe(150);
+      const events = action.pullDomainEvents();
+      expect(events).toHaveLength(1);
+      expect(events[0]).toBeInstanceOf(DonationProcessed);
+      const ev = events[0] as DonationProcessed;
+      expect(ev.donationId).toBe(donationId);
+      expect(ev.amount).toBe(50);
     });
 
     it('should fail with invalid amount', () => {
@@ -137,9 +178,22 @@ describe('FundingAction Aggregate', () => {
         0,
         UniqueEntityID.create().toString(),
         'cs_test_session_789',
+        UniqueEntityID.create().toString(),
       );
 
       expect(result.isLeft()).toBe(true);
+    });
+  });
+
+  describe('pullDomainEvents', () => {
+    it('should clear events after pulling', () => {
+      const action = FundingAction.create({
+        title: 'Test',
+        causeId: CAUSE_ID,
+      }).value as FundingAction;
+      expect(action.pullDomainEvents()).toHaveLength(1);
+
+      expect(action.pullDomainEvents()).toHaveLength(0);
     });
   });
 });

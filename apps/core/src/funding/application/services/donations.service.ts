@@ -94,10 +94,12 @@ export class DonationsService implements DonationsPort {
       return left(actionOrError.value);
     }
 
+    const donationId = UniqueEntityID.create().toString();
     const donationOrError = actionOrError.value.acceptDonation(
       amount,
       donorId,
       externalPaymentId,
+      donationId,
     );
     if (donationOrError.isLeft()) {
       return left(donationOrError.value);

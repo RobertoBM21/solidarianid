@@ -41,6 +41,10 @@ export class FundingActionOutDto {
    * The target amount for the funding action.
    */
   readonly targetAmount: number;
+  /**
+   * The current collected amount.
+   */
+  readonly currentAmount: number;
 
   constructor(action: FundingActionDef) {
     this.id = action.id.toString();
@@ -52,6 +56,7 @@ export class FundingActionOutDto {
     this.closed = action.closed;
     this.createdAt = action.createdAt.toISOString();
     this.targetAmount = action.targetAmountValue;
+    this.currentAmount = action.currentAmountValue;
   }
 }
 

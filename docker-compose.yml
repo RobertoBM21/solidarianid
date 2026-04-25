@@ -36,6 +36,7 @@ services:
       - NATS_URL=nats://nats:4222
       - STRIPE_SK=${STRIPE_SK}
       - STRIPE_PAYMENT_SUCCESS_URL=${STRIPE_PAYMENT_SUCCESS_URL}
+      - KURRENTDB_URL=kurrentdb://kurrentdb:2113?tls=false
     secrets:
       - db_pass_core
     depends_on:
@@ -44,6 +45,8 @@ services:
       redis:
         condition: service_healthy
       nats:
+        condition: service_healthy
+      kurrentdb:
         condition: service_healthy
 
   admin:
@@ -117,6 +120,20 @@ services:
       timeout: 5s
       retries: 5
 
+  kurrentdb:
+    image: kurrentplatform/kurrentdb:25.0.0
+    command: '--run-projections=All --insecure --enable-atom-pub-over-http'
+    ports:
+      - '2113:2113'
+    volumes:
+      - kurrentdb_data:/var/lib/kurrentdb
+    healthcheck:
+      test:
+        ['CMD-SHELL', 'curl -sf http://localhost:2113/health/live || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   nats:
     image: nats:2.12.3-alpine
     command: '-js -m 8222'
@@ -139,6 +156,7 @@ volumes:
   core_db_data:
   admin_db_data:
   nats_data:
+  kurrentdb_data:
 
 secrets:
   jwt_secret:

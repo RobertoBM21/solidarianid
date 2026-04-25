@@ -84,7 +84,7 @@ export class CauseAggrRepositoryImpl
     } else if (action instanceof FundingActionDef) {
       const fund = new FundingActionDbEntity();
       fund.targetAmount = action.targetAmountValue;
-      fund.currentAmount = 0;
+      fund.currentAmount = action.currentAmountValue;
       entity = fund;
     } else {
       throw new Error(`Unknown action type: cannot map to DB entity`);
@@ -132,6 +132,7 @@ export class CauseAggrRepositoryImpl
           createdAt: entity.createdAt,
           causeId: entity.causeId,
           targetAmount: entity.targetAmount,
+          currentAmount: entity.currentAmount,
         },
         entity.id,
       );

@@ -6,6 +6,10 @@ import {
   UniqueEntityID,
 } from '@app/shared/domain';
 import {
+  ActionCurrentAmount,
+  InvalidActionCurrentAmountError,
+} from '@app/shared/domain/value-objects/action-current-amount.vo';
+import {
   CreationDate,
   InvalidDateError,
 } from '@app/shared/domain/value-objects/creation-date.vo';
@@ -49,6 +53,7 @@ export interface VolunteeringActionDefProps extends ActionDefProps {
 
 export interface FundingActionDefProps extends ActionDefProps {
   targetAmount: MoneyAmount;
+  currentAmount: ActionCurrentAmount;
 }
 
 export type VolunteeringActionDefCreationError =
@@ -63,6 +68,7 @@ export type FundingActionDefCreationError =
   | InvalidDescriptionError
   | InvalidActionObjectivesError
   | InvalidMoneyAmountError
+  | InvalidActionCurrentAmountError
   | InvalidDateError;
 
 export type ActionDefCreationError =
@@ -218,6 +224,10 @@ export class FundingActionDef extends ActionDef<FundingActionDefProps> {
     return this.props.targetAmount.value;
   }
 
+  get currentAmountValue(): number {
+    return this.props.currentAmount.value;
+  }
+
   static create(
     data: {
       title: string;
@@ -227,6 +237,7 @@ export class FundingActionDef extends ActionDef<FundingActionDefProps> {
       createdAt?: Date | string;
       causeId: string;
       targetAmount: number;
+      currentAmount?: number;
     },
     id?: string,
   ): Either<FundingActionDefCreationError, FundingActionDef> {
@@ -240,9 +251,17 @@ export class FundingActionDef extends ActionDef<FundingActionDefProps> {
       return left(targetAmountOrError.value);
     }
 
+    const currentAmountOrError = ActionCurrentAmount.create(
+      data.currentAmount ?? 0,
+    );
+    if (currentAmountOrError.isLeft()) {
+      return left(currentAmountOrError.value);
+    }
+
     const props = {
       ...commonPropsOrError.value,
       targetAmount: targetAmountOrError.value,
+      currentAmount: currentAmountOrError.value,
     };
 
     const idObj = id ? UniqueEntityID.create(id) : undefined;

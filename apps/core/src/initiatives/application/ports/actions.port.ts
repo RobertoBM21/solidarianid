@@ -29,6 +29,7 @@ interface BaseActionOut {
 export interface FundingActionOut extends BaseActionOut {
   type: 'funding';
   targetAmount: number;
+  currentAmount: number;
 }
 
 export interface VolunteeringActionOut extends BaseActionOut {
