@@ -1,7 +1,7 @@
 import Card from 'react-bootstrap/Card';
 import CardBody from 'react-bootstrap/CardBody';
 import Container from 'react-bootstrap/Container';
-import ProfileHistoryContent from '../../../components/profile/ProfileHistoryContent';
+import ProfileHistoryTable from '../../../components/profile/history/ProfileHistoryTable';
 import { getSessionOrRedirect } from '../../../lib/auth/get-session-or-redirect';
 import { getProfileHistory } from '../../../services/profile.service';
 
@@ -13,14 +13,18 @@ export default async function ProfileHistoryPage() {
   return (
     <main>
       <Container className="py-4">
-        <div className="mb-4">
-          <h1 className="mb-3 text-primary">Mi histórico de acciones</h1>
-          <p className="mb-0 text-muted">Registro de tu actividad reciente.</p>
+        <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+          <div>
+            <h1 className="mb-1 text-primary">Mi histórico de acciones</h1>
+            <p className="mb-0 text-muted">
+              Registro de tu actividad reciente.
+            </p>
+          </div>
         </div>
 
         <Card className="border-0 shadow-sm">
           <CardBody>
-            <ProfileHistoryContent initialItems={profileHistory} />
+            <ProfileHistoryTable initialItems={profileHistory} />
           </CardBody>
         </Card>
       </Container>

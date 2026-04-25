@@ -5,8 +5,7 @@ import { UserNotFoundError } from '../../../identity/domain/repositories/user.re
 import { AnonymousSupporterError } from '../../domain/repositories/anonymous-supporter.repository';
 import { CauseNotFoundError } from '../../domain/repositories/cause-aggr.repository';
 import { CauseSupportNotFoundError } from '../../domain/repositories/cause-support.repository';
-import { RegisterAnonymousSupportRequestDto } from '../dtos/register-anonymous-support-request.dto';
-import { RegisterUserSupportDto } from '../dtos/register-user-support.dto';
+import { RegisterAnonymousSupportDto } from '../dtos/register-anonymous-support.dto';
 
 export class AlreadySupportingError implements DomainError {
   message = 'Support already registered for this cause and supporter.';
@@ -26,14 +25,22 @@ export type RegisterAnonymousSupportError =
   | AnonymousSupporterError
   | InitiativeAlreadyClosedError;
 
+export interface RegisterSupportOutDto {
+  supporterId: string;
+  supporterName: string;
+  createdAt: Date;
+}
+
 export abstract class CauseSupportsPort {
-  abstract registerSupportForUser(
-    options: RegisterUserSupportDto,
-  ): Promise<Either<RegisterUserSupportError, void>>;
+  abstract registerSupportForUser(options: {
+    causeId: string;
+    userId: string;
+  }): Promise<Either<RegisterUserSupportError, RegisterSupportOutDto>>;
 
   abstract registerSupportForAnonymous(
-    options: RegisterAnonymousSupportRequestDto,
-  ): Promise<Either<RegisterAnonymousSupportError, void>>;
+    causeId: string,
+    data: RegisterAnonymousSupportDto,
+  ): Promise<Either<RegisterAnonymousSupportError, RegisterSupportOutDto>>;
 
   abstract cancelSupport(
     causeId: string,

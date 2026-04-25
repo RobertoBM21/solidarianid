@@ -7,11 +7,11 @@ import {
   FundingActionNotFoundError,
   FundingActionRepository,
 } from '../../domain/repositories/funding-action.repository';
+import { DonationDto } from '../dtos/donation.dto';
 import {
   PaymentsGatewaryError,
   PaymentsGatewaryPort,
 } from '../ports/payments-gateway.port';
-import { DonationDto } from '../dtos/donation.dto';
 import { DonationsService } from './donations.service';
 
 const ACTION_ID = UniqueEntityID.create().toString();
@@ -143,8 +143,7 @@ describe('DonationsService', () => {
       donationRepo.findByExternalPaymentId.mockResolvedValue(null);
       fundingActionRepo.findById.mockResolvedValue(right(action));
 
-      const result =
-        await service.completeDonation(EXTERNAL_PAYMENT_ID);
+      const result = await service.completeDonation(EXTERNAL_PAYMENT_ID);
 
       expect(result.isRight()).toBe(true);
       const dto = result.value as DonationDto;
@@ -163,12 +162,9 @@ describe('DonationsService', () => {
       paymentsGateway.verifyPayment.mockResolvedValue(
         right({ fundingActionId: ACTION_ID, donorId: USER_ID, amount: 75 }),
       );
-      donationRepo.findByExternalPaymentId.mockResolvedValue(
-        existingDonation,
-      );
+      donationRepo.findByExternalPaymentId.mockResolvedValue(existingDonation);
 
-      const result =
-        await service.completeDonation(EXTERNAL_PAYMENT_ID);
+      const result = await service.completeDonation(EXTERNAL_PAYMENT_ID);
 
       expect(result.isRight()).toBe(true);
       expect(donationRepo.save).not.toHaveBeenCalled();
@@ -181,8 +177,7 @@ describe('DonationsService', () => {
         left(new PaymentsGatewaryError('Invalid session')),
       );
 
-      const result =
-        await service.completeDonation(EXTERNAL_PAYMENT_ID);
+      const result = await service.completeDonation(EXTERNAL_PAYMENT_ID);
 
       expect(result.isLeft()).toBe(true);
       expect(result.value).toBeInstanceOf(PaymentsGatewaryError);
@@ -197,8 +192,7 @@ describe('DonationsService', () => {
         left(new FundingActionNotFoundError(ACTION_ID)),
       );
 
-      const result =
-        await service.completeDonation(EXTERNAL_PAYMENT_ID);
+      const result = await service.completeDonation(EXTERNAL_PAYMENT_ID);
 
       expect(result.isLeft()).toBe(true);
       expect(result.value).toBeInstanceOf(FundingActionNotFoundError);

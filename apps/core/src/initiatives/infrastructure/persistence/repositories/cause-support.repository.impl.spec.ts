@@ -147,12 +147,16 @@ describe('CauseSupportRepositoryImpl', () => {
       mockEntityManager.delete.mockResolvedValue({
         affected: 1,
       } as DeleteResult);
-      const result = await repo.removeByUserAndCause(
-        UniqueEntityID.create(userSupporter.id.toString()),
-        UniqueEntityID.create(causeId),
-      );
+      const userId = UniqueEntityID.create(userSupporter.id.toString());
+      const causeUniqueId = UniqueEntityID.create(causeId);
+
+      const result = await repo.removeByUserAndCause(userId, causeUniqueId);
+
       expect(result.isRight()).toBe(true);
-      expect(mockEntityManager.delete).toHaveBeenCalled();
+      expect(mockEntityManager.delete).toHaveBeenCalledWith(expect.anything(), {
+        causeId: causeUniqueId.toString(),
+        userId: userId.toString(),
+      });
     });
   });
 

@@ -1,9 +1,12 @@
 import { left, right, UniqueEntityID } from '@app/shared/domain';
 import { DomainEventsPort } from '@app/shared/domain/ports/domain-events.port';
 import { Test, TestingModule } from '@nestjs/testing';
+import { UserNotFoundError } from '../../../identity/domain/repositories/user.repository';
 import { CauseAggr } from '../../domain/aggregates/cause.aggregate';
-import { UserCheckerPort } from '../../domain/ports/user-checker.port';
-import { AnonymousSupporterRepository } from '../../domain/repositories/anonymous-supporter.repository';
+import {
+  AnonymousSupporterError,
+  AnonymousSupporterRepository,
+} from '../../domain/repositories/anonymous-supporter.repository';
 import {
   CauseAggrRepository,
   CauseNotFoundError,
@@ -12,6 +15,9 @@ import {
   CauseSupportNotFoundError,
   CauseSupportRepository,
 } from '../../domain/repositories/cause-support.repository';
+import { UserSupporter } from '../../domain/value-objects/supporter.vo';
+import { AlreadySupportingError } from '../ports/cause-supports.port';
+import { GetUserPort } from '../ports/get-user.port';
 import { CauseSupportsService } from './cause-supports.service';
 
 describe('CauseSupportsService', () => {
@@ -44,8 +50,8 @@ describe('CauseSupportsService', () => {
     dispatch: jest.fn(),
   };
 
-  const mockUserChecker: jest.Mocked<Pick<UserCheckerPort, 'userExists'>> = {
-    userExists: jest.fn(),
+  const mockGetUserPort: jest.Mocked<Pick<GetUserPort, 'getUser'>> = {
+    getUser: jest.fn(),
   };
 
   const communityId = UniqueEntityID.create().toString();
@@ -59,6 +65,12 @@ describe('CauseSupportsService', () => {
       communityId: communityId,
       closed,
     }).value as CauseAggr;
+
+  const makeUserProfileDto = (userId: string) => ({
+    id: userId,
+    name: 'Test User',
+    email: 'test@user.com',
+  });
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -78,8 +90,8 @@ describe('CauseSupportsService', () => {
           useValue: mockDomainEvents,
         },
         {
-          provide: UserCheckerPort,
-          useValue: mockUserChecker,
+          provide: GetUserPort,
+          useValue: mockGetUserPort,
         },
       ],
     }).compile();
@@ -96,7 +108,7 @@ describe('CauseSupportsService', () => {
       const cause = makeCauseAggr();
 
       mockCauseRepository.findById.mockResolvedValue(right(cause));
-      mockUserChecker.userExists.mockResolvedValue(true);
+      mockGetUserPort.getUser.mockResolvedValue(makeUserProfileDto(userId));
       mockCauseSupportRepository.existsForSupporterAndCause.mockResolvedValue(
         false,
       );
@@ -108,8 +120,22 @@ describe('CauseSupportsService', () => {
       });
 
       expect(result.isRight()).toBe(true);
-      expect(mockUserChecker.userExists).toHaveBeenCalledWith(
-        UniqueEntityID.create(userId),
+      expect(result.value).toEqual(
+        expect.objectContaining({
+          supporterId: expect.any(String),
+          supporterName: 'Test User',
+          createdAt: expect.any(Date),
+        }),
+      );
+      expect(mockGetUserPort.getUser).toHaveBeenCalledWith(userId);
+      expect(mockCauseRepository.findById).toHaveBeenCalledWith(
+        UniqueEntityID.create(causeId),
+      );
+      expect(
+        mockCauseSupportRepository.existsForSupporterAndCause,
+      ).toHaveBeenCalledWith(
+        UserSupporter.create(UniqueEntityID.create(userId)),
+        UniqueEntityID.create(causeId),
       );
       expect(mockDomainEvents.dispatch).toHaveBeenCalledWith(cause);
     });
@@ -122,24 +148,35 @@ describe('CauseSupportsService', () => {
       const result = await service.registerSupportForUser({ causeId, userId });
 
       expect(result.isLeft()).toBe(true);
+      expect(result.value).toBeInstanceOf(CauseNotFoundError);
+      expect(mockGetUserPort.getUser).toHaveBeenCalledWith(userId);
+      expect(mockCauseRepository.findById).toHaveBeenCalledWith(
+        UniqueEntityID.create(causeId),
+      );
+      expect(
+        mockCauseSupportRepository.existsForSupporterAndCause,
+      ).not.toHaveBeenCalled();
     });
 
     it('should return error when user does not exist', async () => {
       const cause = makeCauseAggr();
 
+      mockGetUserPort.getUser.mockResolvedValue(null);
       mockCauseRepository.findById.mockResolvedValue(right(cause));
-      mockUserChecker.userExists.mockResolvedValue(false);
 
       const result = await service.registerSupportForUser({ causeId, userId });
 
       expect(result.isLeft()).toBe(true);
+      expect(result.value).toBeInstanceOf(UserNotFoundError);
+      expect(mockGetUserPort.getUser).toHaveBeenCalledWith(userId);
+      expect(mockCauseRepository.findById).not.toHaveBeenCalled();
     });
 
     it('should return error when already supporting (user)', async () => {
       const cause = makeCauseAggr();
 
       mockCauseRepository.findById.mockResolvedValue(right(cause));
-      mockUserChecker.userExists.mockResolvedValue(true);
+      mockGetUserPort.getUser.mockResolvedValue(makeUserProfileDto(userId));
       mockCauseSupportRepository.existsForSupporterAndCause.mockResolvedValue(
         true,
       );
@@ -147,12 +184,24 @@ describe('CauseSupportsService', () => {
       const result = await service.registerSupportForUser({ causeId, userId });
 
       expect(result.isLeft()).toBe(true);
+      expect(mockCauseRepository.findById).toHaveBeenCalledWith(
+        UniqueEntityID.create(causeId),
+      );
+      expect(mockGetUserPort.getUser).toHaveBeenCalledWith(userId);
+      expect(
+        mockCauseSupportRepository.existsForSupporterAndCause,
+      ).toHaveBeenCalledWith(
+        UserSupporter.create(UniqueEntityID.create(userId)),
+        UniqueEntityID.create(causeId),
+      );
     });
   });
 
   describe('registerSupportForAnonymous', () => {
     it('should register support for an anonymous supporter', async () => {
       const cause = makeCauseAggr();
+      const anonName = 'Anon';
+      const anonEmail = 'anon@email.com';
 
       mockCauseRepository.findById.mockResolvedValue(right(cause));
       mockAnonymousSupporters.getOrCreate.mockResolvedValue(
@@ -163,37 +212,60 @@ describe('CauseSupportsService', () => {
       );
       mockDomainEvents.dispatch.mockResolvedValue(undefined);
 
-      const result = await service.registerSupportForAnonymous({
-        causeId,
-        data: {
-          name: 'Anon',
-          email: 'anon@email.com',
-        },
+      const result = await service.registerSupportForAnonymous(causeId, {
+        name: anonName,
+        email: anonEmail,
       });
 
       expect(result.isRight()).toBe(true);
+      expect(result.value).toEqual(
+        expect.objectContaining({
+          supporterId: expect.any(String),
+          supporterName: anonName,
+          createdAt: expect.any(Date),
+        }),
+      );
+      expect(mockCauseRepository.findById).toHaveBeenCalledWith(
+        UniqueEntityID.create(causeId),
+      );
+      expect(mockAnonymousSupporters.getOrCreate).toHaveBeenCalledWith(
+        anonName,
+        anonEmail,
+      );
+      expect(
+        mockCauseSupportRepository.existsForSupporterAndCause,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: expect.any(UniqueEntityID),
+        }),
+        UniqueEntityID.create(causeId),
+      );
       expect(mockDomainEvents.dispatch).toHaveBeenCalledWith(cause);
     });
 
     it('should return error when anonymous supporter creation fails', async () => {
       const cause = makeCauseAggr();
+      const anonName = 'Anon';
+      const anonEmail = 'anon@email.com';
 
       mockCauseRepository.findById.mockResolvedValue(right(cause));
-      mockAnonymousSupporters.getOrCreate.mockResolvedValue(left(new Error()));
+      mockAnonymousSupporters.getOrCreate.mockResolvedValue(
+        left(new AnonymousSupporterError()),
+      );
 
-      const result = await service.registerSupportForAnonymous({
-        causeId,
-        data: {
-          name: 'Anon',
-          email: 'anon@email.com',
-        },
+      const result = await service.registerSupportForAnonymous(causeId, {
+        name: anonName,
+        email: anonEmail,
       });
 
       expect(result.isLeft()).toBe(true);
+      expect(result.value).toBeInstanceOf(AnonymousSupporterError);
     });
 
     it('should return error when already supporting (anonymous)', async () => {
       const cause = makeCauseAggr();
+      const anonName = 'Anon';
+      const anonEmail = 'anon@email.com';
 
       mockCauseRepository.findById.mockResolvedValue(right(cause));
       mockAnonymousSupporters.getOrCreate.mockResolvedValue(
@@ -203,15 +275,28 @@ describe('CauseSupportsService', () => {
         true,
       );
 
-      const result = await service.registerSupportForAnonymous({
-        causeId,
-        data: {
-          name: 'Anon',
-          email: 'anon@email.com',
-        },
+      const result = await service.registerSupportForAnonymous(causeId, {
+        name: anonName,
+        email: anonEmail,
       });
 
       expect(result.isLeft()).toBe(true);
+      expect(result.value).toBeInstanceOf(AlreadySupportingError);
+      expect(mockCauseRepository.findById).toHaveBeenCalledWith(
+        UniqueEntityID.create(causeId),
+      );
+      expect(mockAnonymousSupporters.getOrCreate).toHaveBeenCalledWith(
+        anonName,
+        anonEmail,
+      );
+      expect(
+        mockCauseSupportRepository.existsForSupporterAndCause,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: expect.any(UniqueEntityID),
+        }),
+        UniqueEntityID.create(causeId),
+      );
     });
   });
 
@@ -243,6 +328,10 @@ describe('CauseSupportsService', () => {
       const result = await service.cancelSupport(causeId, userId);
 
       expect(result.isLeft()).toBe(true);
+      expect(result.value).toBeInstanceOf(CauseSupportNotFoundError);
+      expect(
+        mockCauseSupportRepository.removeByUserAndCause,
+      ).toHaveBeenCalledTimes(1);
     });
   });
 });

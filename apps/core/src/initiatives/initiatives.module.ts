@@ -13,6 +13,7 @@ import { CauseSupportsPort } from './application/ports/cause-supports.port';
 import { CausesPort } from './application/ports/causes.port';
 import { CollaborationHistoryPort } from './application/ports/collaboration-history.port';
 import { GetUserMembershipsPort } from './application/ports/get-user-memberships.port';
+import { GetUserPort } from './application/ports/get-user.port';
 import { ActionsService } from './application/services/actions.service';
 import { CauseSupportsService } from './application/services/cause-supports.service';
 import { CausesService } from './application/services/causes.service';
@@ -20,7 +21,6 @@ import { CollaborationHistoryService } from './application/services/collaboratio
 import { CollaborationHistoryRetrieverPort } from './domain/ports/collaboration-history-retriever.port';
 import { CommunityAuthorizationPort } from './domain/ports/community-authz.port';
 import { InitiativesStatisticsPort } from './domain/ports/initiatives-statistics.port';
-import { UserCheckerPort } from './domain/ports/user-checker.port';
 import { AnonymousSupporterRepository } from './domain/repositories/anonymous-supporter.repository';
 import { CauseAggrRepository } from './domain/repositories/cause-aggr.repository';
 import { CauseSupportRepository } from './domain/repositories/cause-support.repository';
@@ -28,7 +28,7 @@ import { CauseDataGetterAdapter } from './infrastructure/adapters/cause-data-get
 import { CollaborationHistoryRetrieverAdapter } from './infrastructure/adapters/collaboration-history-retriever.adapter';
 import { CommunityAuthorizationAdapter } from './infrastructure/adapters/community-authz.adapter';
 import { MyMembershipsAdapter } from './infrastructure/adapters/my-memberships.adapter';
-import { UserCheckerAdapter } from './infrastructure/adapters/user-checker.adapter';
+import { GetUserIntegrationAdapter } from './infrastructure/get-user-integration.adapter';
 import { causeSupportPubSubProvider } from './infrastructure/graphql/pubsub.provider';
 import { CollaborationGrpcController } from './infrastructure/grpc/collaboration-grpc.controller';
 import { InitiativesGrpcController } from './infrastructure/grpc/initiatives-grpc.controller';
@@ -93,10 +93,6 @@ import { CauseSupportsResolver } from './infrastructure/presentation/graphql/cau
       useClass: CauseDataGetterAdapter,
     },
     {
-      provide: UserCheckerPort,
-      useClass: UserCheckerAdapter,
-    },
-    {
       provide: CausesPort,
       useClass: CausesService,
     },
@@ -119,6 +115,10 @@ import { CauseSupportsResolver } from './infrastructure/presentation/graphql/cau
     {
       provide: GetUserMembershipsPort,
       useClass: MyMembershipsAdapter,
+    },
+    {
+      provide: GetUserPort,
+      useClass: GetUserIntegrationAdapter,
     },
 
     // Handlers

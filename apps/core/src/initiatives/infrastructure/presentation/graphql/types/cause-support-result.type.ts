@@ -3,7 +3,7 @@ import { Field, ObjectType } from '@nestjs/graphql';
 @ObjectType()
 export class CauseSupportResultType {
   @Field()
-  causeId: string;
+  userName: string;
 
   @Field()
   userId: string;

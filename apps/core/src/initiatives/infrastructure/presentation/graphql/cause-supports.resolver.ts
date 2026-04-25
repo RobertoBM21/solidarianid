@@ -50,9 +50,9 @@ export class CauseSupportsResolver {
     }
 
     const payload: CauseSupportResultType = {
-      causeId,
-      userId,
-      registeredAt: new Date().toISOString(),
+      userName: result.value.supporterName,
+      userId: result.value.supporterId,
+      registeredAt: result.value.createdAt.toISOString(),
     };
 
     await this.pubSub.publish(CAUSE_SUPPORT_REGISTERED, {

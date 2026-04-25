@@ -73,12 +73,9 @@ describe('CauseSupportsController', () => {
 
       expect(
         mockCauseSupportsPort.registerSupportForAnonymous,
-      ).toHaveBeenCalledWith({
-        causeId,
-        data: {
-          email: 'anon@test.com',
-          name: 'Anon',
-        },
+      ).toHaveBeenCalledWith(causeId, {
+        email: 'anon@test.com',
+        name: 'Anon',
       });
     });
 

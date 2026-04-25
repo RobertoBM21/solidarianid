@@ -7,7 +7,6 @@ import {
 } from '@app/shared/domain';
 import { Injectable } from '@nestjs/common';
 import { UserNotFoundError } from '../../../identity/domain/repositories/user.repository';
-import { UserCheckerPort } from '../../domain/ports/user-checker.port';
 import { AnonymousSupporterRepository } from '../../domain/repositories/anonymous-supporter.repository';
 import { CauseAggrRepository } from '../../domain/repositories/cause-aggr.repository';
 import {
@@ -19,14 +18,15 @@ import {
   Supporter,
   UserSupporter,
 } from '../../domain/value-objects/supporter.vo';
-import { RegisterAnonymousSupportRequestDto } from '../dtos/register-anonymous-support-request.dto';
-import { RegisterUserSupportDto } from '../dtos/register-user-support.dto';
+import { RegisterAnonymousSupportDto } from '../dtos/register-anonymous-support.dto';
 import {
   AlreadySupportingError,
   CauseSupportsPort,
   RegisterAnonymousSupportError,
+  RegisterSupportOutDto,
   RegisterUserSupportError,
 } from '../ports/cause-supports.port';
+import { GetUserPort } from '../ports/get-user.port';
 
 @Injectable()
 export class CauseSupportsService extends CauseSupportsPort {
@@ -35,45 +35,49 @@ export class CauseSupportsService extends CauseSupportsPort {
     private readonly causeSupportRepository: CauseSupportRepository,
     private readonly anonymousSupporters: AnonymousSupporterRepository,
     private readonly domainEvents: DomainEventsPort,
-    private readonly userChecker: UserCheckerPort,
+    private readonly getUserPort: GetUserPort,
   ) {
     super();
   }
 
-  async registerSupportForUser(
-    options: RegisterUserSupportDto,
-  ): Promise<Either<RegisterUserSupportError, void>> {
-    const userExists = await this.userChecker.userExists(
-      UniqueEntityID.create(options.userId),
-    );
-    if (!userExists) {
+  async registerSupportForUser(options: {
+    causeId: string;
+    userId: string;
+  }): Promise<Either<RegisterUserSupportError, RegisterSupportOutDto>> {
+    const user = await this.getUserPort.getUser(options.userId);
+    if (!user) {
       return left(new UserNotFoundError(options.userId));
     }
     const supporter = UserSupporter.create(
       UniqueEntityID.create(options.userId),
     );
-    return this.registerSupport(options.causeId, supporter);
+    return this.registerSupport(options.causeId, supporter, user.name);
   }
 
   async registerSupportForAnonymous(
-    options: RegisterAnonymousSupportRequestDto,
-  ): Promise<Either<RegisterAnonymousSupportError, void>> {
+    causeId: string,
+    data: RegisterAnonymousSupportDto,
+  ): Promise<Either<RegisterAnonymousSupportError, RegisterSupportOutDto>> {
     const anonIdResult = await this.anonymousSupporters.getOrCreate(
-      options.data.name,
-      options.data.email,
+      data.name,
+      data.email,
     );
     if (anonIdResult.isLeft()) {
       return left(anonIdResult.value);
     }
     const supporter = AnonymousSupporter.create(anonIdResult.value);
-    return this.registerSupport(options.causeId, supporter);
+    return this.registerSupport(causeId, supporter, data.name);
   }
 
   private async registerSupport(
     causeId: string,
     supporter: Supporter,
+    supporterName: string,
   ): Promise<
-    Either<RegisterUserSupportError | RegisterAnonymousSupportError, void>
+    Either<
+      RegisterUserSupportError | RegisterAnonymousSupportError,
+      RegisterSupportOutDto
+    >
   > {
     const causeResult = await this.causeAggrRepository.findById(
       UniqueEntityID.create(causeId),
@@ -97,7 +101,11 @@ export class CauseSupportsService extends CauseSupportsPort {
     }
 
     await this.domainEvents.dispatch(causeAggr);
-    return right(undefined);
+    return right({
+      supporterId: supporter.id.toString(),
+      supporterName,
+      createdAt: new Date(),
+    });
   }
 
   async cancelSupport(

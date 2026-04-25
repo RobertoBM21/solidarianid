@@ -59,10 +59,10 @@ export class CauseSupportsController {
     @Param('causeId', ParseUUIDPipe) causeId: string,
     @Body() dto: RegisterAnonymousSupportDto,
   ): Promise<void> {
-    const result = await this.causeSupportsPort.registerSupportForAnonymous({
+    const result = await this.causeSupportsPort.registerSupportForAnonymous(
       causeId,
-      data: dto,
-    });
+      dto,
+    );
 
     if (result.isLeft()) {
       const err = result.value;

@@ -1,3 +1,4 @@
+import { ProfileOutDto } from '@app/shared/application/dtos/profile-out.dto';
 import {
   Either,
   left,
@@ -17,11 +18,10 @@ import {
   UserRepository,
 } from '../domain/repositories/user.repository';
 import { CreateUserDto } from './dtos/create-user.dto';
-import { ProfileOutDto } from './dtos/profile-out.dto';
 import { UpdateProfileDto } from './dtos/update-profile.dto';
-import { UserPort } from './ports/user.port';
 import { UserListDto } from './dtos/user-list.dto';
 import { GetMembershipsPort } from './ports/get-memberships.port';
+import { UserPort } from './ports/user.port';
 
 @Injectable()
 export class UserService implements UserPort {

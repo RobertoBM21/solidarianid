@@ -16,16 +16,16 @@ export abstract class Supporter extends ValueObject<UniqueEntityID> {
     return this.props;
   }
 
-  abstract isUser(): boolean;
-  abstract isAnonymous(): boolean;
+  abstract isUser(): this is UserSupporter;
+  abstract isAnonymous(): this is AnonymousSupporter;
 }
 
 export class UserSupporter extends Supporter {
-  isUser(): boolean {
+  isUser(): this is UserSupporter {
     return true;
   }
 
-  isAnonymous(): boolean {
+  isAnonymous(): this is AnonymousSupporter {
     return false;
   }
 
@@ -35,11 +35,11 @@ export class UserSupporter extends Supporter {
 }
 
 export class AnonymousSupporter extends Supporter {
-  isUser(): boolean {
+  isUser(): this is UserSupporter {
     return false;
   }
 
-  isAnonymous(): boolean {
+  isAnonymous(): this is AnonymousSupporter {
     return true;
   }
 

@@ -1,3 +1,4 @@
+import SupportCauseButton from 'apps/front/src/components/causes/SupportCauseButton';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import Badge from 'react-bootstrap/Badge';
@@ -11,6 +12,7 @@ import Row from 'react-bootstrap/Row';
 import CreateFundingActionForm from '../../../components/actions/CreateFundingActionForm';
 import CreateVolunteeringActionForm from '../../../components/actions/CreateVolunteeringActionForm';
 import CloseCauseButton from '../../../components/causes/CloseCauseButton';
+import SupportsList from '../../../components/causes/SupportsList';
 import { fetchServer } from '../../../lib/http/fetch-server';
 import { getCauseById } from '../../../services/causes.service';
 
@@ -26,6 +28,7 @@ export default async function CauseDetailPage({
     notFound();
   }
 
+  const isCauseSupported = Boolean(cause.supportedByUser);
   const canManageCause = Boolean(cause.isCommunityAdmin && !cause.closed);
 
   return (
@@ -40,6 +43,10 @@ export default async function CauseDetailPage({
           </div>
 
           <div className="d-flex flex-column flex-sm-row align-items-stretch gap-2">
+            <SupportCauseButton
+              causeId={cause.id}
+              isCauseSupported={isCauseSupported}
+            />
             {canManageCause ? (
               <CloseCauseButton
                 communityId={cause.communityId}
@@ -82,6 +89,12 @@ export default async function CauseDetailPage({
             </CardText>
           </CardBody>
         </Card>
+
+        <Row className="g-4 mb-4">
+          <Col>
+            <SupportsList causeId={cause.id} />
+          </Col>
+        </Row>
 
         <h2 className="mb-3 text-primary">Acciones asociadas</h2>
         {cause.actions.length === 0 ? (

@@ -32,6 +32,7 @@ Configuración específica de la pasarela de API:
 | Variable               | Tipo     | Descripción                                                  | Valor por defecto                            |
 | ---------------------- | -------- | ------------------------------------------------------------ | -------------------------------------------- |
 | `CORE_URL`             | `string` | URL interna del microservicio core                           | `http://localhost:3000`                      |
+| `CORE_GRPC_URL`        | `string` | URL en la que el microservicio escucha peticiones gRPC core                           | `http://localhost:5002`                      |
 | `CORS_ORIGIN`          | `string` | Origen permitido para CORS                                   | `*`                                          |
 | `JWT_SECRET_FILE`      | `string` | Ruta del fichero que contiene el secreto para firmar JWT     | -                                            |
 | `JWT_EXPIRATION`       | `string` | Tiempo de expiración del JWT (formato `ms`, e.g. `7d`, `1h`) | `7d`                                         |
@@ -58,6 +59,16 @@ Configuración específica de la aplicación de administración:
 | Variable              | Tipo     | Descripción                                                         | Valor por defecto |
 | --------------------- | -------- | ------------------------------------------------------------------- | ----------------- |
 | `SESSION_SECRET_FILE` | `string` | Ruta del fichero que contiene el valor secreto para firmar sesiones | -                 |
+
+### Aplicación: frontend
+
+Configuración específica de la aplicación de frontend:
+
+| Variable              | Tipo     | Descripción                                                         | Valor por defecto |
+| --------------------- | -------- | ------------------------------------------------------------------- | ----------------- |
+| `NEXTAUTH_URL`            | `string` | URL del microservicio frontend                 | -                           |
+| `NEXTAUTH_SECRET`         | `string` | Secreto de NextAuth                            | -                           |
+| `NEXT_PUBLIC_GATEWAY_URL` | `string` | URL del microservicio gateway                  | http://localhost:3010       |
 
 ## Desarrollo
 

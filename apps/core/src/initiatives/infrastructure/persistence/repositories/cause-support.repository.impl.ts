@@ -82,10 +82,8 @@ export class CauseSupportRepositoryImpl extends CauseSupportRepository {
     causeId: UniqueEntityID,
   ): Promise<Either<CauseSupportNotFoundError, void>> {
     const result = await this.em.delete(CauseSupportDbEntity, {
-      where: {
-        causeId: causeId.toString(),
-        userId: userId.toString(),
-      },
+      causeId: causeId.toString(),
+      userId: userId.toString(),
     });
     if (!result.affected) {
       return left(new CauseSupportNotFoundError());
