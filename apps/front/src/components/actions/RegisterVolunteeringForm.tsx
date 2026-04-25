@@ -11,6 +11,7 @@ import FormControl from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import { useFetchClient } from '../../lib/http/use-fetch-client';
+import { queueVolunteeringRegistration } from '../../lib/pwa/collaboration-store';
 import { registerVolunteerParticipation } from '../../services/volunteering.service';
 
 interface RegisterVolunteeringFormProps {
@@ -121,17 +122,25 @@ export default function RegisterVolunteeringForm({
       return;
     }
 
+    const payload = {
+      volunteeringActionId,
+      start: selectedStart.toISOString(),
+      end: selectedEnd.toISOString(),
+    };
+
     setIsSubmitting(true);
 
     try {
-      await registerVolunteerParticipation(
-        {
-          volunteeringActionId,
-          start: selectedStart.toISOString(),
-          end: selectedEnd.toISOString(),
-        },
-        fetchClient,
-      );
+      if (!navigator.onLine) {
+        await queueVolunteeringRegistration(payload);
+        setHasRegistered(true);
+        setMessage(
+          'Participación guardada para sincronizarse cuando vuelva la conexión.',
+        );
+        return;
+      }
+
+      await registerVolunteerParticipation(payload, fetchClient);
 
       setHasRegistered(true);
       setMessage('Participación registrada correctamente.');

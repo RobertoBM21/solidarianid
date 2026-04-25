@@ -10,5 +10,8 @@
   },
   "jest.runMode": "on-demand",
   "js/ts.preferences.quoteStyle": "single",
-  "js/ts.tsdk.path": "node_modules/typescript/lib"
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
+  "javascript.validate.excludedFiles": [
+    "apps/front/public/workbox/**/*.js"
+  ]
 }

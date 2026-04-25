@@ -1,4 +1,4 @@
-﻿import { fetchServer } from '../lib/http/fetch-server';
+import { fetchServer } from '../lib/http/fetch-server';
 import type {
   HistoryItem,
   ProfileMembershipItem,
@@ -7,6 +7,7 @@ import type {
   ProfileProposal,
   ProfileView,
 } from '../models/profile.models';
+import { getMyCollaborations } from './collaboration-history.service';
 import { getCommunities } from './communities.service';
 import { getMyMembershipRequests } from './memberships.service';
 
@@ -25,10 +26,6 @@ interface ProposalResponse {
   description: string;
   status: 'pending' | 'accepted' | 'rejected';
   createdAt: string;
-}
-
-interface CollaborationsResponse {
-  items: HistoryItem[];
 }
 
 interface ProfileMembershipEntry {
@@ -121,11 +118,9 @@ export async function getProfileView(sessionUser: {
 }
 
 export async function getProfileHistory(): Promise<HistoryItem[]> {
-  const res = await fetchServer('/my-collaborations');
-
-  if (!res.ok) return [];
-
-  const data: unknown = await res.json();
-  const body = data as CollaborationsResponse;
-  return body.items;
+  try {
+    return await getMyCollaborations(fetchServer);
+  } catch {
+    return [];
+  }
 }

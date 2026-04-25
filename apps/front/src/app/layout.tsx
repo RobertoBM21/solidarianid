@@ -5,6 +5,7 @@ import Footer from '../components/layout/Footer';
 import Navbar from '../components/layout/Navbar';
 import SessionProvider from '../components/providers/SessionProvider';
 import RegisterServiceWorker from '../components/pwa/RegisterServiceWorker';
+import SyncPendingActions from '../components/pwa/SyncPendingActions';
 import './global.css';
 
 export const metadata: Metadata = {
@@ -20,6 +21,9 @@ export default function RootLayout({
   return (
     <html lang="es">
       <head>
+        <meta name="theme-color" content="#0d6efd" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <link rel="manifest" href="/manifest.json" />
         <link
           rel="icon"
@@ -29,8 +33,8 @@ export default function RootLayout({
         />
         <link
           rel="apple-touch-icon"
-          sizes="128x128"
-          href="/icons/icon-128x128.png"
+          sizes="192x192"
+          href="/icons/icon-192x192.png"
         />
         <link
           rel="icon"
@@ -43,6 +47,7 @@ export default function RootLayout({
         <SessionProvider>
           <AppApolloProvider>
             <RegisterServiceWorker />
+            <SyncPendingActions />
             <Navbar />
             {children}
             <Footer />

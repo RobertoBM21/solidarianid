@@ -17,6 +17,8 @@ export default [
       'coverage/**',
       'reports/**',
       '**/admin/public/*.js',
+      'apps/front/public/sw.js',
+      'apps/front/public/workbox-*.js',
       '.next',
       '**/.next',
       '**/*.d.ts',
@@ -42,6 +44,27 @@ export default [
   {
     rules: {
       '@typescript-eslint/no-floating-promises': 'warn',
+    },
+  },
+  {
+    files: ['**/next.config.js', '**/cache.js'],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+    },
+  },
+  {
+    files: ['apps/front/worker/**/*.js'],
+    rules: {
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/prefer-nullish-coalescing': 'off',
     },
   },
   {
