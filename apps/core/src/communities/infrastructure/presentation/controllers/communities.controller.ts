@@ -1,9 +1,9 @@
+import { AuthGuard, AuthId } from '@app/shared/infrastructure/auth';
 import {
   BadRequestException,
   Body,
   Controller,
   Get,
-  Logger,
   NotFoundException,
   Param,
   ParseUUIDPipe,
@@ -19,8 +19,6 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { AuthId } from '../../../../identity/infrastructure/decorators/auth-id.decorator';
-import { AuthGuard } from '../../../../identity/infrastructure/guards/auth.guard';
 import { CommunityOutDto } from '../../../application/dtos/community-out.dto';
 import { CommunitiesPort } from '../../../application/ports/communities.port';
 import { CommunityListItemDto } from '../dtos/community-list-item.dto';
@@ -30,8 +28,6 @@ import { ProposeCommunityDto } from '../dtos/propose-community.dto';
 @Controller('communities')
 @ApiTags('communities')
 export class CommunitiesController {
-  private readonly logger = new Logger(CommunitiesController.name);
-
   constructor(private readonly communitiesPort: CommunitiesPort) {}
 
   @Get()

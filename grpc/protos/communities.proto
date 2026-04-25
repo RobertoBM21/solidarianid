@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package communities;
+
+service CommunitiesService {
+  rpc GetMemberships(GetMembershipsRequest) returns (GetMembershipsResponse);
+}
+
+message GetMembershipsRequest {
+  repeated string user_ids = 1;
+}
+
+message GetMembershipsResponse {
+  repeated UserMembership memberships = 1;
+}
+
+message UserMembership {
+  string user_id = 1;
+  repeated string communities = 2;
+}

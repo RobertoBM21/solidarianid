@@ -1,7 +1,6 @@
+import { AuthGuard, AuthId } from '@app/shared/infrastructure/auth';
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { AuthId } from '../../../../identity/infrastructure/decorators/auth-id.decorator';
-import { AuthGuard } from '../../../../identity/infrastructure/guards/auth.guard';
 import { UserProposalOutDto } from '../../../application/dtos/user-proposal-out.dto';
 import { UserProposalsPort } from '../../../application/ports/user-proposals.port';
 

@@ -7,7 +7,6 @@ import {
   type Relation,
   Unique,
 } from 'typeorm';
-import { UserDbEntity } from '../../../../identity/infrastructure/persistence/entities/user.db-entity';
 import { CommunityDbEntity } from './community.db-entity';
 
 @Entity('membership_requests')
@@ -25,10 +24,6 @@ export class MembershipRequestDbEntity {
 
   @Column({ name: 'user_id', type: 'uuid' })
   userId: string;
-
-  @ManyToOne(() => UserDbEntity, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'user_id' })
-  user: Relation<UserDbEntity>;
 
   @Column({ type: 'boolean', nullable: true })
   accepted: boolean | null;

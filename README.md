@@ -8,6 +8,7 @@ El proyecto se divide en múltiples componentes:
 
 - `apps/core`: aplicación NestJS principal (puerto `3000`).
 - `apps/admin`: aplicación NestJS de administración (puerto `3001`).
+- `apps/identity`: aplicación NestJS de identidad (puerto `3002`).
 - `apps/gateway`: pasarela de API NestJS (puerto `3010`).
 - `apps/front`: aplicación NextJS principal (front-end, puerto `3080`).
 - `libs/shared`: librería compartida (módulos comunes, utilidades...).
@@ -16,14 +17,16 @@ El proyecto se divide en múltiples componentes:
 
 Es posible configurar cada componente back-end mediante variables de entorno. Se proporciona un archivo `.env.example` con la configuración mínima necesaria.
 
-| Variable           | Tipo     | Descripción                                             | Valor por defecto |
-| ------------------ | -------- | ------------------------------------------------------- | ----------------- |
-| `DB_HOST`          | `string` | Host de Postgres                                        | -                 |
-| `DB_PORT`          | `number` | Puerto de Postgres                                      | `5432`            |
-| `DB_USER`          | `string` | Usuario de Postgres                                     | -                 |
-| `DB_PASSWORD_FILE` | `string` | Ruta del fichero que contiene la contraseña de Postgres | -                 |
-| `DB_NAME`          | `string` | Nombre de Postgres                                      | -                 |
-| `NATS_URL`         | `string` | URL de NATS                                             | -                 |
+| Variable            | Tipo     | Descripción                                             | Valor por defecto |
+| ------------------- | -------- | ------------------------------------------------------- | ----------------- |
+| `DB_HOST`           | `string` | Host de Postgres                                        | -                 |
+| `DB_PORT`           | `number` | Puerto de Postgres                                      | `5432`            |
+| `DB_USER`           | `string` | Usuario de Postgres                                     | -                 |
+| `DB_PASSWORD_FILE`  | `string` | Ruta del fichero que contiene la contraseña de Postgres | -                 |
+| `DB_NAME`           | `string` | Nombre de Postgres                                      | -                 |
+| `NATS_URL`          | `string` | URL de NATS                                             | -                 |
+| `CORE_GRPC_URL`     | `string` | URL en la que `core` escucha peticiones gRPC            | `localhost:5002`  |
+| `IDENTITY_GRPC_URL` | `string` | URL en la que `identity` escucha peticiones gRPC        | `localhost:5003`  |
 
 ### Aplicación: gateway
 
@@ -32,7 +35,6 @@ Configuración específica de la pasarela de API:
 | Variable               | Tipo     | Descripción                                                  | Valor por defecto                            |
 | ---------------------- | -------- | ------------------------------------------------------------ | -------------------------------------------- |
 | `CORE_URL`             | `string` | URL interna del microservicio core                           | `http://localhost:3000`                      |
-| `CORE_GRPC_URL`        | `string` | URL en la que el microservicio escucha peticiones gRPC core                           | `http://localhost:5002`                      |
 | `CORS_ORIGIN`          | `string` | Origen permitido para CORS                                   | `*`                                          |
 | `JWT_SECRET_FILE`      | `string` | Ruta del fichero que contiene el secreto para firmar JWT     | -                                            |
 | `JWT_EXPIRATION`       | `string` | Tiempo de expiración del JWT (formato `ms`, e.g. `7d`, `1h`) | `7d`                                         |
@@ -64,11 +66,11 @@ Configuración específica de la aplicación de administración:
 
 Configuración específica de la aplicación de frontend:
 
-| Variable              | Tipo     | Descripción                                                         | Valor por defecto |
-| --------------------- | -------- | ------------------------------------------------------------------- | ----------------- |
-| `NEXTAUTH_URL`            | `string` | URL del microservicio frontend                 | -                           |
-| `NEXTAUTH_SECRET`         | `string` | Secreto de NextAuth                            | -                           |
-| `NEXT_PUBLIC_GATEWAY_URL` | `string` | URL del microservicio gateway                  | http://localhost:3010       |
+| Variable                  | Tipo     | Descripción                    | Valor por defecto     |
+| ------------------------- | -------- | ------------------------------ | --------------------- |
+| `NEXTAUTH_URL`            | `string` | URL del microservicio frontend | -                     |
+| `NEXTAUTH_SECRET`         | `string` | Secreto de NextAuth            | -                     |
+| `NEXT_PUBLIC_GATEWAY_URL` | `string` | URL del microservicio gateway  | http://localhost:3010 |
 
 ## Desarrollo
 
@@ -80,6 +82,7 @@ cp .env.example .env
 
 # Crear secretos con contenido aleatorio
 openssl rand -base64 32 | tr -d '\n' > secrets/core_password.txt
+openssl rand -base64 32 | tr -d '\n' > secrets/identity_password.txt
 openssl rand -base64 32 | tr -d '\n' > secrets/admin_password.txt
 openssl rand -base64 32 | tr -d '\n' > secrets/admin_session_secret.txt
 openssl rand -base64 32 | tr -d '\n' > secrets/jwt_secret.txt
@@ -96,6 +99,7 @@ npm run proto:gen
 # Lanzar las aplicaciones backend
 npm run start:dev:core
 # ó npm run start:dev:admin
+# ó npm run start:dev:identity
 # ó npm run start:dev:gateway
 ```
 

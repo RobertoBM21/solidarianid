@@ -1,3 +1,4 @@
+import { AuthGuard, AuthId } from '@app/shared/infrastructure/auth';
 import {
   BadRequestException,
   Body,
@@ -16,8 +17,6 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { AuthId } from '../../../../identity/infrastructure/decorators/auth-id.decorator';
-import { AuthGuard } from '../../../../identity/infrastructure/guards/auth.guard';
 import { RegisterAnonymousSupportDto } from '../../../application/dtos/register-anonymous-support.dto';
 import { CauseSupportsPort } from '../../../application/ports/cause-supports.port';
 import { CauseNotFoundError } from '../../../domain/repositories/cause-aggr.repository';

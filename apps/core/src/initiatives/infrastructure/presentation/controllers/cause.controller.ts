@@ -1,4 +1,5 @@
 import { DomainError } from '@app/shared/domain';
+import { AuthId } from '@app/shared/infrastructure/auth';
 import {
   BadRequestException,
   Controller,
@@ -8,7 +9,6 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { AuthId } from '../../../../identity/infrastructure/decorators/auth-id.decorator';
 import { CausesPort } from '../../../application/ports/causes.port';
 import { CauseNotFoundError } from '../../../domain/repositories/cause-aggr.repository';
 import { CauseApiDto } from '../dtos/cause.api-dto';

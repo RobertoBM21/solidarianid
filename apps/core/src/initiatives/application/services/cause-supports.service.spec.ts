@@ -1,7 +1,6 @@
 import { left, right, UniqueEntityID } from '@app/shared/domain';
 import { DomainEventsPort } from '@app/shared/domain/ports/domain-events.port';
 import { Test, TestingModule } from '@nestjs/testing';
-import { UserNotFoundError } from '../../../identity/domain/repositories/user.repository';
 import { CauseAggr } from '../../domain/aggregates/cause.aggregate';
 import {
   AnonymousSupporterError,
@@ -16,7 +15,10 @@ import {
   CauseSupportRepository,
 } from '../../domain/repositories/cause-support.repository';
 import { UserSupporter } from '../../domain/value-objects/supporter.vo';
-import { AlreadySupportingError } from '../ports/cause-supports.port';
+import {
+  AlreadySupportingError,
+  SupporterNotFoundError,
+} from '../ports/cause-supports.port';
 import { GetUserPort } from '../ports/get-user.port';
 import { CauseSupportsService } from './cause-supports.service';
 
@@ -167,7 +169,7 @@ describe('CauseSupportsService', () => {
       const result = await service.registerSupportForUser({ causeId, userId });
 
       expect(result.isLeft()).toBe(true);
-      expect(result.value).toBeInstanceOf(UserNotFoundError);
+      expect(result.value).toBeInstanceOf(SupporterNotFoundError);
       expect(mockGetUserPort.getUser).toHaveBeenCalledWith(userId);
       expect(mockCauseRepository.findById).not.toHaveBeenCalled();
     });

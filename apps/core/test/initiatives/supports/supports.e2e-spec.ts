@@ -1,30 +1,44 @@
+import { GrpcPackages } from '@app/shared/infrastructure/grpc/grpc-packages';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { Test, TestingModule } from '@nestjs/testing';
+import { of } from 'rxjs';
 import request from 'supertest';
 import { DataSource } from 'typeorm';
 import { CoreAppModule } from '../../../src/app.module';
 import { CauseSupportDbEntity } from '../../../src/initiatives/infrastructure/persistence/entities/cause-support.db-entity';
 import { CommunityTestFactory } from '../../communities/community.test-factory';
 import { clearDatabase, waitFor } from '../../db-test-utils';
-import { UserTestFactory } from '../../identity/user.test-factory';
 import { CauseTestFactory } from '../causes/cause.test-factory';
 
 describe('Supports integration tests', () => {
   let app: NestExpressApplication;
-  let userTestFactory: UserTestFactory;
   let causeTestFactory: CauseTestFactory;
   let communityTestFactory: CommunityTestFactory;
   let dataSource: DataSource;
-  let idUser: string;
-  let idCause: string;
+  let userId: string;
+  let causeId: string;
 
   beforeAll(async () => {
+    const mockIdentityService = {
+      getUser: jest
+        .fn()
+        .mockImplementation(({ userId }: { userId: string }) =>
+          of({ id: userId, name: 'Test User', email: `${userId}@test.com` }),
+        ),
+      listUsers: jest.fn().mockReturnValue(of({ users: [], totalPages: 0 })),
+    };
+    const mockClientGrpc = {
+      getService: jest.fn().mockReturnValue(mockIdentityService),
+    };
+
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [CoreAppModule],
-    }).compile();
+    })
+      .overrideProvider(GrpcPackages.Identity.Client)
+      .useValue(mockClientGrpc)
+      .compile();
 
     dataSource = moduleFixture.get(DataSource);
-    userTestFactory = new UserTestFactory(dataSource);
     causeTestFactory = new CauseTestFactory(dataSource);
     communityTestFactory = new CommunityTestFactory(dataSource);
 
@@ -34,11 +48,7 @@ describe('Supports integration tests', () => {
 
   beforeEach(async () => {
     await clearDatabase(dataSource);
-    const user = await userTestFactory.create({
-      name: 'Test User',
-      email: 'user@example.com',
-    });
-    idUser = user.id;
+    userId = crypto.randomUUID();
 
     const community = await communityTestFactory.create({
       name: 'Test Community',
@@ -49,7 +59,7 @@ describe('Supports integration tests', () => {
       description: 'A cause for testing',
       communityId: community.id,
     });
-    idCause = cause.id;
+    causeId = cause.id;
   });
 
   afterAll(async () => {
@@ -69,8 +79,8 @@ describe('Supports integration tests', () => {
   const waitForUserSupportPersisted = async () => {
     await waitFor(async () => {
       const res = await request(app.getHttpServer())
-        .get(`/causes/${idCause}`)
-        .set('x-user-id', idUser);
+        .get(`/causes/${causeId}`)
+        .set('x-user-id', userId);
       return res.body.supportedByUser === true;
     });
   };
@@ -79,15 +89,15 @@ describe('Supports integration tests', () => {
     await waitFor(async () => {
       const count = await dataSource
         .getRepository(CauseSupportDbEntity)
-        .countBy({ causeId: idCause });
+        .countBy({ causeId: causeId });
       return count > 0;
     });
   };
 
   it('should create a user support successfully', async () => {
     await request(app.getHttpServer())
-      .post(`/causes/${idCause}/supports`)
-      .set('x-user-id', idUser)
+      .post(`/causes/${causeId}/supports`)
+      .set('x-user-id', userId)
       .send({})
       .expect(201);
     await waitForUserSupportPersisted();
@@ -96,7 +106,7 @@ describe('Supports integration tests', () => {
   it('should create an anonymous support successfully', async () => {
     const supportData = buildAnonymousSupportData({});
     await request(app.getHttpServer())
-      .post(`/causes/${idCause}/supports/create-anonymous`)
+      .post(`/causes/${causeId}/supports/create-anonymous`)
       .send(supportData)
       .expect(201);
     await waitForAnonymousSupportPersisted();
@@ -104,7 +114,7 @@ describe('Supports integration tests', () => {
 
   it('should fail to create a user support without authentication', async () => {
     await request(app.getHttpServer())
-      .post(`/causes/${idCause}/supports`)
+      .post(`/causes/${causeId}/supports`)
       .send({})
       .expect(401);
   });
@@ -113,7 +123,7 @@ describe('Supports integration tests', () => {
     const nonExistingCauseId = '00000000-0000-0000-0000-000000000000';
     await request(app.getHttpServer())
       .post(`/causes/${nonExistingCauseId}/supports`)
-      .set('x-user-id', idUser)
+      .set('x-user-id', userId)
       .send({})
       .expect(404);
   });

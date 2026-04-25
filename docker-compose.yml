@@ -34,15 +34,35 @@ services:
       - DB_NAME=core_db
       - REDIS_URL=redis://redis:6379
       - NATS_URL=nats://nats:4222
-      - STRIPE_SK=${STRIPE_SK}
-      - STRIPE_PAYMENT_SUCCESS_URL=${STRIPE_PAYMENT_SUCCESS_URL}
-      - KURRENTDB_URL=kurrentdb://kurrentdb:2113?tls=false
     secrets:
       - db_pass_core
     depends_on:
       db_core:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+
+  identity:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - APP=identity
+    environment:
+      - DB_HOST=db_identity
+      - DB_USER=identity_user
+      - DB_PASSWORD_FILE=/run/secrets/db_pass_identity
+      - DB_NAME=identity_db
+      - NATS_URL=nats://nats:4222
+      - STRIPE_SK=${STRIPE_SK}
+      - STRIPE_PAYMENT_SUCCESS_URL=${STRIPE_PAYMENT_SUCCESS_URL}
+      - KURRENTDB_URL=kurrentdb://kurrentdb:2113?tls=false
+    secrets:
+      - db_pass_identity
+    depends_on:
+      db_identity:
         condition: service_healthy
       nats:
         condition: service_healthy
@@ -104,6 +124,22 @@ services:
       timeout: 5s
       retries: 5
 
+  db_identity:
+    image: postgres:18.1-alpine
+    environment:
+      POSTGRES_USER: identity_user
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_pass_identity
+      POSTGRES_DB: identity_db
+    secrets:
+      - db_pass_identity
+    volumes:
+      - identity_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U identity_user -d identity_db']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   db_admin:
     image: postgres:18.1-alpine
     environment:
@@ -154,6 +190,7 @@ services:
 
 volumes:
   core_db_data:
+  identity_db_data:
   admin_db_data:
   nats_data:
   kurrentdb_data:
@@ -163,6 +200,8 @@ secrets:
     file: ./secrets/jwt_secret.txt
   db_pass_core:
     file: ./secrets/core_password.txt
+  db_pass_identity:
+    file: ./secrets/identity_password.txt
   db_pass_admin:
     file: ./secrets/admin_password.txt
   admin_session_secret:

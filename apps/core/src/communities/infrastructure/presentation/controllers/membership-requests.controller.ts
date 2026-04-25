@@ -1,3 +1,4 @@
+import { AuthGuard, AuthId } from '@app/shared/infrastructure/auth';
 import {
   BadRequestException,
   Body,
@@ -16,8 +17,6 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { AuthId } from '../../../../identity/infrastructure/decorators/auth-id.decorator';
-import { AuthGuard } from '../../../../identity/infrastructure/guards/auth.guard';
 import { MembershipRequestsPort } from '../../../application/ports/membership-requests.port';
 import { UserIsNotAdminError } from '../../../domain/community.aggregate';
 import { CommunityNotFoundError } from '../../../domain/repositories/community.repository';

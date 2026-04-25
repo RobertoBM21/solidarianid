@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
-import { AuthRequest } from '../auth-request';
+import { AuthRequest } from './auth-request';
 
 export interface GqlAuthIdOptions {
   optional?: boolean;

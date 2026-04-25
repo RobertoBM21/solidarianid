@@ -3,7 +3,7 @@ import {
   ExecutionContext,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { AuthRequest } from '../auth-request';
+import { AuthRequest } from './auth-request';
 
 export interface AuthIdOptions {
   optional?: boolean;

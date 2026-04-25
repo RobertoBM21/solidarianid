@@ -1,4 +1,5 @@
 import { UniqueEntityID } from '@app/shared/domain';
+import { AuthGuard, AuthId } from '@app/shared/infrastructure/auth';
 import {
   BadRequestException,
   Body,
@@ -17,8 +18,6 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { AuthId } from '../../../../identity/infrastructure/decorators/auth-id.decorator';
-import { AuthGuard } from '../../../../identity/infrastructure/guards/auth.guard';
 import { CauseDto } from '../../../application/dtos/community-out.dto';
 import { CreateCauseDto } from '../../../application/dtos/create-cause.dto';
 import { CommunitiesPort } from '../../../application/ports/communities.port';

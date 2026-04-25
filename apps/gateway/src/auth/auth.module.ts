@@ -1,20 +1,20 @@
+import { buildGrpcClientConfig } from '@app/shared/infrastructure/config/grpc.config';
+import { GrpcPackages } from '@app/shared/infrastructure/grpc/grpc-packages';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
+import { ClientsModule } from '@nestjs/microservices';
 import { PassportModule } from '@nestjs/passport';
 import type { StringValue } from 'ms';
 import { CoreAuthClientPort } from './application/ports/core-auth-client.port';
 import { GatewayAuthPort } from './application/ports/gateway-auth.port';
 import { GatewayAuthService } from './application/services/gateway-auth.service';
+import { CoreAuthGrpcAdapter } from './infrastructure/adapters/core-auth-grpc.adapter';
 import authConfig from './infrastructure/config/auth.config';
 import { GatewayAuthController } from './infrastructure/presentation/controllers/auth.controller';
 import { GoogleStrategy } from './infrastructure/strategies/google.strategy';
 import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
 import { LocalStrategy } from './infrastructure/strategies/local.strategy';
-import { ClientsModule } from '@nestjs/microservices';
-import { buildGrpcConfig } from '@app/shared/infrastructure/grpc/grpc-config.builder';
-import { GrpcPackages } from '@app/shared/infrastructure/grpc/grpc-packages';
-import { CoreAuthGrpcAdapter } from './infrastructure/adapters/core-auth-grpc.adapter';
 
 @Module({
   imports: [
@@ -30,7 +30,7 @@ import { CoreAuthGrpcAdapter } from './infrastructure/adapters/core-auth-grpc.ad
         },
       }),
     }),
-    ClientsModule.register([buildGrpcConfig(GrpcPackages.Auth)]),
+    ClientsModule.register([buildGrpcClientConfig(GrpcPackages.Auth)]),
   ],
   controllers: [GatewayAuthController],
   providers: [

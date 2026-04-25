@@ -1,14 +1,14 @@
 import { CommonInfrastructureModule } from '@app/shared/infrastructure';
+import { AuthMiddleware } from '@app/shared/infrastructure/auth';
 import KeyvRedis from '@keyv/redis';
 import { ApolloDriver, type ApolloDriverConfig } from '@nestjs/apollo';
 import { CacheModule } from '@nestjs/cache-manager';
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, type ConfigType } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { join } from 'path';
 import { CommunitiesModule } from './communities/communities.module';
 import { FundingModule } from './funding/funding.module';
-import { IdentityModule } from './identity/identity.module';
 import cacheConfig from './infrastructure/config/cache.config';
 import { InitiativesModule } from './initiatives/initiatives.module';
 import { VolunteeringModule } from './volunteering/volunteering.module';
@@ -35,11 +35,14 @@ import { VolunteeringModule } from './volunteering/volunteering.module';
     CommonInfrastructureModule,
 
     CommunitiesModule,
-    IdentityModule,
     InitiativesModule,
     FundingModule,
     VolunteeringModule,
   ],
   controllers: [],
 })
-export class CoreAppModule {}
+export class CoreAppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(AuthMiddleware).forRoutes('*');
+  }
+}

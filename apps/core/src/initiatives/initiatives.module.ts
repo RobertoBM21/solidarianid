@@ -1,8 +1,10 @@
+import { buildGrpcClientConfig } from '@app/shared/infrastructure/config/grpc.config';
+import { GrpcPackages } from '@app/shared/infrastructure/grpc/grpc-packages';
 import { Module } from '@nestjs/common';
+import { ClientsModule } from '@nestjs/microservices';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CommunitiesModule } from '../communities/communities.module';
 import { FundingModule } from '../funding/funding.module';
-import { IdentityModule } from '../identity/identity.module';
 import { VolunteeringModule } from '../volunteering/volunteering.module';
 import { CauseClosedHandler } from './application/handlers/cause-closed.handler';
 import { CauseCreatedHandler } from './application/handlers/cause-created.handler';
@@ -59,8 +61,8 @@ import { CauseSupportsResolver } from './infrastructure/presentation/graphql/cau
       VolunteeringActionDbEntity,
       AnonymousUserDbEntity,
     ]),
+    ClientsModule.register([buildGrpcClientConfig(GrpcPackages.Identity)]),
     CommunitiesModule,
-    IdentityModule,
     FundingModule,
     VolunteeringModule,
   ],

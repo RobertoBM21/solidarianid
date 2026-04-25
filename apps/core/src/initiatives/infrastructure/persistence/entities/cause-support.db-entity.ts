@@ -6,7 +6,6 @@ import {
   PrimaryColumn,
   type Relation,
 } from 'typeorm';
-import { UserDbEntity } from '../../../../identity/infrastructure/persistence/entities/user.db-entity';
 import { AnonymousUserDbEntity } from './anonymous-user.db-entity';
 import { CauseAggrDbEntity } from './cause-aggr.db-entity';
 
@@ -26,13 +25,6 @@ export class CauseSupportDbEntity {
 
   @Column({ name: 'user_id', type: 'uuid', nullable: true })
   userId!: string | null;
-
-  @ManyToOne(() => UserDbEntity, (user) => user.id, {
-    nullable: true,
-    onDelete: 'CASCADE',
-  })
-  @JoinColumn({ name: 'user_id' })
-  user?: UserDbEntity | null;
 
   @Column({ name: 'anonymous_user_id', type: 'uuid', nullable: true })
   anonymousUserId!: string | null;

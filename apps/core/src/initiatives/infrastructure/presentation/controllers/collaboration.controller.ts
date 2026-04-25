@@ -1,4 +1,5 @@
 import { MyCollaborationsDto } from '@app/shared/application/dtos/my-collaborations.dto';
+import { AuthGuard, AuthId } from '@app/shared/infrastructure/auth';
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -6,8 +7,6 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { AuthId } from '../../../../identity/infrastructure/decorators/auth-id.decorator';
-import { AuthGuard } from '../../../../identity/infrastructure/guards/auth.guard';
 import { CollaborationHistoryPort } from '../../../application/ports/collaboration-history.port';
 
 @Controller()

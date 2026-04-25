@@ -4,9 +4,11 @@ import {
 } from '@app/shared/application/dtos/my-collaborations.dto';
 import { GrpcPackages } from '@app/shared/infrastructure/grpc/grpc-packages';
 import {
-  Pagination,
+  IDENTITY_SERVICE_NAME,
+  IdentityServiceClient,
+} from '@app/shared/infrastructure/grpc/stubs/identity';
+import {
   REPORTS_SERVICE_NAME,
-  ReportUsersPage,
   ReportsServiceClient,
   UserCollaborationHistory as UserCollaborationHistoryGrpc,
   UserHistoryItem,
@@ -22,32 +24,32 @@ import {
 
 @Injectable()
 export class GrpcCoreReportsAdapter implements CoreReportsPort, OnModuleInit {
-  private service!: ReportsServiceClient;
   private readonly logger = new Logger(GrpcCoreReportsAdapter.name);
 
+  private coreService!: ReportsServiceClient;
+  private identityService!: IdentityServiceClient;
+
   constructor(
-    @Inject(GrpcPackages.Reports.Client) private readonly client: ClientGrpc,
+    @Inject(GrpcPackages.Reports.Client)
+    private readonly coreGrpcClient: ClientGrpc,
+    @Inject(GrpcPackages.Identity.Client)
+    private readonly identityGrpcClient: ClientGrpc,
   ) {}
 
   onModuleInit() {
-    this.service =
-      this.client.getService<ReportsServiceClient>(REPORTS_SERVICE_NAME);
+    this.coreService =
+      this.coreGrpcClient.getService<ReportsServiceClient>(
+        REPORTS_SERVICE_NAME,
+      );
+    this.identityService =
+      this.identityGrpcClient.getService<IdentityServiceClient>(
+        IDENTITY_SERVICE_NAME,
+      );
   }
 
-  async listUsers(
-    page?: number,
-    search?: string,
-  ): Promise<CoreReportUsersPage> {
+  listUsers(page?: number, search?: string): Promise<CoreReportUsersPage> {
     this.logger.debug('Fetching users from gRPC service...');
-    const grpcRequest: Pagination = { page, search };
-    const response: ReportUsersPage = await firstValueFrom(
-      this.service.listUsers(grpcRequest),
-    );
-
-    return {
-      users: response.users,
-      totalPages: response.totalPages,
-    };
+    return firstValueFrom(this.identityService.listUsers({ page, search }));
   }
 
   async getUserContributions(
@@ -57,7 +59,7 @@ export class GrpcCoreReportsAdapter implements CoreReportsPort, OnModuleInit {
       `Fetching user history for userId ${userId} from gRPC service...`,
     );
     const grpcResponse: UserCollaborationHistoryGrpc = await firstValueFrom(
-      this.service.getUserContributions({ id: userId }),
+      this.coreService.getUserContributions({ id: userId }),
     );
 
     return {

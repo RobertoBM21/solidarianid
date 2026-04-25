@@ -3,7 +3,6 @@ syntax = "proto3";
 package reports;
 
 service ReportsService {
-  rpc ListUsers (Pagination) returns (ReportUsersPage);
   rpc GetUserContributions (UserId) returns (UserCollaborationHistory);
 }
 
@@ -33,19 +32,6 @@ message UserHistoryItem {
     DonationDetails donation = 7;
     VolunteeringDetails volunteering = 8;
   }
-}
-message Pagination {
-  optional int32 page = 1;
-  optional string search = 2;
-}
-message ReportUser {
-  string id = 1;
-  string name = 2;
-  repeated string communities = 3;
-}
-message ReportUsersPage {
-  repeated ReportUser users = 1;
-  int32 totalPages = 2;
 }
 message UserId {
   string id = 1;

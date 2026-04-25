@@ -1,6 +1,6 @@
+import { GqlAuthId } from '@app/shared/infrastructure/auth';
 import { NotFoundException } from '@nestjs/common';
 import { Args, Query, Resolver } from '@nestjs/graphql';
-import { GqlAuthId } from '../../../../identity/infrastructure/decorators/gql-auth-id.decorator';
 import { CommunityOutDto } from '../../../application/dtos/community-out.dto';
 import { CommunitiesPort } from '../../../application/ports/communities.port';
 import { CommunityType } from './types/community.type';

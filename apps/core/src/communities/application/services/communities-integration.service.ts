@@ -59,10 +59,6 @@ export class CommunitiesIntegrationService {
     };
   }
 
-  async getMemberships(userIds: string[]): Promise<Map<string, string[]>> {
-    return this.communityMemberRepo.listByUserIds(userIds);
-  }
-
   async getUserMemberships(
     userId: string,
   ): Promise<UserMembershipHistoryItem[]> {

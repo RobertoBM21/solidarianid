@@ -1,23 +1,26 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { buildGrpcClientConfig } from '@app/shared/infrastructure/config/grpc.config';
+import { GrpcPackages } from '@app/shared/infrastructure/grpc/grpc-packages';
+import { Module } from '@nestjs/common';
+import { ClientsModule } from '@nestjs/microservices';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { CommunitiesModule } from '../communities/communities.module';
 import { GetMembershipsPort } from './application/ports/get-memberships.port';
 import { UserPort } from './application/ports/user.port';
 import { UserService } from './application/user.service';
 import { CountryCheckerPort } from './domain/ports/country-checker.port';
 import { UserRepository } from './domain/repositories/user.repository';
 import { CountryCheckerAdapter } from './infrastructure/adapters/country-checker.adapter';
-import { GetMembershipsIntegrationAdapter } from './infrastructure/get-memberships-integration.adapter';
+import { GetMembershipsAdapter } from './infrastructure/adapters/get-memberships.adapter';
 import { AuthGrpcController } from './infrastructure/grpc/auth-grpc.controller';
-import { UsersGrpcController } from './infrastructure/grpc/users-grpc.controller';
-import { IdentityIntegrationService } from './infrastructure/identity-integration.service';
-import { AuthMiddleware } from './infrastructure/middlewares/auth.middleware';
+import { IdentityGrpcController } from './infrastructure/grpc/identity-grpc.controller';
 import { UserDbEntity } from './infrastructure/persistence/entities/user.db-entity';
 import { UserRepositoryImpl } from './infrastructure/persistence/user.repository.impl';
 import { ProfileController } from './infrastructure/presentation/controllers/profile.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserDbEntity]), CommunitiesModule],
+  imports: [
+    TypeOrmModule.forFeature([UserDbEntity]),
+    ClientsModule.register([buildGrpcClientConfig(GrpcPackages.Communities)]),
+  ],
   providers: [
     {
       provide: CountryCheckerPort,
@@ -25,7 +28,7 @@ import { ProfileController } from './infrastructure/presentation/controllers/pro
     },
     {
       provide: GetMembershipsPort,
-      useClass: GetMembershipsIntegrationAdapter,
+      useClass: GetMembershipsAdapter,
     },
     {
       provide: UserRepository,
@@ -35,14 +38,7 @@ import { ProfileController } from './infrastructure/presentation/controllers/pro
       provide: UserPort,
       useClass: UserService,
     },
-
-    IdentityIntegrationService,
   ],
-  controllers: [AuthGrpcController, ProfileController, UsersGrpcController],
-  exports: [IdentityIntegrationService],
+  controllers: [AuthGrpcController, ProfileController, IdentityGrpcController],
 })
-export class IdentityModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AuthMiddleware).forRoutes('*');
-  }
-}
+export class IdentityModule {}

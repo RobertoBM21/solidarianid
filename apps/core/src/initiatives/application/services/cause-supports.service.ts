@@ -6,7 +6,6 @@ import {
   UniqueEntityID,
 } from '@app/shared/domain';
 import { Injectable } from '@nestjs/common';
-import { UserNotFoundError } from '../../../identity/domain/repositories/user.repository';
 import { AnonymousSupporterRepository } from '../../domain/repositories/anonymous-supporter.repository';
 import { CauseAggrRepository } from '../../domain/repositories/cause-aggr.repository';
 import {
@@ -25,6 +24,7 @@ import {
   RegisterAnonymousSupportError,
   RegisterSupportOutDto,
   RegisterUserSupportError,
+  SupporterNotFoundError,
 } from '../ports/cause-supports.port';
 import { GetUserPort } from '../ports/get-user.port';
 
@@ -46,7 +46,7 @@ export class CauseSupportsService extends CauseSupportsPort {
   }): Promise<Either<RegisterUserSupportError, RegisterSupportOutDto>> {
     const user = await this.getUserPort.getUser(options.userId);
     if (!user) {
-      return left(new UserNotFoundError(options.userId));
+      return left(new SupporterNotFoundError(options.userId));
     }
     const supporter = UserSupporter.create(
       UniqueEntityID.create(options.userId),

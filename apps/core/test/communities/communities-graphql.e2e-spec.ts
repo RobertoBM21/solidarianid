@@ -1,18 +1,18 @@
+import { GrpcPackages } from '@app/shared/infrastructure/grpc/grpc-packages';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { Test, TestingModule } from '@nestjs/testing';
+import { of } from 'rxjs';
 import request from 'supertest';
 import { DataSource } from 'typeorm';
 import { CoreAppModule } from '../../src/app.module';
 import { CauseSupportDbEntity } from '../../src/initiatives/infrastructure/persistence/entities/cause-support.db-entity';
 import { CommunityTestFactory } from '../communities/community.test-factory';
 import { clearDatabase, waitFor } from '../db-test-utils';
-import { UserTestFactory } from '../identity/user.test-factory';
 import { CauseTestFactory } from '../initiatives/causes/cause.test-factory';
 
 describe('GraphQL resolvers (integration)', () => {
   let app: NestExpressApplication;
   let dataSource: DataSource;
-  let userTestFactory: UserTestFactory;
   let communityTestFactory: CommunityTestFactory;
   let causeTestFactory: CauseTestFactory;
 
@@ -21,12 +21,26 @@ describe('GraphQL resolvers (integration)', () => {
   let causeId: string;
 
   beforeAll(async () => {
+    const mockIdentityService = {
+      getUser: jest
+        .fn()
+        .mockImplementation(({ userId }: { userId: string }) =>
+          of({ id: userId, name: 'Test User', email: `${userId}@test.com` }),
+        ),
+      listUsers: jest.fn().mockReturnValue(of({ users: [], totalPages: 0 })),
+    };
+    const mockClientGrpc = {
+      getService: jest.fn().mockReturnValue(mockIdentityService),
+    };
+
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [CoreAppModule],
-    }).compile();
+    })
+      .overrideProvider(GrpcPackages.Identity.Client)
+      .useValue(mockClientGrpc)
+      .compile();
 
     dataSource = moduleFixture.get(DataSource);
-    userTestFactory = new UserTestFactory(dataSource);
     communityTestFactory = new CommunityTestFactory(dataSource);
     causeTestFactory = new CauseTestFactory(dataSource);
 
@@ -41,8 +55,7 @@ describe('GraphQL resolvers (integration)', () => {
   beforeEach(async () => {
     await clearDatabase(dataSource);
 
-    const user = await userTestFactory.create({ name: 'Test User' });
-    userId = user.id;
+    userId = crypto.randomUUID();
 
     const community = await communityTestFactory.create({
       name: 'Test Community',

@@ -5,7 +5,6 @@ import { DataSource } from 'typeorm';
 import { CoreAppModule } from '../../../src/app.module';
 import { CommunityMemberDbEntity } from '../../../src/communities/infrastructure/persistence/entities/community-member.db-entity';
 import { clearDatabase, waitFor } from '../../db-test-utils';
-import { UserTestFactory } from '../../identity/user.test-factory';
 import { CommunityTestFactory } from '../community.test-factory';
 import { CommunityMemberTestFactory } from './community-member.test-factory';
 
@@ -13,7 +12,6 @@ describe('Membership requests integration tests', () => {
   let app: NestExpressApplication;
   let communitiesFactory: CommunityTestFactory;
   let communitiesMembersFactory: CommunityMemberTestFactory;
-  let usersFactory: UserTestFactory;
   let dataSource: DataSource;
   let idCommunity: string;
   let userId: string;
@@ -26,7 +24,6 @@ describe('Membership requests integration tests', () => {
 
     dataSource = moduleFixture.get(DataSource);
     communitiesFactory = new CommunityTestFactory(dataSource);
-    usersFactory = new UserTestFactory(dataSource);
     communitiesMembersFactory = new CommunityMemberTestFactory(dataSource);
 
     app = moduleFixture.createNestApplication();
@@ -41,20 +38,11 @@ describe('Membership requests integration tests', () => {
     });
     idCommunity = community.id;
 
-    const user = await usersFactory.create({
-      name: 'Test User',
-      email: 'user@example.com',
-    });
-    userId = user.id;
-
-    const admin = await usersFactory.create({
-      name: 'Community Admin',
-      email: 'admin@example.com',
-    });
-    adminId = admin.id;
+    userId = crypto.randomUUID();
+    adminId = crypto.randomUUID();
 
     // Make the admin a community admin
-    await communitiesMembersFactory.create(community, admin, true);
+    await communitiesMembersFactory.create(community, adminId, true);
   });
 
   afterAll(async () => {

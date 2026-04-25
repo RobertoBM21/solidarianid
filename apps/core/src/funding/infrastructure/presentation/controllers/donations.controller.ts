@@ -1,4 +1,5 @@
 import { InitiativeAlreadyClosedError } from '@app/shared/domain/value-objects/initiative-status.vo';
+import { AuthGuard, AuthId } from '@app/shared/infrastructure/auth';
 import {
   BadRequestException,
   Body,
@@ -17,8 +18,6 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { AuthId } from '../../../../identity/infrastructure/decorators/auth-id.decorator';
-import { AuthGuard } from '../../../../identity/infrastructure/guards/auth.guard';
 import { CreateDonationDto } from '../../../application/dtos/create-donation.dto';
 import { DonationDto } from '../../../application/dtos/donation.dto';
 import { PaymentDto } from '../../../application/dtos/payment.dto';

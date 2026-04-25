@@ -1,5 +1,6 @@
 import { Either, UniqueEntityID } from '@app/shared/domain';
 import { InitiativeAlreadyClosedError } from '@app/shared/domain/value-objects/initiative-status.vo';
+import { AuthGuard, AuthId } from '@app/shared/infrastructure/auth';
 import {
   BadRequestException,
   Body,
@@ -19,8 +20,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { UserIsNotAdminError } from '../../../../communities/domain/community.aggregate';
-import { AuthId } from '../../../../identity/infrastructure/decorators/auth-id.decorator';
-import { AuthGuard } from '../../../../identity/infrastructure/guards/auth.guard';
 import { CreateFundingActionDto } from '../../../application/dtos/create-funding-action.dto';
 import { CreateVolunteeringActionDto } from '../../../application/dtos/create-volunteering-action.dto';
 import {

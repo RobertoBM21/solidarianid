@@ -1,4 +1,5 @@
 import { ProfileOutDto } from '@app/shared/application/dtos/profile-out.dto';
+import { AuthGuard, AuthId } from '@app/shared/infrastructure/auth';
 import {
   BadRequestException,
   Body,
@@ -12,8 +13,6 @@ import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { UpdateProfileDto } from '../../../application/dtos/update-profile.dto';
 import { UserPort } from '../../../application/ports/user.port';
 import { UserNotFoundError } from '../../../domain/repositories/user.repository';
-import { AuthId } from '../../decorators/auth-id.decorator';
-import { AuthGuard } from '../../guards/auth.guard';
 
 @Controller('profile')
 @ApiTags('profile')

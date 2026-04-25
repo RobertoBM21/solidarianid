@@ -1,3 +1,4 @@
+import { AuthGuard, AuthId } from '@app/shared/infrastructure/auth';
 import {
   BadRequestException,
   Body,
@@ -15,8 +16,6 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { AuthId } from '../../../../identity/infrastructure/decorators/auth-id.decorator';
-import { AuthGuard } from '../../../../identity/infrastructure/guards/auth.guard';
 import { CreateVolunteerLogDto } from '../../../application/dtos/create-volunteer-log.dto';
 import { VolunteerLogDto } from '../../../application/dtos/volunteer-log.dto';
 import { VolunteerLogPort } from '../../../application/ports/volunteer-log.port';

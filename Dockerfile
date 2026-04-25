@@ -28,6 +28,6 @@ COPY package*.json ./
 RUN npm install --only=production
 
 COPY --from=builder /app/dist/apps/${APP} ./dist
-COPY --from=builder /app/libs/shared/src/infrastructure/grpc/protos ./protos
+COPY --from=builder /app/grpc/protos ./grpc/protos
 
 CMD ["node", "dist/main"]

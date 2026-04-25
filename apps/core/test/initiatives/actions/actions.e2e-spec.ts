@@ -1,5 +1,7 @@
+import { GrpcPackages } from '@app/shared/infrastructure/grpc/grpc-packages';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { Test, TestingModule } from '@nestjs/testing';
+import { of } from 'rxjs';
 import request from 'supertest';
 import { DataSource } from 'typeorm';
 import { CoreAppModule } from '../../../src/app.module';
@@ -22,9 +24,24 @@ describe('Actions integration tests', () => {
   let userId: string;
 
   beforeAll(async () => {
+    const mockIdentityService = {
+      getUser: jest
+        .fn()
+        .mockImplementation(({ userId }: { userId: string }) =>
+          of({ id: userId, name: 'Test User', email: `${userId}@test.com` }),
+        ),
+      listUsers: jest.fn().mockReturnValue(of({ users: [], totalPages: 0 })),
+    };
+    const mockClientGrpc = {
+      getService: jest.fn().mockReturnValue(mockIdentityService),
+    };
+
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [CoreAppModule],
-    }).compile();
+    })
+      .overrideProvider(GrpcPackages.Identity.Client)
+      .useValue(mockClientGrpc)
+      .compile();
 
     dataSource = moduleFixture.get(DataSource);
     communitiesFactory = new CommunityTestFactory(dataSource);

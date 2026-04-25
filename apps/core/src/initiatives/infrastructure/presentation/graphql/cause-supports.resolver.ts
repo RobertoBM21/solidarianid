@@ -1,3 +1,4 @@
+import { GqlAuthGuard, GqlAuthId } from '@app/shared/infrastructure/auth';
 import {
   BadRequestException,
   Inject,
@@ -6,8 +7,6 @@ import {
 } from '@nestjs/common';
 import { Args, Mutation, Resolver, Subscription } from '@nestjs/graphql';
 import { PubSub } from 'graphql-subscriptions';
-import { GqlAuthId } from '../../../../identity/infrastructure/decorators/gql-auth-id.decorator';
-import { GqlAuthGuard } from '../../../../identity/infrastructure/guards/gql-auth.guard';
 import {
   AlreadySupportingError,
   CauseSupportsPort,

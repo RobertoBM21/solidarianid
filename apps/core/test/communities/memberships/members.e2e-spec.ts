@@ -5,13 +5,11 @@ import { DataSource } from 'typeorm';
 import { CoreAppModule } from '../../../src/app.module';
 import { CommunityMemberDbEntity } from '../../../src/communities/infrastructure/persistence/entities/community-member.db-entity';
 import { clearDatabase } from '../../db-test-utils';
-import { UserTestFactory } from '../../identity/user.test-factory';
 import { CommunityTestFactory } from '../community.test-factory';
 import { CommunityMemberTestFactory } from './community-member.test-factory';
 
 describe('Community members integration tests', () => {
   let app: NestExpressApplication;
-  let usersFactory: UserTestFactory;
   let communitiesFactory: CommunityTestFactory;
   let communitiesMembersFactory: CommunityMemberTestFactory;
   let dataSource: DataSource;
@@ -26,7 +24,6 @@ describe('Community members integration tests', () => {
     }).compile();
 
     dataSource = moduleFixture.get(DataSource);
-    usersFactory = new UserTestFactory(dataSource);
     communitiesFactory = new CommunityTestFactory(dataSource);
     communitiesMembersFactory = new CommunityMemberTestFactory(dataSource);
 
@@ -42,24 +39,15 @@ describe('Community members integration tests', () => {
     });
     idCommunity = community.id;
 
-    const user = await usersFactory.create({
-      name: 'Test User',
-      email: 'user@example.com',
-    });
-    userId = user.id;
-
-    const admin = await usersFactory.create({
-      name: 'Community Admin',
-      email: 'admin@example.com',
-    });
-    adminId = admin.id;
+    userId = crypto.randomUUID();
+    adminId = crypto.randomUUID();
 
     // Make the admin a community admin
-    await communitiesMembersFactory.create(community, admin, true);
+    await communitiesMembersFactory.create(community, adminId, true);
     // Make the user a regular community member
     const userMember = await communitiesMembersFactory.create(
       community,
-      user,
+      userId,
       false,
     );
     userMemberId = userMember.id;
