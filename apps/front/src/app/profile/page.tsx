@@ -1,4 +1,4 @@
-﻿import * as isoCountries from 'i18n-iso-countries';
+import * as isoCountries from 'i18n-iso-countries';
 import esLocale from 'i18n-iso-countries/langs/es.json';
 import Link from 'next/link';
 import Badge from 'react-bootstrap/Badge';
@@ -14,6 +14,7 @@ import Row from 'react-bootstrap/Row';
 import ProfileMembershipList from '../../components/memberships/ProfileMembershipList';
 import ProfileMembershipRequestList from '../../components/memberships/ProfileMembershipRequestList';
 import ProfileEditForm from '../../components/profile/ProfileEditForm';
+import PushNotificationsManager from '../../components/pwa/PushNotificationsManager';
 import { getSessionOrRedirect } from '../../lib/auth/get-session-or-redirect';
 import { fetchServer } from '../../lib/http/fetch-server';
 import type { ProfileView } from '../../models/profile.models';
@@ -101,6 +102,7 @@ export default async function ProfilePage() {
                 country: profile.country,
               }}
             />
+            <PushNotificationsManager />
           </CardBody>
         </Card>
 

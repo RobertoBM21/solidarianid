@@ -12,6 +12,7 @@ import {
   InvalidDateError,
 } from '@app/shared/domain/value-objects/creation-date.vo';
 import { MembershipRequestAcceptedEvent } from './events/membership-request-accepted.event';
+import { MembershipRequestRejectedEvent } from './events/membership-request-rejected.event';
 
 export class MembershipRequestAlreadyExistsError implements DomainError {
   readonly message: string = 'A membership request already exists';
@@ -74,6 +75,12 @@ export class MembershipRequest extends AggregateRoot<MembershipRequestProps> {
       return left(new MembershipRequestNotPendingError());
     }
     this.props.accepted = AcceptedStatus.rejected();
+    this.addDomainEvent(
+      new MembershipRequestRejectedEvent(
+        this.communityId.toString(),
+        this.userId.toString(),
+      ),
+    );
     return right(undefined);
   }
 

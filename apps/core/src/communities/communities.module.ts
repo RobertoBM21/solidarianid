@@ -1,9 +1,12 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { MembershipRequestAcceptedHandler } from './application/handlers/membership-request-accepted.handler';
+import { MembershipRequestRejectedHandler } from './application/handlers/membership-request-rejected.handler';
 import { CommunitiesPort } from './application/ports/communities.port';
 import { CommunityMembersPort } from './application/ports/community-members.port';
 import { CommunityStatisticsPort } from './application/ports/community-statistics.port';
+import { MembershipNotificationsPort } from './application/ports/membership-notifications.port';
 import { MembershipRequestsPort } from './application/ports/membership-requests.port';
 import { UserProposalsPort } from './application/ports/user-proposals.port';
 import { CommunitiesIntegrationService } from './application/services/communities-integration.service';
@@ -15,6 +18,7 @@ import { CommunityProposalRepository } from './domain/repositories/community-pro
 import { CommunityRepository } from './domain/repositories/community.repository';
 import { MembershipRequestRepository } from './domain/repositories/membership-request.repository';
 import { CommunityFactory } from './domain/services/community-factory.service';
+import { MembershipNotificationsAdapter } from './infrastructure/adapters/membership-notifications.adapter';
 import { CommunityProposalAcceptedConsumer } from './infrastructure/consumers/community-proposal-accepted.consumer';
 import { CommunityProposalRejectedConsumer } from './infrastructure/consumers/community-proposal-rejected.consumer';
 import { CommunitiesGrpcController } from './infrastructure/grpc/communities-grpc.controller';
@@ -38,6 +42,7 @@ import { CommunitiesResolver } from './infrastructure/presentation/graphql/commu
 
 @Module({
   imports: [
+    NotificationsModule,
     TypeOrmModule.forFeature([
       CommunityDbEntity,
       CauseDbEntity,
@@ -96,9 +101,14 @@ import { CommunitiesResolver } from './infrastructure/presentation/graphql/commu
       provide: CommunityMembersPort,
       useClass: CommunityMembersService,
     },
+    {
+      provide: MembershipNotificationsPort,
+      useClass: MembershipNotificationsAdapter,
+    },
 
     // Handlers
     MembershipRequestAcceptedHandler,
+    MembershipRequestRejectedHandler,
 
     CommunitiesIntegrationService,
 

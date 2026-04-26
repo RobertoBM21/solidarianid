@@ -9,6 +9,7 @@ services:
       - '3010:3010'
     environment:
       - CORE_URL=http://core:3000
+      - IDENTITY_GRPC_URL=identity:5003
       - CORS_ORIGIN=http://localhost:3080
       - JWT_SECRET_FILE=/run/secrets/jwt_secret
       - JWT_EXPIRATION=1d
@@ -34,6 +35,14 @@ services:
       - DB_NAME=core_db
       - REDIS_URL=redis://redis:6379
       - NATS_URL=nats://nats:4222
+      - CORE_GRPC_URL=0.0.0.0:5002
+      - IDENTITY_GRPC_URL=identity:5003
+      - KURRENTDB_URL=kurrentdb://kurrentdb:2113?tls=false
+      - STRIPE_SK=${STRIPE_SK}
+      - STRIPE_PAYMENT_SUCCESS_URL=${STRIPE_PAYMENT_SUCCESS_URL}
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY}
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}
+      - VAPID_SUBJECT=${VAPID_SUBJECT}
     secrets:
       - db_pass_core
     depends_on:
@@ -42,6 +51,8 @@ services:
       redis:
         condition: service_healthy
       nats:
+        condition: service_healthy
+      kurrentdb:
         condition: service_healthy
 
   identity:
@@ -56,17 +67,14 @@ services:
       - DB_PASSWORD_FILE=/run/secrets/db_pass_identity
       - DB_NAME=identity_db
       - NATS_URL=nats://nats:4222
-      - STRIPE_SK=${STRIPE_SK}
-      - STRIPE_PAYMENT_SUCCESS_URL=${STRIPE_PAYMENT_SUCCESS_URL}
-      - KURRENTDB_URL=kurrentdb://kurrentdb:2113?tls=false
+      - CORE_GRPC_URL=core:5002
+      - IDENTITY_GRPC_URL=0.0.0.0:5003
     secrets:
       - db_pass_identity
     depends_on:
       db_identity:
         condition: service_healthy
       nats:
-        condition: service_healthy
-      kurrentdb:
         condition: service_healthy
 
   admin:
@@ -84,6 +92,8 @@ services:
       - DB_NAME=admin_db
       - REDIS_URL=redis://redis:6379
       - NATS_URL=nats://nats:4222
+      - CORE_GRPC_URL=core:5002
+      - IDENTITY_GRPC_URL=identity:5003
       - SESSION_SECRET_FILE=/run/secrets/admin_session_secret
     secrets:
       - db_pass_admin

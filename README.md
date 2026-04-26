@@ -48,12 +48,15 @@ Configuración específica de la pasarela de API:
 
 Configuración específica de la aplicación principal:
 
-| Variable                     | Tipo     | Descripción                                         | Valor por defecto |
-| ---------------------------- | -------- | --------------------------------------------------- | ----------------- |
-| `REDIS_URL`                  | `string` | URL de la instancia Redis                           | -                 |
-| `KURRENTDB_URL`              | `string` | URL de conexión a KurrentDB                         | -                 |
-| `STRIPE_SK`                  | `string` | Clave secreta de Stripe                             | -                 |
-| `STRIPE_PAYMENT_SUCCESS_URL` | `string` | URL de redirección tras completar un pago en Stripe | -                 |
+| Variable                     | Tipo     | Descripción                                          | Valor por defecto |
+| ---------------------------- | -------- | ---------------------------------------------------- | ----------------- |
+| `REDIS_URL`                  | `string` | URL de la instancia Redis                            | -                 |
+| `KURRENTDB_URL`              | `string` | URL de conexión a KurrentDB                          | -                 |
+| `STRIPE_SK`                  | `string` | Clave secreta de Stripe                              | -                 |
+| `STRIPE_PAYMENT_SUCCESS_URL` | `string` | URL de redirección tras completar un pago en Stripe  | -                 |
+| `VAPID_PUBLIC_KEY`           | `string` | Clave pública VAPID para notificaciones push         | -                 |
+| `VAPID_PRIVATE_KEY`          | `string` | Clave privada VAPID para notificaciones push         | -                 |
+| `VAPID_SUBJECT`              | `string` | Subject VAPID (por ejemplo `mailto:dev@example.com`) | -                 |
 
 ### Aplicación: admin
 
@@ -67,11 +70,12 @@ Configuración específica de la aplicación de administración:
 
 Configuración específica de la aplicación de frontend:
 
-| Variable                  | Tipo     | Descripción                    | Valor por defecto     |
-| ------------------------- | -------- | ------------------------------ | --------------------- |
-| `NEXTAUTH_URL`            | `string` | URL del microservicio frontend | -                     |
-| `NEXTAUTH_SECRET`         | `string` | Secreto de NextAuth            | -                     |
-| `NEXT_PUBLIC_GATEWAY_URL` | `string` | URL del microservicio gateway  | http://localhost:3010 |
+| Variable                       | Tipo     | Descripción                               | Valor por defecto     |
+| ------------------------------ | -------- | ----------------------------------------- | --------------------- |
+| `NEXTAUTH_URL`                 | `string` | URL del microservicio frontend            | -                     |
+| `NEXTAUTH_SECRET`              | `string` | Secreto de NextAuth                       | -                     |
+| `NEXT_PUBLIC_GATEWAY_URL`      | `string` | URL del microservicio gateway             | http://localhost:3010 |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | `string` | Clave pública VAPID expuesta al navegador | -                     |
 
 ## Desarrollo
 
@@ -97,6 +101,9 @@ npm install
 # Generar el código desde Protobuffers (Linux/Mac)
 npm run proto:gen
 # npm run proto:gen:win (Windows)
+
+# Generar claves VAPID para notificaciones push
+npx web-push generate-vapid-keys
 
 # Lanzar las aplicaciones backend
 npm run start:dev:core

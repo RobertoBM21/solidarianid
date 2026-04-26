@@ -1,5 +1,7 @@
 import { UniqueEntityID } from '@app/shared/domain';
 import { InvalidDateError } from '@app/shared/domain/value-objects/creation-date.vo';
+import { MembershipRequestAcceptedEvent } from './events/membership-request-accepted.event';
+import { MembershipRequestRejectedEvent } from './events/membership-request-rejected.event';
 import { MembershipRequest } from './membership-request.aggregate';
 
 describe('MembershipRequest Aggregate', () => {
@@ -56,6 +58,9 @@ describe('MembershipRequest Aggregate', () => {
       request.accept();
       expect(request.isPending()).toBe(false);
       expect(request.accepted).toBe(true);
+      expect(request.pullDomainEvents()).toEqual([
+        expect.any(MembershipRequestAcceptedEvent),
+      ]);
     }
   });
 
@@ -66,6 +71,9 @@ describe('MembershipRequest Aggregate', () => {
       request.reject();
       expect(request.isPending()).toBe(false);
       expect(request.accepted).toBe(false);
+      expect(request.pullDomainEvents()).toEqual([
+        expect.any(MembershipRequestRejectedEvent),
+      ]);
     }
   });
 

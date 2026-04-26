@@ -3,6 +3,7 @@ import { EventsHandler } from '@nestjs/cqrs';
 import { CommunityMember } from '../../domain/community-member.aggregate';
 import { MembershipRequestAcceptedEvent } from '../../domain/events/membership-request-accepted.event';
 import { CommunityMemberRepository } from '../../domain/repositories/community-member.repository';
+import { MembershipNotificationsPort } from '../ports/membership-notifications.port';
 
 @EventsHandler(MembershipRequestAcceptedEvent)
 export class MembershipRequestAcceptedHandler {
@@ -10,6 +11,7 @@ export class MembershipRequestAcceptedHandler {
 
   constructor(
     private readonly communityMemberRepository: CommunityMemberRepository,
+    private readonly membershipNotificationsPort: MembershipNotificationsPort,
   ) {}
 
   async handle(event: MembershipRequestAcceptedEvent): Promise<void> {
@@ -26,5 +28,9 @@ export class MembershipRequestAcceptedHandler {
     }
     const member = memberOrError.value;
     await this.communityMemberRepository.save(member);
+    await this.membershipNotificationsPort.sendMembershipAccepted(
+      event.userId,
+      event.communityId,
+    );
   }
 }

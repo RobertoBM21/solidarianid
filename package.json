@@ -38,7 +38,8 @@
     "test:cypress": "cypress run",
     "test:mutation": "stryker run",
     "proto:gen": "npx protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./libs/shared/src/infrastructure/grpc/stubs --ts_proto_opt=nestJs=true -I=./grpc/protos ./grpc/protos/*.proto",
-    "proto:gen:win": "npx protoc --plugin=protoc-gen-ts_proto=.\\node_modules\\.bin\\protoc-gen-ts_proto.cmd --ts_proto_out=./libs/shared/src/infrastructure/grpc/stubs --ts_proto_opt=nestJs=true -I=./grpc/protos ./grpc/protos/*.proto"
+    "proto:gen:win": "npx protoc --plugin=protoc-gen-ts_proto=.\\node_modules\\.bin\\protoc-gen-ts_proto.cmd --ts_proto_out=./libs/shared/src/infrastructure/grpc/stubs --ts_proto_opt=nestJs=true -I=./grpc/protos ./grpc/protos/*.proto",
+    "vapid:gen": "node scripts/generate-vapid-keys.js"
   },
   "dependencies": {
     "@apollo/client": "^4.1.7",
@@ -100,6 +101,7 @@
     "tslib": "^2.3.0",
     "typeorm": "^0.3.28",
     "uuid": "^13.0.0",
+    "web-push": "^3.6.7",
     "workbox-core": "^6.5.4",
     "workbox-expiration": "^6.5.4",
     "workbox-precaching": "^6.5.4",
@@ -143,6 +145,7 @@
     "@types/react-dom": "^19.0.0",
     "@types/supertest": "^6.0.2",
     "@types/swagger-ui-express": "^4.1.8",
+    "@types/web-push": "^3.6.4",
     "autoprefixer": "^10.4.22",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",

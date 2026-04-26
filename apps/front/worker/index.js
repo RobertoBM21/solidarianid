@@ -15,6 +15,35 @@ import {
   StaleWhileRevalidate,
 } from 'workbox-strategies';
 
+/**
+ * @typedef {{ title: string; body: string; url: string }} PushNotificationData
+ */
+
+/**
+ * @param {unknown} value
+ * @returns {value is Partial<PushNotificationData>}
+ */
+function isPushNotificationPayload(value) {
+  return typeof value === 'object' && value !== null;
+}
+
+/**
+ * @param {unknown} data
+ * @returns {string}
+ */
+function getNotificationUrl(data) {
+  if (
+    typeof data === 'object' &&
+    data !== null &&
+    'url' in data &&
+    typeof data.url === 'string'
+  ) {
+    return data.url;
+  }
+
+  return '/profile';
+}
+
 self.skipWaiting();
 clientsClaim();
 cleanupOutdatedCaches();
@@ -112,4 +141,79 @@ setCatchHandler(async ({ event }) => {
   }
 
   return Response.error();
+});
+
+self.addEventListener('push', (event) => {
+  /** @type {PushNotificationData} */
+  const defaultNotification = {
+    title: 'SolidarianID',
+    body: 'Tienes una nueva notificación.',
+    url: '/profile',
+  };
+
+  const notification = { ...defaultNotification };
+
+  if (event.data) {
+    try {
+      /** @type {unknown} */
+      const data = event.data.json();
+
+      if (isPushNotificationPayload(data) && typeof data.title === 'string') {
+        notification.title = data.title;
+      }
+
+      if (isPushNotificationPayload(data) && typeof data.body === 'string') {
+        notification.body = data.body;
+      }
+
+      if (isPushNotificationPayload(data) && typeof data.url === 'string') {
+        notification.url = data.url;
+      }
+    } catch {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const body = event.data.text();
+
+      if (body) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        notification.body = body;
+      }
+    }
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(notification.title, {
+      body: notification.body,
+      icon: '/icons/icon-192x192.png',
+      badge: '/icons/icon-128x128.png',
+      requireInteraction: true,
+      data: {
+        url: notification.url,
+      },
+    }),
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  const targetUrl = getNotificationUrl(event.notification.data);
+
+  event.notification.close();
+
+  event.waitUntil(
+    (async () => {
+      const absoluteUrl = new URL(targetUrl, self.location.origin).href;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      const windowClients = await self.clients.matchAll({
+        type: 'window',
+        includeUncontrolled: true,
+      });
+
+      for (const client of windowClients) {
+        if (client.url === absoluteUrl) {
+          return client.focus();
+        }
+      }
+
+      return self.clients.openWindow(absoluteUrl);
+    })(),
+  );
 });

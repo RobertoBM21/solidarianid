@@ -11,6 +11,7 @@ import { CommunitiesModule } from './communities/communities.module';
 import { FundingModule } from './funding/funding.module';
 import cacheConfig from './infrastructure/config/cache.config';
 import { InitiativesModule } from './initiatives/initiatives.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import { VolunteeringModule } from './volunteering/volunteering.module';
 
 @Module({
@@ -34,6 +35,7 @@ import { VolunteeringModule } from './volunteering/volunteering.module';
 
     CommonInfrastructureModule,
 
+    NotificationsModule,
     CommunitiesModule,
     InitiativesModule,
     FundingModule,

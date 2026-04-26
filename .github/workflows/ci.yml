@@ -24,7 +24,7 @@ jobs:
         run: npm ci
 
       - name: Generate code
-        run: npm run proto:gen
+        run: npm run proto:gen && npm run vapid:gen -- .env.test
 
       - name: Linting (ESLint)
         run: npm run lint
