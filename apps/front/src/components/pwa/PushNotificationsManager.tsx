@@ -10,7 +10,7 @@ import {
   removePushSubscription,
 } from '../../services/push-notifications.service';
 
-const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? '';
+const VAPID_PUBLIC_KEY = process.env.NEXT_VAPID_PUBLIC_KEY ?? '';
 const VAPID_CONFIG_ERROR = VAPID_PUBLIC_KEY
   ? ''
   : 'Falta la clave pública VAPID en la configuración del frontend.';

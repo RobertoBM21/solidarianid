@@ -11,15 +11,14 @@ RUN npm install
 
 COPY . .
 
-ARG APP
-RUN npm run build ${APP}
+RUN npm run proto:gen
+RUN npm run build:all
 
 # STAGE 2: Production
 FROM node:24-alpine AS production
 
 ARG NODE_ENV=production
 ENV NODE_ENV=${NODE_ENV}
-ARG APP
 
 WORKDIR /app
 
@@ -27,7 +26,9 @@ COPY package*.json ./
 
 RUN npm install --only=production
 
-COPY --from=builder /app/dist/apps/${APP} ./dist
 COPY --from=builder /app/grpc/protos ./grpc/protos
+
+ARG APP
+COPY --from=builder /app/dist/apps/${APP} ./dist
 
 CMD ["node", "dist/main"]

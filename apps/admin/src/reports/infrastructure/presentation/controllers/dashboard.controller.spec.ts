@@ -33,6 +33,7 @@ describe('DashboardController', () => {
     const mockStats = new StatisticsDto(
       { donations: 1000, supports: 200, causes: 50, communities: 10 },
       [],
+      [],
       {},
     );
     mockStatsPort.getGlobalStatistics.mockResolvedValue(right(mockStats));

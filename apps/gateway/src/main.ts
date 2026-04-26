@@ -14,9 +14,8 @@ async function bootstrap() {
     }),
   );
 
-  //! Check which value to use for CORS_ORIGIN
   app.enableCors({
-    origin: process.env.CORS_ORIGIN ?? '*',
+    origin: process.env.FRONTEND_URL ?? '*',
   });
 
   setupSwaggerAggregation(app);

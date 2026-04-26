@@ -10,12 +10,16 @@ import {
 } from '@nestjs/common';
 import { LoggedInGuard } from '../../../../authentication/infrastructure/presentation/guards/logged-in.guard';
 import { ReportUsersPageDto } from '../../../application/dtos/report-user.dto';
+import { UserHistoryPort } from '../../../application/ports/user-history.port';
 import { UsersPort } from '../../../application/ports/users.port';
 
 @Controller('informes')
 @UseGuards(LoggedInGuard)
 export class ReportsController {
-  constructor(private readonly usersPort: UsersPort) {}
+  constructor(
+    private readonly usersPort: UsersPort,
+    private readonly userHistoryPort: UserHistoryPort,
+  ) {}
 
   @Get()
   @Render('reports')
@@ -35,6 +39,6 @@ export class ReportsController {
 
   @Get('users/:id/contributions')
   async userContributions(@Param('id', ParseUUIDPipe) id: string) {
-    return this.usersPort.getUserHistory(id);
+    return this.userHistoryPort.getUserHistory(id);
   }
 }

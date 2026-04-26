@@ -7,6 +7,7 @@ import CardTitle from 'react-bootstrap/CardTitle';
 import Col from 'react-bootstrap/Col';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
+import { CommunityListItem } from '../models/community.models';
 import { getLatestCommunities } from '../services/communities.service';
 
 export const dynamic = 'force-dynamic';
@@ -48,7 +49,13 @@ const steps = [
 ];
 
 export default async function HomePage() {
-  const latestCommunities = await getLatestCommunities();
+  let latestCommunities: CommunityListItem[] = [];
+
+  try {
+    latestCommunities = await getLatestCommunities();
+  } catch (error) {
+    console.error('Error fetching latest communities:', error);
+  }
 
   return (
     <main>

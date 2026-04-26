@@ -6,8 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "build": "nx build",
-    "build:all": "npm run build:core && npm run build:identity && npm run build:gateway && npm run build:admin && npm run build:front",
+    "build:all": "nx run-many --target=build --all",
     "build:core": "nx build core",
     "build:identity": "nx build identity",
     "build:gateway": "nx build gateway",

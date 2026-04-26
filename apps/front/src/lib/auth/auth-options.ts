@@ -3,7 +3,9 @@ import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
 const GATEWAY_URL =
-  process.env.NEXT_PUBLIC_GATEWAY_URL ?? 'http://localhost:3010';
+  process.env.INTERNAL_GATEWAY_URL ??
+  process.env.NEXT_PUBLIC_GATEWAY_URL ??
+  'http://localhost:3010';
 
 function decodeJwtPayload(token: string): { sub: string; email: string } {
   const payload = jwt.decode(token);

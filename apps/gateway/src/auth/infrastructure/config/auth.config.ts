@@ -7,7 +7,7 @@ export default registerAs('auth', () => ({
   google: {
     clientId: getEnvVar('GOOGLE_CLIENT_ID'),
     clientSecret: getEnvVar('GOOGLE_CLIENT_SECRET'),
-    callbackUrl: getEnvVar('GOOGLE_CALLBACK_URL'),
+    callbackUrl: getEnvVar('FRONTEND_URL') + '/auth/google/callback',
   },
   frontendUrl: getEnvVar('FRONTEND_URL'),
   coreUrl: getEnvVar('CORE_URL'),

@@ -1,5 +1,4 @@
 import { gql } from '@apollo/client/core';
-import apolloClient from '../lib/apollo/client';
 import { getServerApolloClient } from '../lib/apollo/server-client';
 import type { ApiClient } from '../lib/http/api-client';
 import type {
@@ -62,7 +61,8 @@ const GET_COMMUNITY = gql`
 `;
 
 export async function getCommunities(): Promise<CommunityListItem[]> {
-  const { data } = await apolloClient.query<CommunitiesQueryResponse>({
+  const client = await getServerApolloClient();
+  const { data } = await client.query<CommunitiesQueryResponse>({
     query: GET_COMMUNITIES,
     fetchPolicy: 'network-only',
   });
@@ -71,7 +71,8 @@ export async function getCommunities(): Promise<CommunityListItem[]> {
 }
 
 export async function getLatestCommunities(): Promise<CommunityListItem[]> {
-  const { data } = await apolloClient.query<CommunitiesQueryResponse>({
+  const client = await getServerApolloClient();
+  const { data } = await client.query<CommunitiesQueryResponse>({
     query: GET_COMMUNITIES,
     variables: {
       sortField: 'createdAt',

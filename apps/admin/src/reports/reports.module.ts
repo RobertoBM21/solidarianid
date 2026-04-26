@@ -2,14 +2,14 @@ import { buildGrpcClientConfig } from '@app/shared/infrastructure/config/grpc.co
 import { GrpcPackages } from '@app/shared/infrastructure/grpc/grpc-packages';
 import { Module } from '@nestjs/common';
 import { ClientsModule } from '@nestjs/microservices';
-import { CoreReportsPort } from './application/ports/core-reports.port';
-import { CoreStatisticsPort } from './application/ports/core-statistics.port';
+import { RawStatisticsPort } from './application/ports/raw-statistics.port';
 import { StatisticsPort } from './application/ports/statistics.port';
+import { UserHistoryPort } from './application/ports/user-history.port';
 import { UsersPort } from './application/ports/users.port';
 import { StatisticsService } from './application/services/statistics.service';
-import { UsersService } from './application/services/users.service';
-import { GrpcCoreReportsAdapter } from './infrastructure/adapters/grpc-core-reports.adapter';
-import { GrpcCoreStatisticsAdapter } from './infrastructure/adapters/grpc-core-statistics.adapter';
+import { StatisticsGrpcAdapter } from './infrastructure/adapters/statistics-grpc.adapter';
+import { UserHistoryGrpcAdapter } from './infrastructure/adapters/user-history-grpc.adapter';
+import { UsersGrpcAdapter } from './infrastructure/adapters/users-grpc.adapter';
 import { DashboardController } from './infrastructure/presentation/controllers/dashboard.controller';
 import { ReportsController } from './infrastructure/presentation/controllers/reports.controller';
 
@@ -22,25 +22,21 @@ import { ReportsController } from './infrastructure/presentation/controllers/rep
     ]),
   ],
   providers: [
-    GrpcCoreStatisticsAdapter,
     {
-      provide: CoreStatisticsPort,
-      useExisting: GrpcCoreStatisticsAdapter,
+      provide: RawStatisticsPort,
+      useClass: StatisticsGrpcAdapter,
     },
-    StatisticsService,
     {
       provide: StatisticsPort,
-      useExisting: StatisticsService,
+      useClass: StatisticsService,
     },
-    GrpcCoreReportsAdapter,
-    {
-      provide: CoreReportsPort,
-      useExisting: GrpcCoreReportsAdapter,
-    },
-    UsersService,
     {
       provide: UsersPort,
-      useExisting: UsersService,
+      useClass: UsersGrpcAdapter,
+    },
+    {
+      provide: UserHistoryPort,
+      useClass: UserHistoryGrpcAdapter,
     },
   ],
   controllers: [DashboardController, ReportsController],

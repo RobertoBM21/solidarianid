@@ -10,6 +10,7 @@ interface SwaggerServiceEntry {
 
 export function setupSwaggerAggregation(app: INestApplication) {
   const coreUrl = process.env.CORE_URL ?? 'http://localhost:3000';
+  const identityUrl = process.env.IDENTITY_URL ?? 'http://localhost:3002';
 
   // Generate gateway's own OpenAPI doc (auth endpoints)
   const gatewayConfig = new DocumentBuilder()
@@ -23,7 +24,7 @@ export function setupSwaggerAggregation(app: INestApplication) {
   const services: SwaggerServiceEntry[] = [
     { name: 'Gateway – Auth', url: '/api/gateway-json' },
     { name: 'Core', url: '/api/core-json' },
-    // Future: { name: 'Donations', url: '/api/donations-json' },
+    { name: 'Identity', url: '/api/identity-json' },
   ];
 
   const expressApp = app.getHttpAdapter().getInstance() as Express;
@@ -41,6 +42,15 @@ export function setupSwaggerAggregation(app: INestApplication) {
       res.json(json);
     } catch {
       res.status(502).json({ error: 'Core service unavailable' });
+    }
+  });
+  expressApp.get('/api/identity-json', async (_req, res) => {
+    try {
+      const response = await fetch(`${identityUrl}/api-json`);
+      const json = (await response.json()) as Record<string, unknown>;
+      res.json(json);
+    } catch {
+      res.status(502).json({ error: 'Identity service unavailable' });
     }
   });
 

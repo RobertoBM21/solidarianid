@@ -2,11 +2,11 @@ import { Logger } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { StatisticsDto } from '../dtos/statistics.dto';
 import {
-  CoreCollaborationStatisticsData as CollaborationStatisticsData,
-  CoreCommunitiesStatisticsData as CommunitiesStatisticsData,
-  CoreStatisticsPort,
-  CoreInitiativesStatisticsData as InitiativesStatisticsData,
-} from '../ports/core-statistics.port';
+  CollaborationStatsData,
+  CommunityStatsData,
+  InitiativesStatsData,
+  RawStatisticsPort,
+} from '../ports/raw-statistics.port';
 import { StatisticsService } from './statistics.service';
 
 describe('StatisticsService', () => {
@@ -14,7 +14,7 @@ describe('StatisticsService', () => {
 
   jest.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
 
-  const mockCoreStatisticsGateway: jest.Mocked<CoreStatisticsPort> = {
+  const mockCoreStatisticsGateway: jest.Mocked<RawStatisticsPort> = {
     getCommunitiesStatistics: jest.fn(),
     getInitiativesStatistics: jest.fn(),
     getCollaborationStatistics: jest.fn(),
@@ -25,7 +25,7 @@ describe('StatisticsService', () => {
       providers: [
         StatisticsService,
         {
-          provide: CoreStatisticsPort,
+          provide: RawStatisticsPort,
           useValue: mockCoreStatisticsGateway,
         },
       ],
@@ -44,14 +44,12 @@ describe('StatisticsService', () => {
 
   describe('getGlobalStatistics', () => {
     it('should aggregate data from all queries and return StatisticsDto', async () => {
-      const communitiesData: CommunitiesStatisticsData = {
-        data: [
-          { id: 'c1', name: 'Community 1', users: 10, admins: 2 },
-          { id: 'c2', name: 'Community 2', users: 5, admins: 1 },
-        ],
-      };
+      const communitiesData: CommunityStatsData[] = [
+        { id: 'c1', name: 'Community 1', users: 10, admins: 2 },
+        { id: 'c2', name: 'Community 2', users: 5, admins: 1 },
+      ];
 
-      const initiativesData: InitiativesStatisticsData = {
+      const initiativesData: InitiativesStatsData = {
         odsCount: [{ ods: 1, count: 5 }],
         activity: [{ month: 1, year: 2023, communityId: 'c1', newCauses: 2 }],
         causes: [
@@ -67,7 +65,7 @@ describe('StatisticsService', () => {
         totalSupports: 50,
       };
 
-      const collaborationData: CollaborationStatisticsData = {
+      const collaborationData: CollaborationStatsData = {
         totalDonationsMoney: 1000,
       };
 
@@ -140,11 +138,9 @@ describe('StatisticsService', () => {
     });
 
     it('should return error if initiatives query fails', async () => {
-      mockCoreStatisticsGateway.getCommunitiesStatistics.mockResolvedValue({
-        data: [],
-      });
+      mockCoreStatisticsGateway.getCommunitiesStatistics.mockResolvedValue([]);
       mockCoreStatisticsGateway.getInitiativesStatistics.mockRejectedValue(
-        new Error('Init Fail'),
+        new Error('Initiatives error'),
       );
       mockCoreStatisticsGateway.getCollaborationStatistics.mockResolvedValue({
         totalDonationsMoney: 0,
@@ -153,14 +149,12 @@ describe('StatisticsService', () => {
       const result = await service.getGlobalStatistics();
       expect(result.isLeft()).toBeTruthy();
       if (result.isLeft()) {
-        expect(result.value.message).toBe('Init Fail');
+        expect(result.value.message).toBe('Initiatives error');
       }
     });
 
     it('should return error if collaboration query fails', async () => {
-      mockCoreStatisticsGateway.getCommunitiesStatistics.mockResolvedValue({
-        data: [],
-      });
+      mockCoreStatisticsGateway.getCommunitiesStatistics.mockResolvedValue([]);
       mockCoreStatisticsGateway.getInitiativesStatistics.mockResolvedValue({
         odsCount: [],
         activity: [],
@@ -169,13 +163,13 @@ describe('StatisticsService', () => {
         totalSupports: 0,
       });
       mockCoreStatisticsGateway.getCollaborationStatistics.mockRejectedValue(
-        new Error('Collab Fail'),
+        new Error('Collaboration error'),
       );
 
       const result = await service.getGlobalStatistics();
       expect(result.isLeft()).toBeTruthy();
       if (result.isLeft()) {
-        expect(result.value.message).toBe('Collab Fail');
+        expect(result.value.message).toBe('Collaboration error');
       }
     });
   });

@@ -11,10 +11,10 @@ RUN npm install
 
 COPY . .
 
-RUN npx nx build front
+RUN npm run build:front
 
 # STAGE 2: Production Runner
-FROM node:24-alpine AS runner
+FROM node:24-slim AS runner
 
 WORKDIR /app
 
@@ -24,9 +24,9 @@ ARG PORT=3080
 ENV PORT=${PORT}
 ENV HOSTNAME="0.0.0.0"
 
-COPY --from=builder /app/apps/front/public ./public
 COPY --from=builder /app/apps/front/.next/standalone ./
-COPY --from=builder /app/apps/front/.next/static ./dist/apps/front/.next/static
+COPY --from=builder /app/apps/front/public ./apps/front/public
+COPY --from=builder /app/apps/front/.next/static ./apps/front/.next/static
 
 EXPOSE ${PORT}
 

@@ -41,11 +41,11 @@ jobs:
       - name: Run MVC tests (Jest)
         run: npm run test:mvc:admin
 
-      - name: Build applications
-        run: npm run build:all
-
-      - name: Run admin application in background for end-to-end tests
-        run: npx cross-env NODE_ENV=test node ./dist/apps/admin/main.js &
+      - name: Launch services
+        run: |
+          cp .env.test .env
+          ./scripts/generate-secrets.sh
+          docker compose up --build --quiet-pull -d --wait
 
       - name: Run end-to-end tests (Cypress)
         run: npm run test:cypress

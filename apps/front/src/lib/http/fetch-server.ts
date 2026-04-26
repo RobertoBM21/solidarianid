@@ -3,7 +3,9 @@ import { authOptions } from '../auth/auth-options';
 import { ApiClient } from './api-client';
 
 const GATEWAY_URL =
-  process.env.NEXT_PUBLIC_GATEWAY_URL ?? 'http://localhost:3010';
+  process.env.INTERNAL_GATEWAY_URL ??
+  process.env.NEXT_PUBLIC_GATEWAY_URL ??
+  'http://localhost:3010';
 
 export function fetchServer(): ApiClient {
   return new ApiClient(async (endpoint, options = {}) => {

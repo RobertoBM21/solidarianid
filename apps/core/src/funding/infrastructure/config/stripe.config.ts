@@ -3,5 +3,7 @@ import { registerAs } from '@nestjs/config';
 
 export default registerAs('stripe', () => ({
   secretKey: getSecretFromEnvVar('STRIPE_SK'),
-  paymentSuccessUrl: getEnvVar('STRIPE_PAYMENT_SUCCESS_URL'),
+  paymentSuccessUrl:
+    getEnvVar('FRONTEND_URL') +
+    '/donations/complete?checkoutSessionId={CHECKOUT_SESSION_ID}',
 }));

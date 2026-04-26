@@ -17,46 +17,43 @@ El proyecto se divide en múltiples componentes:
 
 Es posible configurar cada componente back-end mediante variables de entorno. Se proporciona un archivo `.env.example` con la configuración mínima necesaria.
 
-| Variable            | Tipo     | Descripción                                             | Valor por defecto |
-| ------------------- | -------- | ------------------------------------------------------- | ----------------- |
-| `DB_HOST`           | `string` | Host de Postgres                                        | -                 |
-| `DB_PORT`           | `number` | Puerto de Postgres                                      | `5432`            |
-| `DB_USER`           | `string` | Usuario de Postgres                                     | -                 |
-| `DB_PASSWORD_FILE`  | `string` | Ruta del fichero que contiene la contraseña de Postgres | -                 |
-| `DB_NAME`           | `string` | Nombre de Postgres                                      | -                 |
-| `NATS_URL`          | `string` | URL de NATS                                             | -                 |
-| `CORE_GRPC_URL`     | `string` | URL en la que `core` escucha peticiones gRPC            | `localhost:5002`  |
-| `IDENTITY_GRPC_URL` | `string` | URL en la que `identity` escucha peticiones gRPC        | `localhost:5003`  |
+| Variable            | Tipo     | Descripción                                             | Valor por defecto       |
+| ------------------- | -------- | ------------------------------------------------------- | ----------------------- |
+| `DB_HOST`           | `string` | Host de Postgres                                        | -                       |
+| `DB_PORT`           | `number` | Puerto de Postgres                                      | `5432`                  |
+| `DB_USER`           | `string` | Usuario de Postgres                                     | -                       |
+| `DB_PASSWORD_FILE`  | `string` | Ruta del fichero que contiene la contraseña de Postgres | -                       |
+| `DB_NAME`           | `string` | Nombre de Postgres                                      | -                       |
+| `NATS_URL`          | `string` | URL de NATS                                             | -                       |
+| `CORE_GRPC_URL`     | `string` | URL en la que `core` escucha peticiones gRPC            | `localhost:5002`        |
+| `IDENTITY_GRPC_URL` | `string` | URL en la que `identity` escucha peticiones gRPC        | `localhost:5003`        |
+| `CORE_URL`          | `string` | URL interna del microservicio `core`                    | `http://localhost:3000` |
+| `IDENTITY_URL`      | `string` | URL interna del microservicio `identity`                | `http://localhost:3002` |
+| `FRONTEND_URL`      | `string` | URL del frontend                                        | `http://localhost:3080` |
 
 ### Aplicación: gateway
 
 Configuración específica de la pasarela de API:
 
-| Variable               | Tipo     | Descripción                                                  | Valor por defecto                            |
-| ---------------------- | -------- | ------------------------------------------------------------ | -------------------------------------------- |
-| `CORS_ORIGIN`          | `string` | Origen permitido para CORS                                   | `*`                                          |
-| `JWT_SECRET_FILE`      | `string` | Ruta del fichero que contiene el secreto para firmar JWT     | -                                            |
-| `JWT_EXPIRATION`       | `string` | Tiempo de expiración del JWT (formato `ms`, e.g. `7d`, `1h`) | `7d`                                         |
-| `GOOGLE_CLIENT_ID`     | `string` | Client ID de Google OAuth 2.0                                | -                                            |
-| `GOOGLE_CLIENT_SECRET` | `string` | Client Secret de Google OAuth 2.0                            | -                                            |
-| `GOOGLE_CALLBACK_URL`  | `string` | URL de callback de Google OAuth                              | `http://localhost:3010/auth/google/callback` |
-| `CORE_URL`             | `string` | URL interna del microservicio `core`                         | `http://localhost:3000`                      |
-| `IDENTITY_URL`         | `string` | URL interna del microservicio `identity`                     | `http://localhost:3002`                      |
-| `FRONTEND_URL`         | `string` | URL del frontend                                             | `http://localhost:3080`                      |
+| Variable               | Tipo     | Descripción                                                  | Valor por defecto |
+| ---------------------- | -------- | ------------------------------------------------------------ | ----------------- |
+| `JWT_SECRET_FILE`      | `string` | Ruta del fichero que contiene el secreto para firmar JWT     | -                 |
+| `JWT_EXPIRATION`       | `string` | Tiempo de expiración del JWT (formato `ms`, e.g. `7d`, `1h`) | `7d`              |
+| `GOOGLE_CLIENT_ID`     | `string` | Client ID de Google OAuth 2.0                                | -                 |
+| `GOOGLE_CLIENT_SECRET` | `string` | Client Secret de Google OAuth 2.0                            | -                 |
 
 ### Aplicación: core
 
 Configuración específica de la aplicación principal:
 
-| Variable                     | Tipo     | Descripción                                          | Valor por defecto |
-| ---------------------------- | -------- | ---------------------------------------------------- | ----------------- |
-| `REDIS_URL`                  | `string` | URL de la instancia Redis                            | -                 |
-| `KURRENTDB_URL`              | `string` | URL de conexión a KurrentDB                          | -                 |
-| `STRIPE_SK`                  | `string` | Clave secreta de Stripe                              | -                 |
-| `STRIPE_PAYMENT_SUCCESS_URL` | `string` | URL de redirección tras completar un pago en Stripe  | -                 |
-| `VAPID_PUBLIC_KEY`           | `string` | Clave pública VAPID para notificaciones push         | -                 |
-| `VAPID_PRIVATE_KEY`          | `string` | Clave privada VAPID para notificaciones push         | -                 |
-| `VAPID_SUBJECT`              | `string` | Subject VAPID (por ejemplo `mailto:dev@example.com`) | -                 |
+| Variable            | Tipo     | Descripción                                          | Valor por defecto |
+| ------------------- | -------- | ---------------------------------------------------- | ----------------- |
+| `REDIS_URL`         | `string` | URL de la instancia Redis                            | -                 |
+| `KURRENTDB_URL`     | `string` | URL de conexión a KurrentDB                          | -                 |
+| `STRIPE_SK`         | `string` | Clave secreta de Stripe                              | -                 |
+| `VAPID_PUBLIC_KEY`  | `string` | Clave pública VAPID para notificaciones push         | -                 |
+| `VAPID_PRIVATE_KEY` | `string` | Clave privada VAPID para notificaciones push         | -                 |
+| `VAPID_SUBJECT`     | `string` | Subject VAPID (por ejemplo `mailto:dev@example.com`) | -                 |
 
 ### Aplicación: admin
 
@@ -86,11 +83,7 @@ Para facilitar el desarrollo se ha incluido un archivo `docker-compose.dev.yml` 
 cp .env.example .env
 
 # Crear secretos con contenido aleatorio
-openssl rand -base64 32 | tr -d '\n' > secrets/core_password.txt
-openssl rand -base64 32 | tr -d '\n' > secrets/identity_password.txt
-openssl rand -base64 32 | tr -d '\n' > secrets/admin_password.txt
-openssl rand -base64 32 | tr -d '\n' > secrets/admin_session_secret.txt
-openssl rand -base64 32 | tr -d '\n' > secrets/jwt_secret.txt
+./scripts/generate-secrets.sh
 
 # Levantar la infraestructura local
 docker compose -f docker-compose.dev.yml up -d --wait
@@ -103,7 +96,7 @@ npm run proto:gen
 # npm run proto:gen:win (Windows)
 
 # Generar claves VAPID para notificaciones push
-npx web-push generate-vapid-keys
+npm run vapid:gen
 
 # Lanzar las aplicaciones backend
 npm run start:dev:core

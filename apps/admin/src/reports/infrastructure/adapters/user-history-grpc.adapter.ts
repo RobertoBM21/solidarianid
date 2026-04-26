@@ -4,10 +4,6 @@ import {
 } from '@app/shared/application/dtos/my-collaborations.dto';
 import { GrpcPackages } from '@app/shared/infrastructure/grpc/grpc-packages';
 import {
-  IDENTITY_SERVICE_NAME,
-  IdentityServiceClient,
-} from '@app/shared/infrastructure/grpc/stubs/identity';
-import {
   REPORTS_SERVICE_NAME,
   ReportsServiceClient,
   UserCollaborationHistory as UserCollaborationHistoryGrpc,
@@ -17,23 +13,17 @@ import {
 import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import type { ClientGrpc } from '@nestjs/microservices/interfaces/client-grpc.interface';
 import { firstValueFrom } from 'rxjs';
-import {
-  CoreReportUsersPage,
-  CoreReportsPort,
-} from '../../application/ports/core-reports.port';
+import { UserHistoryPort } from '../../application/ports/user-history.port';
 
 @Injectable()
-export class GrpcCoreReportsAdapter implements CoreReportsPort, OnModuleInit {
-  private readonly logger = new Logger(GrpcCoreReportsAdapter.name);
+export class UserHistoryGrpcAdapter implements UserHistoryPort, OnModuleInit {
+  private readonly logger = new Logger(UserHistoryGrpcAdapter.name);
 
   private coreService!: ReportsServiceClient;
-  private identityService!: IdentityServiceClient;
 
   constructor(
     @Inject(GrpcPackages.Reports.Client)
     private readonly coreGrpcClient: ClientGrpc,
-    @Inject(GrpcPackages.Identity.Client)
-    private readonly identityGrpcClient: ClientGrpc,
   ) {}
 
   onModuleInit() {
@@ -41,20 +31,9 @@ export class GrpcCoreReportsAdapter implements CoreReportsPort, OnModuleInit {
       this.coreGrpcClient.getService<ReportsServiceClient>(
         REPORTS_SERVICE_NAME,
       );
-    this.identityService =
-      this.identityGrpcClient.getService<IdentityServiceClient>(
-        IDENTITY_SERVICE_NAME,
-      );
   }
 
-  listUsers(page?: number, search?: string): Promise<CoreReportUsersPage> {
-    this.logger.debug('Fetching users from gRPC service...');
-    return firstValueFrom(this.identityService.listUsers({ page, search }));
-  }
-
-  async getUserContributions(
-    userId: string,
-  ): Promise<UserCollaborationHistory> {
+  async getUserHistory(userId: string): Promise<UserCollaborationHistory> {
     this.logger.debug(
       `Fetching user history for userId ${userId} from gRPC service...`,
     );

@@ -96,10 +96,6 @@ async function createGatewayApplication(): Promise<NestExpressApplication> {
 
   const app = moduleFixture.createNestApplication<NestExpressApplication>();
 
-  app.enableCors({
-    origin: process.env.CORS_ORIGIN ?? '*',
-  });
-
   setupSwaggerAggregation(app);
   setupProxy(app);
 
