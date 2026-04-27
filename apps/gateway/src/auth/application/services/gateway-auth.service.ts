@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { RegisterDto } from '../dtos/register.dto';
 import { CoreAuthClientPort } from '../ports/core-auth-client.port';
 import { GatewayAuthPort } from '../ports/gateway-auth.port';
-import { RegisterDto } from '../dtos/register.dto';
 
 @Injectable()
 export class GatewayAuthService implements GatewayAuthPort {
