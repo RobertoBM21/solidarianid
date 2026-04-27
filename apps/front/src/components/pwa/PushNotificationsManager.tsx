@@ -10,10 +10,7 @@ import {
   removePushSubscription,
 } from '../../services/push-notifications.service';
 
-const VAPID_PUBLIC_KEY = process.env.NEXT_VAPID_PUBLIC_KEY ?? '';
-const VAPID_CONFIG_ERROR = VAPID_PUBLIC_KEY
-  ? ''
-  : 'Falta la clave pública VAPID en la configuración del frontend.';
+const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? '';
 
 function isPushSupported(): boolean {
   return (
@@ -63,7 +60,7 @@ export default function PushNotificationsManager() {
   const [subscribed, setSubscribed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const [error, setError] = useState(VAPID_CONFIG_ERROR);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (status !== 'authenticated') {
@@ -76,15 +73,6 @@ export default function PushNotificationsManager() {
       if (!isPushSupported()) {
         if (active) {
           setSupported(false);
-        }
-        return;
-      }
-
-      if (VAPID_CONFIG_ERROR) {
-        if (active) {
-          setSupported(true);
-          setPermission(Notification.permission);
-          setError(VAPID_CONFIG_ERROR);
         }
         return;
       }
@@ -137,10 +125,6 @@ export default function PushNotificationsManager() {
         throw new Error(
           'Este navegador no soporta notificaciones push en esta aplicación.',
         );
-      }
-
-      if (VAPID_CONFIG_ERROR) {
-        throw new Error(VAPID_CONFIG_ERROR);
       }
 
       const nextPermission =
@@ -237,9 +221,7 @@ export default function PushNotificationsManager() {
           onClick={() => {
             void handleEnableNotifications();
           }}
-          disabled={
-            loading || !supported || Boolean(VAPID_CONFIG_ERROR) || subscribed
-          }
+          disabled={loading || !supported || subscribed}
         >
           {loading && !subscribed ? 'Activando...' : 'Activar notificaciones'}
         </Button>

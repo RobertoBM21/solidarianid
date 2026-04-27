@@ -28,6 +28,7 @@ import {
   MembershipRequestRepository,
 } from '../../domain/repositories/membership-request.repository';
 import { MembershipRequestOutDto } from '../dtos/membership-out.dto';
+import { MembershipNotificationsPort } from '../ports/membership-notifications.port';
 import { MembershipRequestsPort } from '../ports/membership-requests.port';
 
 @Injectable()
@@ -37,6 +38,7 @@ export class MembershipRequestsService implements MembershipRequestsPort {
     private readonly communityRepository: CommunityRepository,
     private readonly memberRepository: CommunityMemberRepository,
     private readonly domainEvents: DomainEventsPort,
+    private readonly membershipNotificationsPort: MembershipNotificationsPort,
   ) {}
 
   async requestMembership(
@@ -190,6 +192,12 @@ export class MembershipRequestsService implements MembershipRequestsPort {
     await this.membershipRepository.save(request);
 
     await this.domainEvents.dispatch(request);
+
+    await this.membershipNotificationsPort.sendMembershipDecision(
+      request.userId.toString(),
+      community.name,
+      verdict === MembershipRequestStatus.ACCEPTED,
+    );
 
     const dto = new MembershipRequestOutDto(request);
     return right(dto);

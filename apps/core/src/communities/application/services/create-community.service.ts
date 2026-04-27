@@ -1,19 +1,24 @@
 import { Either, left, right } from '@app/shared/domain';
+import { Injectable } from '@nestjs/common';
 import {
   Community,
   CommunityCreationError,
   CommunityNameAlreadyExistsError,
-} from '../community.aggregate';
-import { CommunityRepository } from '../repositories/community.repository';
+} from '../../domain/community.aggregate';
+import { CommunityRepository } from '../../domain/repositories/community.repository';
+import { CreateCommunityPort } from '../ports/create-community.port';
 
-export class CommunityFactory {
-  constructor(private readonly repository: CommunityRepository) {}
+@Injectable()
+export class CreateCommunityService extends CreateCommunityPort {
+  constructor(private readonly repository: CommunityRepository) {
+    super();
+  }
 
   async createCommunity(data: {
     name: string;
     description: string;
     adminId: string;
-  }): Promise<Either<CommunityCreationError, Community>> {
+  }): Promise<Either<CommunityCreationError, void>> {
     const nameAlreadyExists = await this.repository.existsByName(data.name);
     if (nameAlreadyExists) {
       return left(new CommunityNameAlreadyExistsError(data.name));
@@ -25,11 +30,11 @@ export class CommunityFactory {
       admins: [data.adminId],
     });
     if (communityOrError.isLeft()) {
-      return communityOrError;
+      return left(communityOrError.value);
     }
 
     const community = communityOrError.value;
     await this.repository.save(community);
-    return right(community);
+    return right(undefined);
   }
 }

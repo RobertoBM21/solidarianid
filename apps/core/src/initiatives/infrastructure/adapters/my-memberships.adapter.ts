@@ -1,6 +1,6 @@
 import { UserMembershipHistoryItem } from '@app/shared/application/dtos/my-collaborations.dto';
 import { Injectable } from '@nestjs/common';
-import { CommunitiesIntegrationService } from '../../../communities/application/services/communities-integration.service';
+import { CommunitiesIntegrationService } from '../../../communities/infrastructure/communities-integration.service';
 import { GetUserMembershipsPort } from '../../application/ports/get-user-memberships.port';
 
 @Injectable()

@@ -51,8 +51,8 @@ Configuración específica de la aplicación principal:
 | `REDIS_URL`         | `string` | URL de la instancia Redis                            | -                 |
 | `KURRENTDB_URL`     | `string` | URL de conexión a KurrentDB                          | -                 |
 | `STRIPE_SK`         | `string` | Clave secreta de Stripe                              | -                 |
-| `VAPID_PUBLIC_KEY`  | `string` | Clave pública VAPID para notificaciones push         | -                 |
-| `VAPID_PRIVATE_KEY` | `string` | Clave privada VAPID para notificaciones push         | -                 |
+| `VAPID_PUBLIC_KEY`  | `string` | Clave pública VAPID                                  | -                 |
+| `VAPID_PRIVATE_KEY` | `string` | Clave privada VAPID                                  | -                 |
 | `VAPID_SUBJECT`     | `string` | Subject VAPID (por ejemplo `mailto:dev@example.com`) | -                 |
 
 ### Aplicación: admin
@@ -67,12 +67,12 @@ Configuración específica de la aplicación de administración:
 
 Configuración específica de la aplicación de frontend:
 
-| Variable                       | Tipo     | Descripción                               | Valor por defecto     |
-| ------------------------------ | -------- | ----------------------------------------- | --------------------- |
-| `NEXTAUTH_URL`                 | `string` | URL del microservicio frontend            | -                     |
-| `NEXTAUTH_SECRET`              | `string` | Secreto de NextAuth                       | -                     |
-| `NEXT_PUBLIC_GATEWAY_URL`      | `string` | URL del microservicio gateway             | http://localhost:3010 |
-| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | `string` | Clave pública VAPID expuesta al navegador | -                     |
+| Variable                       | Tipo     | Descripción                    | Valor por defecto     |
+| ------------------------------ | -------- | ------------------------------ | --------------------- |
+| `NEXTAUTH_URL`                 | `string` | URL del microservicio frontend | -                     |
+| `NEXTAUTH_SECRET`              | `string` | Secreto de NextAuth            | -                     |
+| `NEXT_PUBLIC_GATEWAY_URL`      | `string` | URL del microservicio gateway  | http://localhost:3010 |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | `string` | Clave pública VAPID            | -                     |
 
 ## Desarrollo
 

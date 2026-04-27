@@ -1,13 +1,15 @@
 import { InvalidCommunityNameError } from '@app/shared/domain/value-objects/community-name.vo';
+import { Test, TestingModule } from '@nestjs/testing';
 import { v4 } from 'uuid';
 import {
   Community,
   CommunityNameAlreadyExistsError,
-} from '../community.aggregate';
-import { CommunityFactory } from './community-factory.service';
+} from '../../domain/community.aggregate';
+import { CommunityRepository } from '../../domain/repositories/community.repository';
+import { CreateCommunityService } from './create-community.service';
 
-describe('CommunityFactory', () => {
-  let service: CommunityFactory;
+describe('CreateCommunityService', () => {
+  let service: CreateCommunityService;
 
   const mockCommunityRepository = {
     exists: jest.fn(),
@@ -18,8 +20,18 @@ describe('CommunityFactory', () => {
     remove: jest.fn(),
   };
 
-  beforeEach(() => {
-    service = new CommunityFactory(mockCommunityRepository);
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        CreateCommunityService,
+        {
+          provide: CommunityRepository,
+          useValue: mockCommunityRepository,
+        },
+      ],
+    }).compile();
+
+    service = module.get<CreateCommunityService>(CreateCommunityService);
   });
 
   afterEach(() => {
@@ -41,14 +53,9 @@ describe('CommunityFactory', () => {
     });
 
     expect(result.isRight()).toBe(true);
-    if (result.isLeft()) {
-      return;
-    }
-    expect(result.value).toBeInstanceOf(Community);
-    expect(result.value.name).toBe('New Community');
-    expect(result.value.description).toBe('A description');
-    expect(result.value.admins.value[0].value).toBe(adminId);
-    expect(mockCommunityRepository.save).toHaveBeenCalledWith(result.value);
+    expect(mockCommunityRepository.save).toHaveBeenCalledWith(
+      expect.any(Community),
+    );
   });
 
   it('should not create a community with an existing name', async () => {

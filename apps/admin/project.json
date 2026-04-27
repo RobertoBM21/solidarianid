@@ -6,6 +6,7 @@
   "targets": {
     "build": {
       "executor": "nx:run-commands",
+      "dependsOn": ["build-css", "build-sass"],
       "options": {
         "command": "webpack-cli build",
         "args": ["--node-env=production"],
@@ -16,6 +17,20 @@
           "args": ["--node-env=development"]
         }
       }
+    },
+    "build-css": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "postcss apps/admin/assets/main.css -o apps/admin/src/public/main.css"
+      },
+      "outputs": ["{workspaceRoot}/apps/admin/src/public/main.css"]
+    },
+    "build-sass": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "sass apps/admin/assets/reports.sass apps/admin/src/public/reports.css --no-source-map"
+      },
+      "outputs": ["{workspaceRoot}/apps/admin/src/public/reports.css"]
     },
     "prune-lockfile": {
       "dependsOn": ["build"],

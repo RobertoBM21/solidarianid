@@ -1,13 +1,8 @@
-import { UniqueEntityID, left } from '@app/shared/domain';
+import { UniqueEntityID } from '@app/shared/domain';
 import { CommunityProposalAccepted } from '@app/shared/domain/events/community-proposal-accepted.event';
 import { Logger } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-  Community,
-  CommunityNameAlreadyExistsError,
-} from '../../domain/community.aggregate';
-import { CommunityProposalRepository } from '../../domain/repositories/community-proposal.repository';
-import { CommunityFactory } from '../../domain/services/community-factory.service';
+import { HandleCommunityProposalAcceptedPort } from '../../application/ports/handle-community-proposal-accepted.port';
 import { CommunityProposalAcceptedConsumer } from './community-proposal-accepted.consumer';
 
 describe('CommunityProposalAcceptedConsumer', () => {
@@ -15,15 +10,8 @@ describe('CommunityProposalAcceptedConsumer', () => {
 
   jest.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
 
-  const mockCommunityFactory = {
-    createCommunity: jest.fn(),
-  };
-
-  const mockProposalRepository = {
-    save: jest.fn(),
-    findById: jest.fn(),
-    remove: jest.fn(),
-    updateAcceptedStatus: jest.fn(),
+  const mockHandleProposalAccepted = {
+    handle: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -31,12 +19,8 @@ describe('CommunityProposalAcceptedConsumer', () => {
       providers: [
         CommunityProposalAcceptedConsumer,
         {
-          provide: CommunityFactory,
-          useValue: mockCommunityFactory,
-        },
-        {
-          provide: CommunityProposalRepository,
-          useValue: mockProposalRepository,
+          provide: HandleCommunityProposalAcceptedPort,
+          useValue: mockHandleProposalAccepted,
         },
       ],
     }).compile();
@@ -55,8 +39,8 @@ describe('CommunityProposalAcceptedConsumer', () => {
   });
 
   describe('handleCommunityProposalAccepted', () => {
-    it('should create a new community', async () => {
-      const createData: CommunityProposalAccepted = {
+    it('should delegate to HandleCommunityProposalAcceptedPort', async () => {
+      const event: CommunityProposalAccepted = {
         name: 'Created Community',
         description: 'Created Description',
         requesterId: UniqueEntityID.create().toString(),
@@ -64,47 +48,16 @@ describe('CommunityProposalAcceptedConsumer', () => {
         occurredOn: new Date(),
       };
 
-      mockCommunityFactory.createCommunity.mockResolvedValue(
-        Community.create({
-          name: createData.name,
-          description: createData.description,
-          admins: [createData.requesterId],
-          causes: [],
-        }),
-      );
+      mockHandleProposalAccepted.handle.mockResolvedValue(undefined);
 
-      await handler.handleCommunityProposalAccepted(createData);
+      await handler.handleCommunityProposalAccepted(event);
 
-      expect(mockCommunityFactory.createCommunity).toHaveBeenCalledWith({
-        name: createData.name,
-        description: createData.description,
-        adminId: createData.requesterId,
+      expect(mockHandleProposalAccepted.handle).toHaveBeenCalledWith({
+        name: event.name,
+        description: event.description,
+        requesterId: event.requesterId,
+        proposalId: event.proposalId,
       });
-      expect(mockProposalRepository.updateAcceptedStatus).toHaveBeenCalledWith(
-        createData.proposalId,
-        true,
-      );
-    });
-
-    it('should reject creation on factory error', async () => {
-      const createData: CommunityProposalAccepted = {
-        name: 'Community 1',
-        description: 'Description 1',
-        requesterId: UniqueEntityID.create().toString(),
-        proposalId: UniqueEntityID.create().toString(),
-        occurredOn: new Date(),
-      };
-
-      mockCommunityFactory.createCommunity.mockResolvedValue(
-        left(new CommunityNameAlreadyExistsError(createData.name)),
-      );
-
-      await handler.handleCommunityProposalAccepted(createData);
-
-      expect(mockCommunityFactory.createCommunity).toHaveBeenCalled();
-      expect(
-        mockProposalRepository.updateAcceptedStatus,
-      ).not.toHaveBeenCalled();
     });
   });
 });

@@ -2,23 +2,25 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { MembershipRequestAcceptedHandler } from './application/handlers/membership-request-accepted.handler';
-import { MembershipRequestRejectedHandler } from './application/handlers/membership-request-rejected.handler';
 import { CommunitiesPort } from './application/ports/communities.port';
 import { CommunityMembersPort } from './application/ports/community-members.port';
 import { CommunityStatisticsPort } from './application/ports/community-statistics.port';
+import { CreateCommunityPort } from './application/ports/create-community.port';
+import { HandleCommunityProposalAcceptedPort } from './application/ports/handle-community-proposal-accepted.port';
 import { MembershipNotificationsPort } from './application/ports/membership-notifications.port';
 import { MembershipRequestsPort } from './application/ports/membership-requests.port';
 import { UserProposalsPort } from './application/ports/user-proposals.port';
-import { CommunitiesIntegrationService } from './application/services/communities-integration.service';
 import { CommunitiesService } from './application/services/communities.service';
 import { CommunityMembersService } from './application/services/community-members.service';
+import { CreateCommunityService } from './application/services/create-community.service';
+import { HandleCommunityProposalAcceptedService } from './application/services/handle-community-proposal-accepted.service';
 import { MembershipRequestsService } from './application/services/membership-requests.service';
 import { CommunityMemberRepository } from './domain/repositories/community-member.repository';
 import { CommunityProposalRepository } from './domain/repositories/community-proposal.repository';
 import { CommunityRepository } from './domain/repositories/community.repository';
 import { MembershipRequestRepository } from './domain/repositories/membership-request.repository';
-import { CommunityFactory } from './domain/services/community-factory.service';
 import { MembershipNotificationsAdapter } from './infrastructure/adapters/membership-notifications.adapter';
+import { CommunitiesIntegrationService } from './infrastructure/communities-integration.service';
 import { CommunityProposalAcceptedConsumer } from './infrastructure/consumers/community-proposal-accepted.consumer';
 import { CommunityProposalRejectedConsumer } from './infrastructure/consumers/community-proposal-rejected.consumer';
 import { CommunitiesGrpcController } from './infrastructure/grpc/communities-grpc.controller';
@@ -70,13 +72,14 @@ import { CommunitiesResolver } from './infrastructure/presentation/graphql/commu
       useClass: CommunityProposalRepositoryImpl,
     },
 
-    // Domain services
+    // Application services
     {
-      provide: CommunityFactory,
-      inject: [CommunityRepository],
-      useFactory: (communityRepository: CommunityRepository) => {
-        return new CommunityFactory(communityRepository);
-      },
+      provide: CreateCommunityPort,
+      useClass: CreateCommunityService,
+    },
+    {
+      provide: HandleCommunityProposalAcceptedPort,
+      useClass: HandleCommunityProposalAcceptedService,
     },
 
     // Ports
@@ -108,7 +111,6 @@ import { CommunitiesResolver } from './infrastructure/presentation/graphql/commu
 
     // Handlers
     MembershipRequestAcceptedHandler,
-    MembershipRequestRejectedHandler,
 
     CommunitiesIntegrationService,
 

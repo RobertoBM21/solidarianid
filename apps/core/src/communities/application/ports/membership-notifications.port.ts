@@ -1,11 +1,7 @@
 export abstract class MembershipNotificationsPort {
-  abstract sendMembershipAccepted(
+  abstract sendMembershipDecision(
     userId: string,
-    communityId: string,
-  ): Promise<void>;
-
-  abstract sendMembershipRejected(
-    userId: string,
-    communityId: string,
+    communityName: string,
+    accepted: boolean,
   ): Promise<void>;
 }

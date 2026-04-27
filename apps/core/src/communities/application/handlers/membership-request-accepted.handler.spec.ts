@@ -4,7 +4,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CommunityMember } from '../../domain/community-member.aggregate';
 import { MembershipRequestAcceptedEvent } from '../../domain/events/membership-request-accepted.event';
 import { CommunityMemberRepository } from '../../domain/repositories/community-member.repository';
-import { MembershipNotificationsPort } from '../ports/membership-notifications.port';
 import { MembershipRequestAcceptedHandler } from './membership-request-accepted.handler';
 
 describe('MembershipRequestAcceptedHandler', () => {
@@ -12,9 +11,6 @@ describe('MembershipRequestAcceptedHandler', () => {
 
   const mockCommunityMemberRepository = {
     save: jest.fn(),
-  };
-  const mockMembershipNotificationsPort = {
-    sendMembershipAccepted: jest.fn(),
   };
 
   jest.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
@@ -26,10 +22,6 @@ describe('MembershipRequestAcceptedHandler', () => {
         {
           provide: CommunityMemberRepository,
           useValue: mockCommunityMemberRepository,
-        },
-        {
-          provide: MembershipNotificationsPort,
-          useValue: mockMembershipNotificationsPort,
         },
       ],
     }).compile();
@@ -53,9 +45,6 @@ describe('MembershipRequestAcceptedHandler', () => {
     const event = new MembershipRequestAcceptedEvent(communityId, userId);
 
     mockCommunityMemberRepository.save.mockResolvedValue(undefined);
-    mockMembershipNotificationsPort.sendMembershipAccepted.mockResolvedValue(
-      undefined,
-    );
 
     await handler.handle(event);
 
@@ -68,8 +57,5 @@ describe('MembershipRequestAcceptedHandler', () => {
     expect(savedMember.communityId.toString()).toBe(communityId);
     expect(savedMember.userId.toString()).toBe(userId);
     expect(savedMember.role.isAdmin()).toBe(false);
-    expect(
-      mockMembershipNotificationsPort.sendMembershipAccepted,
-    ).toHaveBeenCalledWith(userId, communityId);
   });
 });

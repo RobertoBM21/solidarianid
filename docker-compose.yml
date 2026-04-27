@@ -117,7 +117,7 @@ services:
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
       - INTERNAL_GATEWAY_URL=http://gateway:3010
       - NEXT_PUBLIC_GATEWAY_URL=${GATEWAY_URL}
-      - NEXT_VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY}
+      - NEXT_PUBLIC_VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY}
     depends_on:
       - gateway
 

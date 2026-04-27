@@ -1,9 +1,9 @@
 import { UserMembershipHistoryItem } from '@app/shared/application/dtos/my-collaborations.dto';
 import { UniqueEntityID } from '@app/shared/domain';
 import { Injectable } from '@nestjs/common';
-import { Cause } from '../../domain/entities/cause.entity';
-import { CommunityMemberRepository } from '../../domain/repositories/community-member.repository';
-import { CommunityRepository } from '../../domain/repositories/community.repository';
+import { Cause } from '../domain/entities/cause.entity';
+import { CommunityMemberRepository } from '../domain/repositories/community-member.repository';
+import { CommunityRepository } from '../domain/repositories/community.repository';
 
 type CauseData = Pick<
   Cause,

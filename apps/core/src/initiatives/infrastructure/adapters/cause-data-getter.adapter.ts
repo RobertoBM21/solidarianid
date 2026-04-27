@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CommunitiesIntegrationService } from '../../../communities/application/services/communities-integration.service';
+import { CommunitiesIntegrationService } from '../../../communities/infrastructure/communities-integration.service';
 import { CauseData } from '../../application/dtos/cause.dto';
 import { CauseDataGetterPort } from '../../application/ports/cause-data-getter.port';
 

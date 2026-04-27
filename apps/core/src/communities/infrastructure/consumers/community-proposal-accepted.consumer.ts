@@ -2,8 +2,7 @@ import { CommunityProposalAccepted } from '@app/shared/domain/events/community-p
 import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
 import { ApiExcludeController } from '@nestjs/swagger';
-import { CommunityProposalRepository } from '../../domain/repositories/community-proposal.repository';
-import { CommunityFactory } from '../../domain/services/community-factory.service';
+import { HandleCommunityProposalAcceptedPort } from '../../application/ports/handle-community-proposal-accepted.port';
 
 @Controller()
 @ApiExcludeController()
@@ -11,8 +10,7 @@ export class CommunityProposalAcceptedConsumer {
   private readonly logger = new Logger(CommunityProposalAcceptedConsumer.name);
 
   constructor(
-    private readonly communityFactory: CommunityFactory,
-    private readonly proposalRepository: CommunityProposalRepository,
+    private readonly handleProposalAccepted: HandleCommunityProposalAcceptedPort,
   ) {}
 
   @MessagePattern(CommunityProposalAccepted.name)
@@ -22,17 +20,11 @@ export class CommunityProposalAcceptedConsumer {
     this.logger.debug(
       `Handling CommunityProposalAccepted event - name='${event.name}' requesterId=${event.requesterId}`,
     );
-    const result = await this.communityFactory.createCommunity({
+    await this.handleProposalAccepted.handle({
       name: event.name,
       description: event.description,
-      adminId: event.requesterId,
+      requesterId: event.requesterId,
+      proposalId: event.proposalId,
     });
-    if (result.isLeft()) {
-      this.logger.error(
-        `Failed to create community for proposalId=${event.proposalId}: ${result.value.message}`,
-      );
-      return;
-    }
-    await this.proposalRepository.updateAcceptedStatus(event.proposalId, true);
   }
 }

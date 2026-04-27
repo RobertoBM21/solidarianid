@@ -25,6 +25,7 @@ import {
   MembershipRequestNotFoundError,
   MembershipRequestRepository,
 } from '../../domain/repositories/membership-request.repository';
+import { MembershipNotificationsPort } from '../ports/membership-notifications.port';
 import { MembershipRequestsService } from './membership-requests.service';
 
 describe('MembershipRequestsService', () => {
@@ -51,6 +52,10 @@ describe('MembershipRequestsService', () => {
     dispatch: jest.fn(),
   };
 
+  const mockMembershipNotificationsPort = {
+    sendMembershipDecision: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -70,6 +75,10 @@ describe('MembershipRequestsService', () => {
         {
           provide: DomainEventsPort,
           useValue: mockDomainEvents,
+        },
+        {
+          provide: MembershipNotificationsPort,
+          useValue: mockMembershipNotificationsPort,
         },
       ],
     }).compile();
@@ -146,6 +155,7 @@ describe('MembershipRequestsService', () => {
 
     const mockCommunity = {
       id: communityId,
+      name: 'Test Community',
       admins: {
         has: jest.fn(),
       },
@@ -164,6 +174,10 @@ describe('MembershipRequestsService', () => {
       mockCommunityRepository.findById.mockResolvedValue(right(mockCommunity));
       mockCommunity.admins.has.mockReturnValue(true);
       mockMembershipRepository.save.mockResolvedValue(undefined);
+      mockDomainEvents.dispatch.mockResolvedValue(undefined);
+      mockMembershipNotificationsPort.sendMembershipDecision.mockResolvedValue(
+        undefined,
+      );
 
       const result = await service.reviewRequest(
         adminId.toString(),
@@ -173,6 +187,9 @@ describe('MembershipRequestsService', () => {
 
       expect(result.isRight()).toBe(true);
       expect(mockRequest.accepted).toBe(true);
+      expect(
+        mockMembershipNotificationsPort.sendMembershipDecision,
+      ).toHaveBeenCalledWith(userId.toString(), 'Test Community', true);
     });
 
     it('should reject a request successfully', async () => {
@@ -188,6 +205,10 @@ describe('MembershipRequestsService', () => {
       mockCommunityRepository.findById.mockResolvedValue(right(mockCommunity));
       mockCommunity.admins.has.mockReturnValue(true);
       mockMembershipRepository.save.mockResolvedValue(undefined);
+      mockDomainEvents.dispatch.mockResolvedValue(undefined);
+      mockMembershipNotificationsPort.sendMembershipDecision.mockResolvedValue(
+        undefined,
+      );
 
       const result = await service.reviewRequest(
         adminId.toString(),
@@ -197,6 +218,9 @@ describe('MembershipRequestsService', () => {
 
       expect(result.isRight()).toBe(true);
       expect(mockRequest.accepted).toBe(false);
+      expect(
+        mockMembershipNotificationsPort.sendMembershipDecision,
+      ).toHaveBeenCalledWith(userId.toString(), 'Test Community', false);
     });
 
     it('should fail if user is not admin', async () => {
