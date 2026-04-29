@@ -12,6 +12,9 @@ env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
   ECR_REPOSITORY_CORE: ${{ secrets.ECR_REPOSITORY_CORE }}
   ECR_REPOSITORY_ADMIN: ${{ secrets.ECR_REPOSITORY_ADMIN }}
+  ECR_REPOSITORY_GATEWAY: ${{ secrets.ECR_REPOSITORY_GATEWAY }}
+  ECR_REPOSITORY_IDENTITY: ${{ secrets.ECR_REPOSITORY_IDENTITY }}
+  ECR_REPOSITORY_FRONT: ${{ secrets.ECR_REPOSITORY_FRONT }}
   STACK_NAME: SolidarianStack
 
 jobs:
@@ -45,7 +48,7 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_CORE:$IMAGE_TAG --build-arg APP=solidarianid .
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_CORE:$IMAGE_TAG --build-arg APP=core .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY_CORE:$IMAGE_TAG
 
       - name: Build, tag, and push Admin image
@@ -55,6 +58,30 @@ jobs:
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_ADMIN:$IMAGE_TAG --build-arg APP=admin .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY_ADMIN:$IMAGE_TAG
+
+      - name: Build, tag, and push Gateway image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_GATEWAY:$IMAGE_TAG --build-arg APP=gateway .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY_GATEWAY:$IMAGE_TAG
+
+      - name: Build, tag, and push Identity image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_IDENTITY:$IMAGE_TAG --build-arg APP=identity .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY_IDENTITY:$IMAGE_TAG
+
+      - name: Build, tag, and push Front image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_FRONT:$IMAGE_TAG -f Dockerfile.front .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY_FRONT:$IMAGE_TAG
 
       - name: Deploy CloudFormation Stack
         run: |
@@ -82,9 +109,20 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_PASSWORD_CORE: ${{ secrets.DB_PASSWORD_CORE }}
+          DB_PASSWORD_IDENTITY: ${{ secrets.DB_PASSWORD_IDENTITY }}
+          DB_PASSWORD_ADMIN: ${{ secrets.DB_PASSWORD_ADMIN }}
           STRIPE_SK: ${{ secrets.STRIPE_SK }}
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
+          GATEWAY_URL: ${{ secrets.GATEWAY_URL }}
+          VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+          VAPID_SUBJECT: ${{ secrets.VAPID_SUBJECT }}
         run: |
           envsubst < infra/k8s/deployment.yaml > infra/k8s/deployment-final.yaml
 
