@@ -132,3 +132,56 @@ npm run test:e2e
 # Detener servicios
 docker compose -f docker-compose.test.yml down
 ```
+
+## Despliegue en AWS (rama `cloud`)
+
+El CD se lanza automáticamente con cada push y pull request a la rama `cloud`.
+
+Despliega las imágenes en Amazon ECR y aplica los manifiestos en un clúster EKS creado mediante CloudFormation.
+
+### Secretos de GitHub necesarios
+
+Todos los secretos se configuran en **Settings → Secrets and variables → Actions** del repositorio.
+
+#### Credenciales AWS (renovar en cada sesión de laboratorio)
+
+| Secreto                 | Descripción                                                                      |
+| ----------------------- | -------------------------------------------------------------------------------- |
+| `AWS_ACCESS_KEY_ID`     | Access Key ID de la sesión AWS Academy                                           |
+| `AWS_SECRET_ACCESS_KEY` | Secret Access Key de la sesión AWS Academy                                       |
+| `AWS_SESSION_TOKEN`     | Session Token de la sesión AWS Academy                                           |
+| `LAB_ROLE_ARN`          | ARN del rol IAM del laboratorio (p. ej. `arn:aws:iam::<ID-CUENTA>:role/LabRole`) |
+
+> ⚠️ Las credenciales de AWS Academy caducan cada pocos horas. Hay que actualizarlas antes de cada despliegue.
+
+#### Repositorios ECR
+
+Teneis que crear vuestros repositorios de ECR para lanzarlo con vuestra cuenta AWS.
+
+| Secreto                   | Descripción                                |
+| ------------------------- | ------------------------------------------ |
+| `ECR_REPOSITORY_CORE`     | Nombre del repositorio ECR para `core`     |
+| `ECR_REPOSITORY_ADMIN`    | Nombre del repositorio ECR para `admin`    |
+| `ECR_REPOSITORY_GATEWAY`  | Nombre del repositorio ECR para `gateway`  |
+| `ECR_REPOSITORY_IDENTITY` | Nombre del repositorio ECR para `identity` |
+| `ECR_REPOSITORY_FRONT`    | Nombre del repositorio ECR para `front`    |
+
+#### URLs de producción (obtener tras el primer despliegue)
+
+| Secreto        | Descripción              |
+| -------------- | ------------------------ |
+| `FRONTEND_URL` | URL pública del frontend |
+| `GATEWAY_URL`  | URL pública del gateway  |
+
+En el **primer despliegue**, establece estos dos secretos con cualquier valor temporal (p. ej. `http://localhost`). Una vez desplegado, obtén el DNS de los Load Balancers con:
+
+```bash
+kubectl get services
+```
+
+Busca el `EXTERNAL-IP` de `solidarianid-gateway-service` y `solidarianid-admin-service`, y actualiza los secretos:
+
+- `GATEWAY_URL` → `http://<DNS-del-LoadBalancer-del-gateway>`
+- `FRONTEND_URL` → `http://<DNS-del-LoadBalancer-del-frontend>`
+
+Luego relanza el job del último CD con las URLs correctas.
