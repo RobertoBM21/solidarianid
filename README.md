@@ -82,7 +82,7 @@ Para facilitar el desarrollo se ha incluido un archivo `docker-compose.dev.yml` 
 # Crear archivo de configuración del entorno
 cp .env.example .env
 
-# Crear secretos con contenido aleatorio
+# Crear secretos con contenido aleatorio (WSL en Windows)
 ./scripts/generate-secrets.sh
 
 # Levantar la infraestructura local
@@ -96,7 +96,7 @@ npm run proto:gen
 # npm run proto:gen:win (Windows)
 
 # Generar claves VAPID para notificaciones push
-npm run vapid:gen
+npm run vapid:gen -- .env
 
 # Lanzar las aplicaciones backend
 npm run start:dev:core
