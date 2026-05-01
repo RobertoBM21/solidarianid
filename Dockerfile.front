@@ -11,6 +11,9 @@ RUN npm install
 
 COPY . .
 
+ARG NEXT_PUBLIC_GATEWAY_URL
+ENV NEXT_PUBLIC_GATEWAY_URL=$NEXT_PUBLIC_GATEWAY_URL
+
 RUN npm run build:front
 
 # STAGE 2: Production Runner

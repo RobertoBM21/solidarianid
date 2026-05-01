@@ -421,7 +421,7 @@ spec:
             - { name: NEXTAUTH_SECRET, value: '${NEXTAUTH_SECRET}' }
             - {
                 name: INTERNAL_GATEWAY_URL,
-                value: 'http://solidarianid-gateway-service:3010',
+                value: 'http://solidarianid-gateway-service:80',
               }
             - { name: NEXT_PUBLIC_GATEWAY_URL, value: '${GATEWAY_URL}' }
             - {

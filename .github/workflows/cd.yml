@@ -75,7 +75,7 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_FRONT:$IMAGE_TAG -f Dockerfile.front .
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_FRONT:$IMAGE_TAG --build-arg NEXT_PUBLIC_GATEWAY_URL=${{ secrets.GATEWAY_URL }} -f Dockerfile.front .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY_FRONT:$IMAGE_TAG
 
       - name: Deploy CloudFormation Stack
