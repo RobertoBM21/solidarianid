@@ -172,8 +172,8 @@ spec:
   type: ClusterIP
   selector: { app: solidarianid-core }
   ports:
-    - { protocol: TCP, port: 3000, targetPort: 3000 }
-    - { protocol: TCP, port: 5002, targetPort: 5002 }
+    - { name: http, protocol: TCP, port: 3000, targetPort: 3000 }
+    - { name: grpc, protocol: TCP, port: 5002, targetPort: 5002 }
 ---
 # API Gateway
 apiVersion: apps/v1
@@ -397,8 +397,8 @@ spec:
   type: ClusterIP
   selector: { app: solidarianid-identity }
   ports:
-    - { protocol: TCP, port: 3002, targetPort: 3002 }
-    - { protocol: TCP, port: 5003, targetPort: 5003 }
+    - { name: http, protocol: TCP, port: 3002, targetPort: 3002 }
+    - { name: grpc, protocol: TCP, port: 5003, targetPort: 5003 }
 ---
 # Front
 apiVersion: apps/v1
