@@ -328,6 +328,7 @@ spec:
               '--run-projections=All',
               '--insecure',
               '--enable-atom-pub-over-http',
+              '--allow-unknown-options=true',
             ]
           ports: [{ containerPort: 2113 }]
 ---
