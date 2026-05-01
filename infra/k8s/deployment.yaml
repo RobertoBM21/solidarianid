@@ -1,4 +1,4 @@
-# --- INFRAESTRUCTURA INTERNA (DBs, Redis, NATS) ---
+# --- INFRAESTRUCTURA INTERNA (NATS) ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -22,84 +22,6 @@ spec:
   selector: { app: nats }
   ports: [{ port: 4222 }]
 ---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: redis
-spec:
-  replicas: 1
-  selector: { matchLabels: { app: redis } }
-  template:
-    metadata: { labels: { app: redis } }
-    spec:
-      containers:
-        [
-          {
-            name: redis,
-            image: redis:8.4.0-alpine,
-            ports: [{ containerPort: 6379 }],
-          },
-        ]
----
-apiVersion: v1
-kind: Service
-metadata: { name: redis }
-spec:
-  selector: { app: redis }
-  ports: [{ port: 6379 }]
----
-# DB Core
-apiVersion: apps/v1
-kind: Deployment
-metadata: { name: postgres-core }
-spec:
-  replicas: 1
-  selector: { matchLabels: { app: postgres-core } }
-  template:
-    metadata: { labels: { app: postgres-core } }
-    spec:
-      containers:
-        - name: postgres
-          image: postgres:15
-          ports: [{ containerPort: 5432 }]
-          env:
-            - { name: POSTGRES_USER, value: 'core_user' }
-            - { name: POSTGRES_PASSWORD, value: '${DB_PASSWORD_CORE}' }
-            - { name: POSTGRES_DB, value: 'core_db' }
----
-apiVersion: v1
-kind: Service
-metadata: { name: postgres-core }
-spec:
-  selector: { app: postgres-core }
-  ports: [{ port: 5432 }]
----
-# DB Admin
-apiVersion: apps/v1
-kind: Deployment
-metadata: { name: postgres-admin }
-spec:
-  replicas: 1
-  selector: { matchLabels: { app: postgres-admin } }
-  template:
-    metadata: { labels: { app: postgres-admin } }
-    spec:
-      containers:
-        - name: postgres
-          image: postgres:15
-          ports: [{ containerPort: 5432 }]
-          env:
-            - { name: POSTGRES_USER, value: 'admin_user' }
-            - { name: POSTGRES_PASSWORD, value: '${DB_PASSWORD_ADMIN}' }
-            - { name: POSTGRES_DB, value: 'admin_db' }
----
-apiVersion: v1
-kind: Service
-metadata: { name: postgres-admin }
-spec:
-  selector: { app: postgres-admin }
-  ports: [{ port: 5432 }]
-
 # --- APLICACIONES ---
 ---
 apiVersion: apps/v1
@@ -118,12 +40,12 @@ spec:
           ports: [{ containerPort: 3000 }]
           env:
             - { name: PORT, value: '3000' }
-            - { name: DB_HOST, value: 'postgres-core' }
+            - { name: DB_HOST, value: '${DB_HOST_CORE}' }
             - { name: DB_USER, value: 'core_user' }
             - { name: DB_PASSWORD, value: '${DB_PASSWORD_CORE}' }
             - { name: DB_NAME, value: 'core_db' }
             - { name: NATS_URL, value: 'nats://nats:4222' }
-            - { name: REDIS_URL, value: 'redis://redis:6379' }
+            - { name: REDIS_URL, value: '${REDIS_URL}' }
             - { name: CORE_GRPC_URL, value: '0.0.0.0:5002' }
             - {
                 name: IDENTITY_GRPC_URL,
@@ -255,11 +177,11 @@ spec:
           image: ${ECR_REGISTRY}/${ECR_REPOSITORY_ADMIN}:${IMAGE_TAG}
           ports: [{ containerPort: 3001 }]
           env:
-            - { name: DB_HOST, value: 'postgres-admin' }
+            - { name: DB_HOST, value: '${DB_HOST_ADMIN}' }
             - { name: DB_USER, value: 'admin_user' }
             - { name: DB_PASSWORD, value: '${DB_PASSWORD_ADMIN}' }
             - { name: DB_NAME, value: 'admin_db' }
-            - { name: REDIS_URL, value: 'redis://redis:6379' }
+            - { name: REDIS_URL, value: '${REDIS_URL}' }
             - { name: NATS_URL, value: 'nats://nats:4222' }
             - { name: CORE_GRPC_URL, value: 'solidarianid-core-service:5002' }
             - {
@@ -282,32 +204,6 @@ spec:
   type: LoadBalancer
   selector: { app: solidarianid-admin }
   ports: [{ protocol: TCP, port: 80, targetPort: 3001 }]
----
-# DB Identity
-apiVersion: apps/v1
-kind: Deployment
-metadata: { name: postgres-identity }
-spec:
-  replicas: 1
-  selector: { matchLabels: { app: postgres-identity } }
-  template:
-    metadata: { labels: { app: postgres-identity } }
-    spec:
-      containers:
-        - name: postgres
-          image: postgres:15
-          ports: [{ containerPort: 5432 }]
-          env:
-            - { name: POSTGRES_USER, value: 'identity_user' }
-            - { name: POSTGRES_PASSWORD, value: '${DB_PASSWORD_IDENTITY}' }
-            - { name: POSTGRES_DB, value: 'identity_db' }
----
-apiVersion: v1
-kind: Service
-metadata: { name: postgres-identity }
-spec:
-  selector: { app: postgres-identity }
-  ports: [{ port: 5432 }]
 ---
 # KurrentDB
 apiVersion: apps/v1
@@ -357,7 +253,7 @@ spec:
             - { containerPort: 3002 }
             - { containerPort: 5003 }
           env:
-            - { name: DB_HOST, value: 'postgres-identity' }
+            - { name: DB_HOST, value: '${DB_HOST_IDENTITY}' }
             - { name: DB_USER, value: 'identity_user' }
             - { name: DB_PASSWORD, value: '${DB_PASSWORD_IDENTITY}' }
             - { name: DB_NAME, value: 'identity_db' }

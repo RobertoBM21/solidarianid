@@ -86,7 +86,40 @@ jobs:
             --template-file infra/eks-cluster.yaml \
             --stack-name ${{ env.STACK_NAME }} \
             --capabilities CAPABILITY_NAMED_IAM \
-            --parameter-overrides LabRoleArn=${{ secrets.LAB_ROLE_ARN }}
+            --parameter-overrides \
+              LabRoleArn=${{ secrets.LAB_ROLE_ARN }} \
+              DBPasswordCore=${{ secrets.DB_PASSWORD_CORE }} \
+              DBPasswordAdmin=${{ secrets.DB_PASSWORD_ADMIN }} \
+              DBPasswordIdentity=${{ secrets.DB_PASSWORD_IDENTITY }}
+
+      - name: Retrieve managed service endpoints
+        run: |
+          STACK=${{ env.STACK_NAME }}
+
+          DB_HOST_CORE=$(aws cloudformation describe-stacks \
+            --stack-name $STACK \
+            --query "Stacks[0].Outputs[?OutputKey=='RDSCoreEndpoint'].OutputValue" \
+            --output text)
+
+          DB_HOST_ADMIN=$(aws cloudformation describe-stacks \
+            --stack-name $STACK \
+            --query "Stacks[0].Outputs[?OutputKey=='RDSAdminEndpoint'].OutputValue" \
+            --output text)
+
+          DB_HOST_IDENTITY=$(aws cloudformation describe-stacks \
+            --stack-name $STACK \
+            --query "Stacks[0].Outputs[?OutputKey=='RDSIdentityEndpoint'].OutputValue" \
+            --output text)
+
+          REDIS_ENDPOINT=$(aws cloudformation describe-stacks \
+            --stack-name $STACK \
+            --query "Stacks[0].Outputs[?OutputKey=='ElastiCacheEndpoint'].OutputValue" \
+            --output text)
+
+          echo "DB_HOST_CORE=${DB_HOST_CORE}" >> $GITHUB_ENV
+          echo "DB_HOST_ADMIN=${DB_HOST_ADMIN}" >> $GITHUB_ENV
+          echo "DB_HOST_IDENTITY=${DB_HOST_IDENTITY}" >> $GITHUB_ENV
+          echo "REDIS_URL=redis://${REDIS_ENDPOINT}:6379" >> $GITHUB_ENV
 
       - name: Update Kubeconfig
         run: |
@@ -109,6 +142,10 @@ jobs:
           DB_PASSWORD_CORE: ${{ secrets.DB_PASSWORD_CORE }}
           DB_PASSWORD_IDENTITY: ${{ secrets.DB_PASSWORD_IDENTITY }}
           DB_PASSWORD_ADMIN: ${{ secrets.DB_PASSWORD_ADMIN }}
+          DB_HOST_CORE: ${{ env.DB_HOST_CORE }}
+          DB_HOST_ADMIN: ${{ env.DB_HOST_ADMIN }}
+          DB_HOST_IDENTITY: ${{ env.DB_HOST_IDENTITY }}
+          REDIS_URL: ${{ env.REDIS_URL }}
           STRIPE_SK: ${{ secrets.STRIPE_SK }}
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
