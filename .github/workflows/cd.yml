@@ -1,12 +1,8 @@
 name: SolidarianID CD (EKS)
 
 on:
-  workflow_run:
-    workflows: ['CI SolidarianID']
-    types:
-      - completed
-    branches:
-      - prod
+  push:
+    branches: [cloud]
 
 env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
@@ -20,7 +16,6 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     permissions:
       id-token: write
       contents: read
@@ -29,7 +24,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.sha }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -46,7 +41,7 @@ jobs:
       - name: Build, tag, and push Core image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_CORE:$IMAGE_TAG --build-arg APP=core .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY_CORE:$IMAGE_TAG
@@ -54,7 +49,7 @@ jobs:
       - name: Build, tag, and push Admin image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_ADMIN:$IMAGE_TAG --build-arg APP=admin .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY_ADMIN:$IMAGE_TAG
@@ -62,7 +57,7 @@ jobs:
       - name: Build, tag, and push Gateway image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_GATEWAY:$IMAGE_TAG --build-arg APP=gateway .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY_GATEWAY:$IMAGE_TAG
@@ -70,7 +65,7 @@ jobs:
       - name: Build, tag, and push Identity image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_IDENTITY:$IMAGE_TAG --build-arg APP=identity .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY_IDENTITY:$IMAGE_TAG
@@ -78,7 +73,7 @@ jobs:
       - name: Build, tag, and push Front image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_FRONT:$IMAGE_TAG -f Dockerfile.front .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY_FRONT:$IMAGE_TAG
@@ -108,7 +103,7 @@ jobs:
       - name: Deploy to Kubernetes
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
+          IMAGE_TAG: ${{ github.sha }}
           DB_PASSWORD_CORE: ${{ secrets.DB_PASSWORD_CORE }}
           DB_PASSWORD_IDENTITY: ${{ secrets.DB_PASSWORD_IDENTITY }}
           DB_PASSWORD_ADMIN: ${{ secrets.DB_PASSWORD_ADMIN }}
