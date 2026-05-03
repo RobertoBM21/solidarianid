@@ -21,6 +21,15 @@ Parameters:
     NoEcho: true
     Description: Contraseña maestra para la base de datos RDS de Identity
 
+  UseAwsManagedServices:
+    Type: String
+    Default: 'true'
+    AllowedValues: ['true', 'false']
+    Description: Activa RDS y ElastiCache gestionados por AWS. Si es false, el CD usa PostgreSQL y Redis dentro de Kubernetes.
+
+Conditions:
+  UseAwsManagedServicesCondition: !Equals [!Ref UseAwsManagedServices, 'true']
+
 Resources:
   # --- VPC y Networking ---
   VPC:
@@ -117,6 +126,7 @@ Resources:
 
   # --- Security Groups para servicios gestionados ---
   RDSSecurityGroup:
+    Condition: UseAwsManagedServicesCondition
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: SG para RDS PostgreSQL - acceso desde nodos EKS
@@ -128,6 +138,7 @@ Resources:
           CidrIp: 10.0.0.0/16
 
   ElastiCacheSecurityGroup:
+    Condition: UseAwsManagedServicesCondition
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: SG para ElastiCache Redis - acceso desde nodos EKS
@@ -140,6 +151,7 @@ Resources:
 
   # --- Subnet Groups para servicios gestionados ---
   RDSSubnetGroup:
+    Condition: UseAwsManagedServicesCondition
     Type: AWS::RDS::DBSubnetGroup
     Properties:
       DBSubnetGroupDescription: Subnet group para instancias RDS de SolidarianID
@@ -148,6 +160,7 @@ Resources:
         - !Ref PublicSubnet2
 
   ElastiCacheSubnetGroup:
+    Condition: UseAwsManagedServicesCondition
     Type: AWS::ElastiCache::SubnetGroup
     Properties:
       Description: Subnet group para ElastiCache Redis de SolidarianID
@@ -157,6 +170,7 @@ Resources:
 
   # --- Parameter Group para desactivar SSL obligatorio ---
   RDSParameterGroup:
+    Condition: UseAwsManagedServicesCondition
     Type: AWS::RDS::DBParameterGroup
     Properties:
       Description: 'Permitir conexiones sin SSL para SolidarianID'
@@ -166,6 +180,7 @@ Resources:
 
   # --- RDS PostgreSQL ---
   RDSCore:
+    Condition: UseAwsManagedServicesCondition
     Type: AWS::RDS::DBInstance
     DeletionPolicy: Delete
     Properties:
@@ -187,6 +202,7 @@ Resources:
       DBParameterGroupName: !Ref RDSParameterGroup
 
   RDSAdmin:
+    Condition: UseAwsManagedServicesCondition
     Type: AWS::RDS::DBInstance
     DeletionPolicy: Delete
     Properties:
@@ -208,6 +224,7 @@ Resources:
       DBParameterGroupName: !Ref RDSParameterGroup
 
   RDSIdentity:
+    Condition: UseAwsManagedServicesCondition
     Type: AWS::RDS::DBInstance
     DeletionPolicy: Delete
     Properties:
@@ -230,6 +247,7 @@ Resources:
 
   # --- ElastiCache Redis ---
   ElastiCacheRedis:
+    Condition: UseAwsManagedServicesCondition
     Type: AWS::ElastiCache::CacheCluster
     Properties:
       ClusterName: solidarianid-redis
@@ -246,17 +264,21 @@ Outputs:
     Value: !Ref EKSCluster
 
   RDSCoreEndpoint:
+    Condition: UseAwsManagedServicesCondition
     Description: Endpoint del RDS PostgreSQL para Core
     Value: !GetAtt RDSCore.Endpoint.Address
 
   RDSAdminEndpoint:
+    Condition: UseAwsManagedServicesCondition
     Description: Endpoint del RDS PostgreSQL para Admin
     Value: !GetAtt RDSAdmin.Endpoint.Address
 
   RDSIdentityEndpoint:
+    Condition: UseAwsManagedServicesCondition
     Description: Endpoint del RDS PostgreSQL para Identity
     Value: !GetAtt RDSIdentity.Endpoint.Address
 
   ElastiCacheEndpoint:
+    Condition: UseAwsManagedServicesCondition
     Description: Endpoint del nodo Redis gestionado de ElastiCache
     Value: !GetAtt ElastiCacheRedis.RedisEndpoint.Address

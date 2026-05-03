@@ -166,6 +166,26 @@ Teneis que crear vuestros repositorios de ECR para lanzarlo con vuestra cuenta A
 | `ECR_REPOSITORY_IDENTITY` | Nombre del repositorio ECR para `identity` |
 | `ECR_REPOSITORY_FRONT`    | Nombre del repositorio ECR para `front`    |
 
+#### Switch de servicios gestionados AWS
+
+El despliegue incluye el flag `USE_AWS_MANAGED_SERVICES`, configurado como variable de GitHub Actions en **Settings -> Secrets and variables -> Actions -> Variables**.
+
+| Variable                   | Valor   | Efecto                                                                   |
+| -------------------------- | ------- | ------------------------------------------------------------------------ |
+| `USE_AWS_MANAGED_SERVICES` | `true`  | Usa Amazon RDS para PostgreSQL y Amazon ElastiCache para Redis           |
+| `USE_AWS_MANAGED_SERVICES` | `false` | Despliega PostgreSQL y Redis dentro de Kubernetes y usa sus DNS internos |
+
+Si la variable no existe, el CD usa `true` por defecto.
+
+Con `true`, CloudFormation crea los recursos RDS y ElastiCache y el CD obtiene sus endpoints para inyectarlos en las aplicaciones. 
+
+Con `false`, CloudFormation no crea esos servicios gestionados y el CD aplica `infra/k8s/local-data-services.yaml`, usando:
+
+- `postgres-core` para `core`
+- `postgres-admin` para `admin`
+- `postgres-identity` para `identity`
+- `redis` para Redis
+
 #### URLs de producción (obtener tras el primer despliegue)
 
 | Secreto        | Descripción              |
@@ -179,7 +199,7 @@ En el **primer despliegue**, establece estos dos secretos con cualquier valor te
 kubectl get services
 ```
 
-Busca el `EXTERNAL-IP` de `solidarianid-gateway-service` y `solidarianid-admin-service`, y actualiza los secretos:
+Busca el `EXTERNAL-IP` de `solidarianid-gateway-service` y `solidarianid-front-service`, y actualiza los secretos:
 
 - `GATEWAY_URL` → `http://<DNS-del-LoadBalancer-del-gateway>`
 - `FRONTEND_URL` → `http://<DNS-del-LoadBalancer-del-frontend>`

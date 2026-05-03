@@ -1,0 +1,148 @@
+# --- POSTGRESQL Y REDIS INTERNOS PARA MODO SIN SERVICIOS GESTIONADOS AWS ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-core
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: postgres-core } }
+  template:
+    metadata: { labels: { app: postgres-core } }
+    spec:
+      containers:
+        - name: postgres-core
+          image: postgres:15-alpine
+          ports: [{ containerPort: 5432 }]
+          env:
+            - { name: POSTGRES_USER, value: 'core_user' }
+            - { name: POSTGRES_PASSWORD, value: '${DB_PASSWORD_CORE}' }
+            - { name: POSTGRES_DB, value: 'core_db' }
+          readinessProbe:
+            exec:
+              command: ['pg_isready', '-U', 'core_user', '-d', 'core_db']
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: '100m'
+              memory: '128Mi'
+            limits:
+              cpu: '250m'
+              memory: '256Mi'
+---
+apiVersion: v1
+kind: Service
+metadata: { name: postgres-core }
+spec:
+  selector: { app: postgres-core }
+  ports: [{ protocol: TCP, port: 5432, targetPort: 5432 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-admin
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: postgres-admin } }
+  template:
+    metadata: { labels: { app: postgres-admin } }
+    spec:
+      containers:
+        - name: postgres-admin
+          image: postgres:15-alpine
+          ports: [{ containerPort: 5432 }]
+          env:
+            - { name: POSTGRES_USER, value: 'admin_user' }
+            - { name: POSTGRES_PASSWORD, value: '${DB_PASSWORD_ADMIN}' }
+            - { name: POSTGRES_DB, value: 'admin_db' }
+          readinessProbe:
+            exec:
+              command: ['pg_isready', '-U', 'admin_user', '-d', 'admin_db']
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: '100m'
+              memory: '128Mi'
+            limits:
+              cpu: '250m'
+              memory: '256Mi'
+---
+apiVersion: v1
+kind: Service
+metadata: { name: postgres-admin }
+spec:
+  selector: { app: postgres-admin }
+  ports: [{ protocol: TCP, port: 5432, targetPort: 5432 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-identity
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: postgres-identity } }
+  template:
+    metadata: { labels: { app: postgres-identity } }
+    spec:
+      containers:
+        - name: postgres-identity
+          image: postgres:15-alpine
+          ports: [{ containerPort: 5432 }]
+          env:
+            - { name: POSTGRES_USER, value: 'identity_user' }
+            - { name: POSTGRES_PASSWORD, value: '${DB_PASSWORD_IDENTITY}' }
+            - { name: POSTGRES_DB, value: 'identity_db' }
+          readinessProbe:
+            exec:
+              command: ['pg_isready', '-U', 'identity_user', '-d', 'identity_db']
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: '100m'
+              memory: '128Mi'
+            limits:
+              cpu: '250m'
+              memory: '256Mi'
+---
+apiVersion: v1
+kind: Service
+metadata: { name: postgres-identity }
+spec:
+  selector: { app: postgres-identity }
+  ports: [{ protocol: TCP, port: 5432, targetPort: 5432 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: redis } }
+  template:
+    metadata: { labels: { app: redis } }
+    spec:
+      containers:
+        - name: redis
+          image: redis:8.4.0-alpine
+          ports: [{ containerPort: 6379 }]
+          readinessProbe:
+            exec:
+              command: ['redis-cli', 'ping']
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: '50m'
+              memory: '64Mi'
+            limits:
+              cpu: '150m'
+              memory: '128Mi'
+---
+apiVersion: v1
+kind: Service
+metadata: { name: redis }
+spec:
+  selector: { app: redis }
+  ports: [{ protocol: TCP, port: 6379, targetPort: 6379 }]
