@@ -1,207 +1,42 @@
-# SolidarianID - MISUM 2025
+# SolidarianID - Social Impact Microservices Platform
 
-> Grupo 2: Roberto Burruezo, Raúl González, Paula Sempere, Ángel Pérez
+> **Note:** This is a personal fork of the [Original Project](https://github.com/misum-grupo-2/solidarianid) developed as the Core Capstone Project for my Master's degree in Software Engineering at the University of Murcia.
+>
+> _Disclaimer:_ Because this is an academic project, the architecture deliberately integrates a wider and more heterogenous mix of technologies, databases, and patterns than a typical streamlined production environment. This was done to evaluate and benchmark different architectural approaches.
 
-## Arquitectura
+## 🎯 Project Overview
 
-El proyecto se divide en múltiples componentes:
+SolidarianID is a scalable, cloud-native platform designed to manage social impact initiatives, donations, and volunteering. Built from the ground up utilizing **Domain-Driven Design (DDD)** and **Hexagonal Architecture**, the system ensures high cohesion, low coupling, and strict separation of concerns.
 
-- `apps/core`: aplicación NestJS principal (puerto `3000`).
-- `apps/admin`: aplicación NestJS de administración (puerto `3001`).
-- `apps/identity`: aplicación NestJS de identidad (puerto `3002`).
-- `apps/gateway`: pasarela de API NestJS (puerto `3010`).
-- `apps/front`: aplicación NextJS principal (front-end, puerto `3080`).
-- `libs/shared`: librería compartida (módulos comunes, utilidades...).
+## 💻 Tech Stack
 
-## Configuración NestJS
+**Backend & Core:**
 
-Es posible configurar cada componente back-end mediante variables de entorno. Se proporciona un archivo `.env.example` con la configuración mínima necesaria.
+- TypeScript / Node.js
+- NestJS
+- API Gateway Pattern (Exposing both REST and GraphQL interfaces)
 
-| Variable            | Tipo     | Descripción                                             | Valor por defecto       |
-| ------------------- | -------- | ------------------------------------------------------- | ----------------------- |
-| `DB_HOST`           | `string` | Host de Postgres                                        | -                       |
-| `DB_PORT`           | `number` | Puerto de Postgres                                      | `5432`                  |
-| `DB_USER`           | `string` | Usuario de Postgres                                     | -                       |
-| `DB_PASSWORD_FILE`  | `string` | Ruta del fichero que contiene la contraseña de Postgres | -                       |
-| `DB_NAME`           | `string` | Nombre de Postgres                                      | -                       |
-| `NATS_URL`          | `string` | URL de NATS                                             | -                       |
-| `CORE_GRPC_URL`     | `string` | URL en la que `core` escucha peticiones gRPC            | `localhost:5002`        |
-| `IDENTITY_GRPC_URL` | `string` | URL en la que `identity` escucha peticiones gRPC        | `localhost:5003`        |
-| `CORE_URL`          | `string` | URL interna del microservicio `core`                    | `http://localhost:3000` |
-| `IDENTITY_URL`      | `string` | URL interna del microservicio `identity`                | `http://localhost:3002` |
-| `FRONTEND_URL`      | `string` | URL del frontend                                        | `http://localhost:3080` |
+**Data & Persistence:**
 
-### Aplicación: gateway
+- PostgreSQL (Primary relational data & Read Models via TypeORM)
+- Redis (Caching)
+- KurrentDB (Event Store)
 
-Configuración específica de la pasarela de API:
+**Cloud, DevOps & Infrastructure:**
 
-| Variable               | Tipo     | Descripción                                                  | Valor por defecto |
-| ---------------------- | -------- | ------------------------------------------------------------ | ----------------- |
-| `JWT_SECRET_FILE`      | `string` | Ruta del fichero que contiene el secreto para firmar JWT     | -                 |
-| `JWT_EXPIRATION`       | `string` | Tiempo de expiración del JWT (formato `ms`, e.g. `7d`, `1h`) | `7d`              |
-| `GOOGLE_CLIENT_ID`     | `string` | Client ID de Google OAuth 2.0                                | -                 |
-| `GOOGLE_CLIENT_SECRET` | `string` | Client Secret de Google OAuth 2.0                            | -                 |
+- AWS (CloudFormation, VPC networking)
+- Kubernetes (Amazon EKS) & Docker
+- GitHub Actions (CI/CD Pipelines)
 
-### Aplicación: core
+## 🧠 Architecture & Engineering Impact
 
-Configuración específica de la aplicación principal:
+As a core contributor, I focused on designing a resilient, fault-tolerant backend infrastructure capable of handling complex transactional domains and high-concurrency workloads. My key implementations include:
 
-| Variable            | Tipo     | Descripción                                          | Valor por defecto |
-| ------------------- | -------- | ---------------------------------------------------- | ----------------- |
-| `REDIS_URL`         | `string` | URL de la instancia Redis                            | -                 |
-| `KURRENTDB_URL`     | `string` | URL de conexión a KurrentDB                          | -                 |
-| `STRIPE_SK`         | `string` | Clave secreta de Stripe                              | -                 |
-| `VAPID_PUBLIC_KEY`  | `string` | Clave pública VAPID                                  | -                 |
-| `VAPID_PRIVATE_KEY` | `string` | Clave privada VAPID                                  | -                 |
-| `VAPID_SUBJECT`     | `string` | Subject VAPID (por ejemplo `mailto:dev@example.com`) | -                 |
+- **Microservices in a Monorepo:** Structured the platform as a distributed system, enforcing strict domain boundaries using **Domain-Driven Design (DDD)** and **Hexagonal Architecture** (Ports & Adapters) to completely isolate core business logic from external frameworks.
+- **Hybrid Distributed Communication:** Designed a hybrid communication strategy for the distributed system, leveraging **NATS** for decoupled, asynchronous event-driven flows and **gRPC** for high-performance, low-latency synchronous inter-service calls.
+- **Tactical CQRS & Event Sourcing:** Engineered the resilient data layer supporting the platform's secure payment processing (integrated with the **Stripe** API) of the `Funding/Donations` microservice. Utilized **KurrentDB** as an Event Store to guarantee an immutable audit trail of financial transactions, while projecting optimized Read Models into **PostgreSQL**.
+- **Cloud-Native Provisioning:** Designed and deployed the production-grade infrastructure on AWS. Managed VPC networking and orchestrated the deployment lifecycle on an **Amazon EKS** Kubernetes Cluster using Infrastructure as Code (IaC).
 
-### Aplicación: admin
+---
 
-Configuración específica de la aplicación de administración:
-
-| Variable              | Tipo     | Descripción                                                         | Valor por defecto |
-| --------------------- | -------- | ------------------------------------------------------------------- | ----------------- |
-| `SESSION_SECRET_FILE` | `string` | Ruta del fichero que contiene el valor secreto para firmar sesiones | -                 |
-
-### Aplicación: frontend
-
-Configuración específica de la aplicación de frontend:
-
-| Variable                       | Tipo     | Descripción                    | Valor por defecto     |
-| ------------------------------ | -------- | ------------------------------ | --------------------- |
-| `NEXTAUTH_URL`                 | `string` | URL del microservicio frontend | -                     |
-| `NEXTAUTH_SECRET`              | `string` | Secreto de NextAuth            | -                     |
-| `NEXT_PUBLIC_GATEWAY_URL`      | `string` | URL del microservicio gateway  | http://localhost:3010 |
-| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | `string` | Clave pública VAPID            | -                     |
-
-## Desarrollo
-
-Para facilitar el desarrollo se ha incluido un archivo `docker-compose.dev.yml` que incluye los elementos necesarios para trabajar localmente:
-
-```bash
-# Crear archivo de configuración del entorno
-cp .env.example .env
-
-# Crear secretos con contenido aleatorio (WSL en Windows)
-./scripts/generate-secrets.sh
-
-# Levantar la infraestructura local
-docker compose -f docker-compose.dev.yml up -d --wait
-
-# Instalar dependencias
-npm install
-
-# Generar el código desde Protobuffers (Linux/Mac)
-npm run proto:gen
-# npm run proto:gen:win (Windows)
-
-# Generar claves VAPID para notificaciones push
-npm run vapid:gen -- .env
-
-# Lanzar las aplicaciones backend
-npm run start:dev:core
-# ó npm run start:dev:admin
-# ó npm run start:dev:identity
-# ó npm run start:dev:gateway
-```
-
-La aplicación front-end puede lanzarse mediante el comando:
-
-```bash
-npm run start:dev:front
-```
-
-## Testing
-
-Es posible realizar pruebas básicas mediante los siguientes comandos:
-
-- Linting: `npm run lint`
-- Tests unitarios: `npm run test`
-
-### Tests de integración
-
-Se proporciona un archivo `docker-compose.test.yml` específico para apoyar los tests de integración (e2e en NestJS).
-
-```bash
-# Levantar la infraestructura
-docker compose -f docker-compose.test.yml up -d --wait
-
-# Ejecutar tests de integración
-npm run test:e2e
-
-# Detener servicios
-docker compose -f docker-compose.test.yml down
-```
-
-## Despliegue en AWS (rama `cloud`)
-
-El CD se lanza automáticamente con cada push y pull request a la rama `cloud`.
-
-Despliega las imágenes en Amazon ECR y aplica los manifiestos en un clúster EKS creado mediante CloudFormation.
-
-### Secretos de GitHub necesarios
-
-Todos los secretos se configuran en **Settings → Secrets and variables → Actions** del repositorio.
-
-#### Credenciales AWS (renovar en cada sesión de laboratorio)
-
-| Secreto                 | Descripción                                                                      |
-| ----------------------- | -------------------------------------------------------------------------------- |
-| `AWS_ACCESS_KEY_ID`     | Access Key ID de la sesión AWS Academy                                           |
-| `AWS_SECRET_ACCESS_KEY` | Secret Access Key de la sesión AWS Academy                                       |
-| `AWS_SESSION_TOKEN`     | Session Token de la sesión AWS Academy                                           |
-| `LAB_ROLE_ARN`          | ARN del rol IAM del laboratorio (p. ej. `arn:aws:iam::<ID-CUENTA>:role/LabRole`) |
-
-> ⚠️ Las credenciales de AWS Academy caducan cada pocos horas. Hay que actualizarlas antes de cada despliegue.
-
-#### Repositorios ECR
-
-Teneis que crear vuestros repositorios de ECR para lanzarlo con vuestra cuenta AWS.
-
-| Secreto                   | Descripción                                |
-| ------------------------- | ------------------------------------------ |
-| `ECR_REPOSITORY_CORE`     | Nombre del repositorio ECR para `core`     |
-| `ECR_REPOSITORY_ADMIN`    | Nombre del repositorio ECR para `admin`    |
-| `ECR_REPOSITORY_GATEWAY`  | Nombre del repositorio ECR para `gateway`  |
-| `ECR_REPOSITORY_IDENTITY` | Nombre del repositorio ECR para `identity` |
-| `ECR_REPOSITORY_FRONT`    | Nombre del repositorio ECR para `front`    |
-
-#### Switch de servicios gestionados AWS
-
-El despliegue incluye el flag `USE_AWS_MANAGED_SERVICES`, configurado como variable de GitHub Actions en **Settings -> Secrets and variables -> Actions -> Variables**.
-
-| Variable                   | Valor   | Efecto                                                                   |
-| -------------------------- | ------- | ------------------------------------------------------------------------ |
-| `USE_AWS_MANAGED_SERVICES` | `true`  | Usa Amazon RDS para PostgreSQL y Amazon ElastiCache para Redis           |
-| `USE_AWS_MANAGED_SERVICES` | `false` | Despliega PostgreSQL y Redis dentro de Kubernetes y usa sus DNS internos |
-
-Si la variable no existe, el CD usa `true` por defecto.
-
-Con `true`, CloudFormation crea los recursos RDS y ElastiCache y el CD obtiene sus endpoints para inyectarlos en las aplicaciones. 
-
-Con `false`, CloudFormation no crea esos servicios gestionados y el CD aplica `infra/k8s/local-data-services.yaml`, usando:
-
-- `postgres-core` para `core`
-- `postgres-admin` para `admin`
-- `postgres-identity` para `identity`
-- `redis` para Redis
-
-#### URLs de producción (obtener tras el primer despliegue)
-
-| Secreto        | Descripción              |
-| -------------- | ------------------------ |
-| `FRONTEND_URL` | URL pública del frontend |
-| `GATEWAY_URL`  | URL pública del gateway  |
-
-En el **primer despliegue**, establece estos dos secretos con cualquier valor temporal (p. ej. `http://localhost`). Una vez desplegado, obtén el DNS de los Load Balancers con:
-
-```bash
-kubectl get services
-```
-
-Busca el `EXTERNAL-IP` de `solidarianid-gateway-service` y `solidarianid-front-service`, y actualiza los secretos:
-
-- `GATEWAY_URL` → `http://<DNS-del-LoadBalancer-del-gateway>`
-- `FRONTEND_URL` → `http://<DNS-del-LoadBalancer-del-frontend>`
-
-Luego relanza el job del último CD con las URLs correctas.
+_If you are a technical lead or recruiter, feel free to explore the `/apps` and `/libs/shared` directories to review the implementation of the domain models, event projectors, infrastructure adapters, and application services._
