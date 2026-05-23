@@ -1,4 +1,4 @@
-# --- INFRAESTRUCTURA INTERNA (DBs, Redis, NATS) ---
+# --- INFRAESTRUCTURA INTERNA (NATS) ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -10,7 +10,10 @@ spec:
     metadata: { labels: { app: nats } }
     spec:
       containers:
-        [{ name: nats, image: nats:latest, ports: [{ containerPort: 4222 }] }]
+        - name: nats
+          image: nats:2.12.3-alpine
+          args: ['-js', '-m', '8222']
+          ports: [{ containerPort: 4222 }]
 ---
 apiVersion: v1
 kind: Service
@@ -19,77 +22,6 @@ spec:
   selector: { app: nats }
   ports: [{ port: 4222 }]
 ---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: redis
-spec:
-  replicas: 1
-  selector: { matchLabels: { app: redis } }
-  template:
-    metadata: { labels: { app: redis } }
-    spec:
-      containers:
-        [{ name: redis, image: redis:7, ports: [{ containerPort: 6379 }] }]
----
-apiVersion: v1
-kind: Service
-metadata: { name: redis }
-spec:
-  selector: { app: redis }
-  ports: [{ port: 6379 }]
----
-# DB Core
-apiVersion: apps/v1
-kind: Deployment
-metadata: { name: postgres-core }
-spec:
-  replicas: 1
-  selector: { matchLabels: { app: postgres-core } }
-  template:
-    metadata: { labels: { app: postgres-core } }
-    spec:
-      containers:
-        - name: postgres
-          image: postgres:15
-          ports: [{ containerPort: 5432 }]
-          env:
-            - { name: POSTGRES_PASSWORD, value: '${DB_PASSWORD}' }
-            - { name: POSTGRES_DB, value: 'solidariancore' }
----
-apiVersion: v1
-kind: Service
-metadata: { name: postgres-core }
-spec:
-  selector: { app: postgres-core }
-  ports: [{ port: 5432 }]
----
-# DB Admin
-apiVersion: apps/v1
-kind: Deployment
-metadata: { name: postgres-admin }
-spec:
-  replicas: 1
-  selector: { matchLabels: { app: postgres-admin } }
-  template:
-    metadata: { labels: { app: postgres-admin } }
-    spec:
-      containers:
-        - name: postgres
-          image: postgres:15
-          ports: [{ containerPort: 5432 }]
-          env:
-            - { name: POSTGRES_PASSWORD, value: '${DB_PASSWORD}' }
-            - { name: POSTGRES_DB, value: 'solidarianadmin' }
----
-apiVersion: v1
-kind: Service
-metadata: { name: postgres-admin }
-spec:
-  selector: { app: postgres-admin }
-  ports: [{ port: 5432 }]
-
-
 # --- APLICACIONES ---
 ---
 apiVersion: apps/v1
@@ -108,13 +40,26 @@ spec:
           ports: [{ containerPort: 3000 }]
           env:
             - { name: PORT, value: '3000' }
-            - { name: DB_HOST, value: 'postgres-core' }
-            - { name: DB_USER, value: 'postgres' }
-            - { name: DB_PASSWORD, value: '${DB_PASSWORD}' }
-            - { name: DB_NAME, value: 'solidariancore' }
+            - { name: DB_HOST, value: '${DB_HOST_CORE}' }
+            - { name: DB_USER, value: 'core_user' }
+            - { name: DB_PASSWORD, value: '${DB_PASSWORD_CORE}' }
+            - { name: DB_NAME, value: 'core_db' }
             - { name: NATS_URL, value: 'nats://nats:4222' }
-            - { name: REDIS_URL, value: 'redis://redis:6379' }
+            - { name: REDIS_URL, value: '${REDIS_URL}' }
+            - { name: CORE_GRPC_URL, value: '0.0.0.0:5002' }
+            - {
+                name: IDENTITY_GRPC_URL,
+                value: 'solidarianid-identity-service:5003',
+              }
+            - { name: FRONTEND_URL, value: '${FRONTEND_URL}' }
+            - {
+                name: KURRENTDB_URL,
+                value: 'kurrentdb://kurrentdb:2113?tls=false',
+              }
             - { name: STRIPE_SK, value: '${STRIPE_SK}' }
+            - { name: VAPID_PUBLIC_KEY, value: '${VAPID_PUBLIC_KEY}' }
+            - { name: VAPID_PRIVATE_KEY, value: '${VAPID_PRIVATE_KEY}' }
+            - { name: VAPID_SUBJECT, value: '${VAPID_SUBJECT}' }
           resources:
             requests:
               cpu: '250m'
@@ -148,7 +93,9 @@ metadata: { name: solidarianid-core-service }
 spec:
   type: ClusterIP
   selector: { app: solidarianid-core }
-  ports: [{ protocol: TCP, port: 3000, targetPort: 3000 }]
+  ports:
+    - { name: http, protocol: TCP, port: 3000, targetPort: 3000 }
+    - { name: grpc, protocol: TCP, port: 5002, targetPort: 5002 }
 ---
 # API Gateway
 apiVersion: apps/v1
@@ -167,7 +114,19 @@ spec:
           ports: [{ containerPort: 3010 }]
           env:
             - { name: CORE_URL, value: 'http://solidarianid-core-service:3000' }
-            - { name: CORS_ORIGIN, value: '${CORS_ORIGIN}' }
+            - {
+                name: IDENTITY_URL,
+                value: 'http://solidarianid-identity-service:3002',
+              }
+            - { name: FRONTEND_URL, value: '${FRONTEND_URL}' }
+            - {
+                name: IDENTITY_GRPC_URL,
+                value: 'solidarianid-identity-service:5003',
+              }
+            - { name: JWT_SECRET, value: '${JWT_SECRET}' }
+            - { name: JWT_EXPIRATION, value: '1d' }
+            - { name: GOOGLE_CLIENT_ID, value: '${GOOGLE_CLIENT_ID}' }
+            - { name: GOOGLE_CLIENT_SECRET, value: '${GOOGLE_CLIENT_SECRET}' }
           resources:
             requests:
               cpu: '100m'
@@ -218,11 +177,17 @@ spec:
           image: ${ECR_REGISTRY}/${ECR_REPOSITORY_ADMIN}:${IMAGE_TAG}
           ports: [{ containerPort: 3001 }]
           env:
-            - { name: DB_HOST, value: 'postgres-admin' }
-            - { name: DB_USER, value: 'postgres' }
-            - { name: DB_PASSWORD, value: '${DB_PASSWORD}' }
-            - { name: DB_NAME, value: 'solidarianadmin' }
+            - { name: DB_HOST, value: '${DB_HOST_ADMIN}' }
+            - { name: DB_USER, value: 'admin_user' }
+            - { name: DB_PASSWORD, value: '${DB_PASSWORD_ADMIN}' }
+            - { name: DB_NAME, value: 'admin_db' }
+            - { name: REDIS_URL, value: '${REDIS_URL}' }
             - { name: NATS_URL, value: 'nats://nats:4222' }
+            - { name: CORE_GRPC_URL, value: 'solidarianid-core-service:5002' }
+            - {
+                name: IDENTITY_GRPC_URL,
+                value: 'solidarianid-identity-service:5003',
+              }
             - { name: SESSION_SECRET, value: '${SESSION_SECRET}' }
           resources:
             requests:
@@ -239,3 +204,138 @@ spec:
   type: LoadBalancer
   selector: { app: solidarianid-admin }
   ports: [{ protocol: TCP, port: 80, targetPort: 3001 }]
+---
+# KurrentDB
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kurrentdb
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: kurrentdb } }
+  template:
+    metadata: { labels: { app: kurrentdb } }
+    spec:
+      containers:
+        - name: kurrentdb
+          image: kurrentplatform/kurrentdb:25.0.0
+          args:
+            [
+              '--run-projections=All',
+              '--insecure',
+              '--enable-atom-pub-over-http',
+              '--allow-unknown-options=true',
+            ]
+          ports: [{ containerPort: 2113 }]
+---
+apiVersion: v1
+kind: Service
+metadata: { name: kurrentdb }
+spec:
+  selector: { app: kurrentdb }
+  ports: [{ port: 2113 }]
+---
+# Identity
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: solidarianid-identity
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: solidarianid-identity } }
+  template:
+    metadata: { labels: { app: solidarianid-identity } }
+    spec:
+      containers:
+        - name: identity
+          image: ${ECR_REGISTRY}/${ECR_REPOSITORY_IDENTITY}:${IMAGE_TAG}
+          ports:
+            - { containerPort: 3002 }
+            - { containerPort: 5003 }
+          env:
+            - { name: DB_HOST, value: '${DB_HOST_IDENTITY}' }
+            - { name: DB_USER, value: 'identity_user' }
+            - { name: DB_PASSWORD, value: '${DB_PASSWORD_IDENTITY}' }
+            - { name: DB_NAME, value: 'identity_db' }
+            - { name: NATS_URL, value: 'nats://nats:4222' }
+            - { name: CORE_GRPC_URL, value: 'solidarianid-core-service:5002' }
+            - { name: IDENTITY_GRPC_URL, value: '0.0.0.0:5003' }
+          resources:
+            requests:
+              cpu: '100m'
+              memory: '64Mi'
+            limits:
+              cpu: '250m'
+              memory: '128Mi'
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: identity-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: solidarianid-identity
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+---
+apiVersion: v1
+kind: Service
+metadata: { name: solidarianid-identity-service }
+spec:
+  type: ClusterIP
+  selector: { app: solidarianid-identity }
+  ports:
+    - { name: http, protocol: TCP, port: 3002, targetPort: 3002 }
+    - { name: grpc, protocol: TCP, port: 5003, targetPort: 5003 }
+---
+# Front
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: solidarianid-front
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: solidarianid-front } }
+  template:
+    metadata: { labels: { app: solidarianid-front } }
+    spec:
+      containers:
+        - name: front
+          image: ${ECR_REGISTRY}/${ECR_REPOSITORY_FRONT}:${IMAGE_TAG}
+          ports: [{ containerPort: 3080 }]
+          env:
+            - { name: NEXTAUTH_URL, value: '${FRONTEND_URL}' }
+            - { name: NEXTAUTH_SECRET, value: '${NEXTAUTH_SECRET}' }
+            - {
+                name: INTERNAL_GATEWAY_URL,
+                value: 'http://solidarianid-gateway-service:80',
+              }
+            - { name: NEXT_PUBLIC_GATEWAY_URL, value: '${GATEWAY_URL}' }
+            - {
+                name: NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+                value: '${VAPID_PUBLIC_KEY}',
+              }
+          resources:
+            requests:
+              cpu: '200m'
+              memory: '256Mi'
+            limits:
+              cpu: '500m'
+              memory: '512Mi'
+---
+apiVersion: v1
+kind: Service
+metadata: { name: solidarianid-front-service }
+spec:
+  type: LoadBalancer
+  selector: { app: solidarianid-front }
+  ports: [{ protocol: TCP, port: 80, targetPort: 3080 }]

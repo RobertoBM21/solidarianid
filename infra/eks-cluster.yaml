@@ -6,6 +6,30 @@ Parameters:
     Type: String
     Description: ARN del rol 'LabRole' preexistente en la cuenta de AWS Academy
 
+  DBPasswordCore:
+    Type: String
+    NoEcho: true
+    Description: Contraseña maestra para la base de datos RDS de Core
+
+  DBPasswordAdmin:
+    Type: String
+    NoEcho: true
+    Description: Contraseña maestra para la base de datos RDS de Admin
+
+  DBPasswordIdentity:
+    Type: String
+    NoEcho: true
+    Description: Contraseña maestra para la base de datos RDS de Identity
+
+  UseAwsManagedServices:
+    Type: String
+    Default: 'true'
+    AllowedValues: ['true', 'false']
+    Description: Activa RDS y ElastiCache gestionados por AWS. Si es false, el CD usa PostgreSQL y Redis dentro de Kubernetes.
+
+Conditions:
+  UseAwsManagedServicesCondition: !Equals [!Ref UseAwsManagedServices, 'true']
+
 Resources:
   # --- VPC y Networking ---
   VPC:
@@ -100,7 +124,161 @@ Resources:
         MaxSize: 5
         DesiredSize: 3
 
+  # --- Security Groups para servicios gestionados ---
+  RDSSecurityGroup:
+    Condition: UseAwsManagedServicesCondition
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: SG para RDS PostgreSQL - acceso desde nodos EKS
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: 10.0.0.0/16
+
+  ElastiCacheSecurityGroup:
+    Condition: UseAwsManagedServicesCondition
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: SG para ElastiCache Redis - acceso desde nodos EKS
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 6379
+          ToPort: 6379
+          CidrIp: 10.0.0.0/16
+
+  # --- Subnet Groups para servicios gestionados ---
+  RDSSubnetGroup:
+    Condition: UseAwsManagedServicesCondition
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group para instancias RDS de SolidarianID
+      SubnetIds:
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+
+  ElastiCacheSubnetGroup:
+    Condition: UseAwsManagedServicesCondition
+    Type: AWS::ElastiCache::SubnetGroup
+    Properties:
+      Description: Subnet group para ElastiCache Redis de SolidarianID
+      SubnetIds:
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+
+  # --- Parameter Group para desactivar SSL obligatorio ---
+  RDSParameterGroup:
+    Condition: UseAwsManagedServicesCondition
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Description: 'Permitir conexiones sin SSL para SolidarianID'
+      Family: postgres15
+      Parameters:
+        rds.force_ssl: '0'
+
+  # --- RDS PostgreSQL ---
+  RDSCore:
+    Condition: UseAwsManagedServicesCondition
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Delete
+    Properties:
+      DBInstanceIdentifier: solidarianid-core
+      DBInstanceClass: db.t3.micro
+      Engine: postgres
+      EngineVersion: '15'
+      MasterUsername: core_user
+      MasterUserPassword: !Ref DBPasswordCore
+      DBName: core_db
+      AllocatedStorage: '20'
+      StorageType: gp2
+      VPCSecurityGroups:
+        - !Ref RDSSecurityGroup
+      DBSubnetGroupName: !Ref RDSSubnetGroup
+      PubliclyAccessible: false
+      MultiAZ: false
+      DeletionProtection: false
+      DBParameterGroupName: !Ref RDSParameterGroup
+
+  RDSAdmin:
+    Condition: UseAwsManagedServicesCondition
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Delete
+    Properties:
+      DBInstanceIdentifier: solidarianid-admin
+      DBInstanceClass: db.t3.micro
+      Engine: postgres
+      EngineVersion: '15'
+      MasterUsername: admin_user
+      MasterUserPassword: !Ref DBPasswordAdmin
+      DBName: admin_db
+      AllocatedStorage: '20'
+      StorageType: gp2
+      VPCSecurityGroups:
+        - !Ref RDSSecurityGroup
+      DBSubnetGroupName: !Ref RDSSubnetGroup
+      PubliclyAccessible: false
+      MultiAZ: false
+      DeletionProtection: false
+      DBParameterGroupName: !Ref RDSParameterGroup
+
+  RDSIdentity:
+    Condition: UseAwsManagedServicesCondition
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Delete
+    Properties:
+      DBInstanceIdentifier: solidarianid-identity
+      DBInstanceClass: db.t3.micro
+      Engine: postgres
+      EngineVersion: '15'
+      MasterUsername: identity_user
+      MasterUserPassword: !Ref DBPasswordIdentity
+      DBName: identity_db
+      AllocatedStorage: '20'
+      StorageType: gp2
+      VPCSecurityGroups:
+        - !Ref RDSSecurityGroup
+      DBSubnetGroupName: !Ref RDSSubnetGroup
+      PubliclyAccessible: false
+      MultiAZ: false
+      DeletionProtection: false
+      DBParameterGroupName: !Ref RDSParameterGroup
+
+  # --- ElastiCache Redis ---
+  ElastiCacheRedis:
+    Condition: UseAwsManagedServicesCondition
+    Type: AWS::ElastiCache::CacheCluster
+    Properties:
+      ClusterName: solidarianid-redis
+      Engine: redis
+      CacheNodeType: cache.t3.micro
+      NumCacheNodes: 1
+      CacheSubnetGroupName: !Ref ElastiCacheSubnetGroup
+      VpcSecurityGroupIds:
+        - !Ref ElastiCacheSecurityGroup
+
 Outputs:
   ClusterName:
     Description: Nombre del Cluster para usar en kubectl
     Value: !Ref EKSCluster
+
+  RDSCoreEndpoint:
+    Condition: UseAwsManagedServicesCondition
+    Description: Endpoint del RDS PostgreSQL para Core
+    Value: !GetAtt RDSCore.Endpoint.Address
+
+  RDSAdminEndpoint:
+    Condition: UseAwsManagedServicesCondition
+    Description: Endpoint del RDS PostgreSQL para Admin
+    Value: !GetAtt RDSAdmin.Endpoint.Address
+
+  RDSIdentityEndpoint:
+    Condition: UseAwsManagedServicesCondition
+    Description: Endpoint del RDS PostgreSQL para Identity
+    Value: !GetAtt RDSIdentity.Endpoint.Address
+
+  ElastiCacheEndpoint:
+    Condition: UseAwsManagedServicesCondition
+    Description: Endpoint del nodo Redis gestionado de ElastiCache
+    Value: !GetAtt ElastiCacheRedis.RedisEndpoint.Address

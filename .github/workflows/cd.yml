@@ -6,18 +6,21 @@ on:
     types:
       - completed
     branches:
-      - prod
+      - main
 
 env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
   ECR_REPOSITORY_CORE: ${{ secrets.ECR_REPOSITORY_CORE }}
   ECR_REPOSITORY_ADMIN: ${{ secrets.ECR_REPOSITORY_ADMIN }}
+  ECR_REPOSITORY_GATEWAY: ${{ secrets.ECR_REPOSITORY_GATEWAY }}
+  ECR_REPOSITORY_IDENTITY: ${{ secrets.ECR_REPOSITORY_IDENTITY }}
+  ECR_REPOSITORY_FRONT: ${{ secrets.ECR_REPOSITORY_FRONT }}
   STACK_NAME: SolidarianStack
+  USE_AWS_MANAGED_SERVICES: ${{ vars.USE_AWS_MANAGED_SERVICES || 'true' }}
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     permissions:
       id-token: write
       contents: read
@@ -26,7 +29,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.sha }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -43,26 +46,104 @@ jobs:
       - name: Build, tag, and push Core image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_CORE:$IMAGE_TAG --build-arg APP=solidarianid .
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_CORE:$IMAGE_TAG --build-arg APP=core .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY_CORE:$IMAGE_TAG
 
       - name: Build, tag, and push Admin image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_ADMIN:$IMAGE_TAG --build-arg APP=admin .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY_ADMIN:$IMAGE_TAG
 
+      - name: Build, tag, and push Gateway image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_GATEWAY:$IMAGE_TAG --build-arg APP=gateway .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY_GATEWAY:$IMAGE_TAG
+
+      - name: Build, tag, and push Identity image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_IDENTITY:$IMAGE_TAG --build-arg APP=identity .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY_IDENTITY:$IMAGE_TAG
+
+      - name: Build, tag, and push Front image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_FRONT:$IMAGE_TAG --build-arg NEXT_PUBLIC_GATEWAY_URL=${{ secrets.GATEWAY_URL }} -f Dockerfile.front .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY_FRONT:$IMAGE_TAG
+
       - name: Deploy CloudFormation Stack
+        env:
+          LAB_ROLE_ARN: ${{ secrets.LAB_ROLE_ARN }}
+          DB_PASSWORD_CORE: ${{ secrets.DB_PASSWORD_CORE }}
+          DB_PASSWORD_ADMIN: ${{ secrets.DB_PASSWORD_ADMIN }}
+          DB_PASSWORD_IDENTITY: ${{ secrets.DB_PASSWORD_IDENTITY }}
         run: |
           aws cloudformation deploy \
             --template-file infra/eks-cluster.yaml \
             --stack-name ${{ env.STACK_NAME }} \
             --capabilities CAPABILITY_NAMED_IAM \
-            --parameter-overrides LabRoleArn=${{ secrets.LAB_ROLE_ARN }}
+            --parameter-overrides \
+              "LabRoleArn=$LAB_ROLE_ARN" \
+              "DBPasswordCore=$DB_PASSWORD_CORE" \
+              "DBPasswordAdmin=$DB_PASSWORD_ADMIN" \
+              "DBPasswordIdentity=$DB_PASSWORD_IDENTITY" \
+              "UseAwsManagedServices=${{ env.USE_AWS_MANAGED_SERVICES }}"
+
+      - name: Resolve data service endpoints
+        run: |
+          STACK=${{ env.STACK_NAME }}
+          USE_MANAGED="${USE_AWS_MANAGED_SERVICES:-true}"
+
+          if [ "$USE_MANAGED" = "true" ]; then
+            echo "Using AWS managed services: RDS and ElastiCache"
+
+            DB_HOST_CORE=$(aws cloudformation describe-stacks \
+              --stack-name $STACK \
+              --query "Stacks[0].Outputs[?OutputKey=='RDSCoreEndpoint'].OutputValue" \
+              --output text)
+
+            DB_HOST_ADMIN=$(aws cloudformation describe-stacks \
+              --stack-name $STACK \
+              --query "Stacks[0].Outputs[?OutputKey=='RDSAdminEndpoint'].OutputValue" \
+              --output text)
+
+            DB_HOST_IDENTITY=$(aws cloudformation describe-stacks \
+              --stack-name $STACK \
+              --query "Stacks[0].Outputs[?OutputKey=='RDSIdentityEndpoint'].OutputValue" \
+              --output text)
+
+            REDIS_ENDPOINT=$(aws cloudformation describe-stacks \
+              --stack-name $STACK \
+              --query "Stacks[0].Outputs[?OutputKey=='ElastiCacheEndpoint'].OutputValue" \
+              --output text)
+
+            echo "DB_HOST_CORE=${DB_HOST_CORE}" >> $GITHUB_ENV
+            echo "DB_HOST_ADMIN=${DB_HOST_ADMIN}" >> $GITHUB_ENV
+            echo "DB_HOST_IDENTITY=${DB_HOST_IDENTITY}" >> $GITHUB_ENV
+            echo "REDIS_URL=redis://${REDIS_ENDPOINT}:6379" >> $GITHUB_ENV
+          elif [ "$USE_MANAGED" = "false" ]; then
+            echo "Using in-cluster PostgreSQL and Redis services"
+
+            echo "DB_HOST_CORE=postgres-core" >> $GITHUB_ENV
+            echo "DB_HOST_ADMIN=postgres-admin" >> $GITHUB_ENV
+            echo "DB_HOST_IDENTITY=postgres-identity" >> $GITHUB_ENV
+            echo "REDIS_URL=redis://redis:6379" >> $GITHUB_ENV
+          else
+            echo "::error::USE_AWS_MANAGED_SERVICES must be 'true' or 'false'. Current value: $USE_MANAGED"
+            exit 1
+          fi
 
       - name: Update Kubeconfig
         run: |
@@ -78,13 +159,42 @@ jobs:
         run: |
           kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 
+      - name: Deploy local data services
+        if: ${{ env.USE_AWS_MANAGED_SERVICES == 'false' }}
+        env:
+          DB_PASSWORD_CORE: ${{ secrets.DB_PASSWORD_CORE }}
+          DB_PASSWORD_IDENTITY: ${{ secrets.DB_PASSWORD_IDENTITY }}
+          DB_PASSWORD_ADMIN: ${{ secrets.DB_PASSWORD_ADMIN }}
+        run: |
+          envsubst < infra/k8s/local-data-services.yaml > infra/k8s/local-data-services-final.yaml
+          kubectl apply -f infra/k8s/local-data-services-final.yaml
+          kubectl rollout status deployment/postgres-core --timeout=180s
+          kubectl rollout status deployment/postgres-admin --timeout=180s
+          kubectl rollout status deployment/postgres-identity --timeout=180s
+          kubectl rollout status deployment/redis --timeout=180s
+
       - name: Deploy to Kubernetes
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          IMAGE_TAG: ${{ github.sha }}
+          DB_PASSWORD_CORE: ${{ secrets.DB_PASSWORD_CORE }}
+          DB_PASSWORD_IDENTITY: ${{ secrets.DB_PASSWORD_IDENTITY }}
+          DB_PASSWORD_ADMIN: ${{ secrets.DB_PASSWORD_ADMIN }}
+          DB_HOST_CORE: ${{ env.DB_HOST_CORE }}
+          DB_HOST_ADMIN: ${{ env.DB_HOST_ADMIN }}
+          DB_HOST_IDENTITY: ${{ env.DB_HOST_IDENTITY }}
+          REDIS_URL: ${{ env.REDIS_URL }}
           STRIPE_SK: ${{ secrets.STRIPE_SK }}
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
+          GATEWAY_URL: ${{ secrets.GATEWAY_URL }}
+          VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+          VAPID_SUBJECT: ${{ secrets.VAPID_SUBJECT }}
         run: |
           envsubst < infra/k8s/deployment.yaml > infra/k8s/deployment-final.yaml
 
@@ -92,3 +202,8 @@ jobs:
 
           # Verify status
           kubectl get services
+
+      - name: Remove local data services
+        if: ${{ env.USE_AWS_MANAGED_SERVICES == 'true' }}
+        run: |
+          kubectl delete -f infra/k8s/local-data-services.yaml --ignore-not-found
